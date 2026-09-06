@@ -179,11 +179,7 @@ def BrainStorm(
                     own_tc = None
                     if _tool_call_id:
                         own_tc = next(
-                            (
-                                tc
-                                for tc in unanswered
-                                if tc.get("id") == _tool_call_id
-                            ),
+                            (tc for tc in unanswered if tc.get("id") == _tool_call_id),
                             None,
                         )
                     if own_tc is None:
@@ -191,8 +187,7 @@ def BrainStorm(
                             (
                                 tc
                                 for tc in unanswered
-                                if tc.get("function", {}).get("name")
-                                == "BrainStorm"
+                                if tc.get("function", {}).get("name") == "BrainStorm"
                             ),
                             None,
                         )

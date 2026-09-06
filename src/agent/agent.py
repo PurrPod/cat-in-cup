@@ -520,14 +520,10 @@ class Agent:
         # 🌟 快照派发类工具（BrainStorm create）延后到批次末尾执行：
         # 确保同批次其它工具的返回结果先写入 history，BS 随后的快照才能完整兜住
         if len(tool_calls) > 1:
-            deferred = [
-                tc for tc in tool_calls if self._is_snapshot_dispatch_tool(tc)
-            ]
+            deferred = [tc for tc in tool_calls if self._is_snapshot_dispatch_tool(tc)]
             if deferred:
                 others = [
-                    tc
-                    for tc in tool_calls
-                    if not self._is_snapshot_dispatch_tool(tc)
+                    tc for tc in tool_calls if not self._is_snapshot_dispatch_tool(tc)
                 ]
                 tool_calls = others + deferred
 
