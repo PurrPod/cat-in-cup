@@ -147,34 +147,89 @@ def BrainStorm(
                 main_session_id = manager.get_active_session_id()
                 main_history = manager._agent.get_history()
 
-                tool_call_id = None
-                if main_history and len(main_history) > 0:
-                    last_msg = main_history[-1]
-                    if last_msg.get("role") == "assistant" and last_msg.get(
-                        "tool_calls"
-                    ):
-                        tool_call_id = last_msg["tool_calls"][0]["id"]
+                # 🌟 从尾部往前定位本批次的 assistant 消息（带 tool_calls）。
+                # BS 被调度器延后到批次末尾执行，此刻其后可能已跟了同批次
+                # 其它工具的返回结果（这些结果会随快照进入子代理上下文），
+                # 因此不能只看 history[-1]。
+                assistant_idx = -1
+                for i in range(len(main_history) - 1, -1, -1):
+                    msg = main_history[i]
+                    if msg.get("role") == "assistant" and msg.get("tool_calls"):
+                        assistant_idx = i
+                        break
 
-                if tool_call_id:
+                if assistant_idx >= 0:
                     # 引入 json 模块以确保安全的字符串化
                     import json
 
-                    # 拿取原始响应
-                    raw_resp = text_response(final_response_text, "🚀 脑暴计划已生效")
-                    # 模拟 dispatch_tool 的安全策略，如果是字典就转 JSON 字符串
-                    safe_content = (
-                        json.dumps(raw_resp, ensure_ascii=False)
-                        if isinstance(raw_resp, dict)
-                        else str(raw_resp)
-                    )
-
-                    sub_tool_result_msg = {
-                        "role": "tool",
-                        "tool_call_id": tool_call_id,
-                        "name": "BrainStorm",
-                        "content": safe_content,  # 👈 塞入绝对安全的纯字符串
+                    assistant_msg = main_history[assistant_idx]
+                    answered_ids = {
+                        m.get("tool_call_id")
+                        for m in main_history[assistant_idx + 1 :]
+                        if m.get("role") == "tool"
                     }
-                    main_history.append(sub_tool_result_msg)
+                    unanswered = [
+                        tc
+                        for tc in assistant_msg["tool_calls"]
+                        if tc.get("id") not in answered_ids
+                    ]
+
+                    # 定位本工具自己的 tool_call：优先用调度器注入的
+                    # _tool_call_id，兜底按函数名匹配
+                    own_tc = None
+                    if _tool_call_id:
+                        own_tc = next(
+                            (tc for tc in unanswered if tc.get("id") == _tool_call_id),
+                            None,
+                        )
+                    if own_tc is None:
+                        own_tc = next(
+                            (
+                                tc
+                                for tc in unanswered
+                                if tc.get("function", {}).get("name") == "BrainStorm"
+                            ),
+                            None,
+                        )
+
+                    # 1) 塞入 BS 自己的伪造结果（绝对安全的纯字符串）
+                    if own_tc:
+                        # 拿取原始响应
+                        raw_resp = text_response(
+                            final_response_text, "🚀 脑暴计划已生效"
+                        )
+                        # 模拟 dispatch_tool 的安全策略，如果是字典就转 JSON 字符串
+                        safe_content = (
+                            json.dumps(raw_resp, ensure_ascii=False)
+                            if isinstance(raw_resp, dict)
+                            else str(raw_resp)
+                        )
+                        main_history.append(
+                            {
+                                "role": "tool",
+                                "tool_call_id": own_tc["id"],
+                                "name": "BrainStorm",
+                                "content": safe_content,
+                            }
+                        )
+                        answered_ids.add(own_tc["id"])
+
+                    # 2) 兜底补全其余未应答的调用（如同批次并存的另一个
+                    #    BrainStorm），防止子代理上下文 toolchain 断裂触发 400
+                    for tc in unanswered:
+                        if tc.get("id") in answered_ids:
+                            continue
+                        main_history.append(
+                            {
+                                "role": "tool",
+                                "tool_call_id": tc["id"],
+                                "name": tc.get("function", {}).get("name", ""),
+                                "content": (
+                                    "【系统提示】该工具调用与 BrainStorm 同批次发出，"
+                                    "其返回结果未注入本子代理上下文，请勿依赖此占位内容。"
+                                ),
+                            }
+                        )
 
                 loop = ensure_sub_loop()
                 asyncio.run_coroutine_threadsafe(
