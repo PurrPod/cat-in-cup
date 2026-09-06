@@ -16,7 +16,9 @@
 
 ## 快速开始
 
-> 如果你是 Windows 用户，可以直接在最新的 [Release](https://github.com/PurrPod/purrcat/releases) 下载安装包。Mac / Linux 用户暂时只能通过源码构建，且这两个版本因人力不足未经测试，仅 Windows 版本经过多人验证可用。
+> PurrCat 仍处于快速迭代期，**推荐从源码部署**，以便及时跟进更新进度，第一时间获得最新功能与修复。
+
+> Windows 用户也可直接从最新的 [Release](https://github.com/PurrPod/purrcat/releases) 下载安装包快速上手；macOS / Linux 安装包因人力原因暂未经测试，请从源码部署。
 
 ### 环境要求
 

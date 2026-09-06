@@ -16,7 +16,9 @@ An economical, efficient, customizable, local-first personal AI Agent framework.
 
 ## Quickstart
 
-> Windows users can download the installer directly from the latest [Release](https://github.com/PurrPod/purrcat/releases). Mac/Linux users currently have to build from source; due to limited manpower those builds are untested — only the Windows build has been verified by multiple users.
+> PurrCat is under rapid development. **Deploying from source is recommended** so you can follow updates closely and get the latest features & fixes as soon as they land.
+
+> Windows users can also grab the installer from the latest [Release](https://github.com/PurrPod/purrcat/releases) for a quick start. macOS/Linux installers are not yet tested due to limited manpower, so please build from source on those platforms.
 
 ### Requirements
 
