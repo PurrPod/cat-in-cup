@@ -50,6 +50,14 @@ def get_agent_status():
         "compressing": getattr(_manager_instance._agent, "_compressing", False)
         if getattr(_manager_instance, "_agent", None)
         else False,
+        # 🌟 流式思考内容（仅活跃会话思考期间非空，供前端实时渲染）
+        "live_reasoning": getattr(_manager_instance._agent, "_live_reasoning", "")
+        if getattr(_manager_instance, "_agent", None)
+        else "",
+        # 🌟 当前交互阶段：thinking=模型推理中 / processing=工具执行中 / idle=空闲
+        "live_phase": getattr(_manager_instance._agent, "_live_phase", "idle")
+        if getattr(_manager_instance, "_agent", None)
+        else "idle",
     }
 
 

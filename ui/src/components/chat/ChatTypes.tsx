@@ -4,6 +4,7 @@ export interface Message {
   content: string;
   name?: string;
   tool_calls?: any[];
+  reasoning_content?: string;
 }
 
 export interface EventItem {

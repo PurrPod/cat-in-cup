@@ -40,6 +40,10 @@ class Agent:
         self._tool_interrupt_event = threading.Event()
         # 🌟 记忆压缩进行中标记（压缩不改 state，供 /status API 区分 idle 但在压缩的情况）
         self._compressing = False
+        # 🌟 流式思考内容：模型思考增量实时累积于此（仅供 /status 轮询透出，不落盘不进 toolchain）
+        self._live_reasoning = ""
+        # 🌟 当前交互阶段：thinking=模型推理中 / processing=工具执行中 / idle=空闲（供前端切换气泡文案）
+        self._live_phase = "idle"
         self._history_lock = threading.RLock()
         self._push_lock = threading.RLock()
         self._save_callback = save_callback
@@ -191,10 +195,6 @@ class Agent:
             )
         with self._push_lock:
             self.pending_force_push.extend(batch_push)
-
-    def _track_token_usage(self, response):
-        if hasattr(response, "usage") and response.usage is not None:
-            self.window_token = response.usage.total_tokens
 
     def _check_and_fix_toolchain(self):
         """
@@ -396,16 +396,16 @@ class Agent:
                 with self._history_lock:
                     safe_history = list(self.current_history)
 
-                response = self.model.chat(
-                    messages=safe_history, tools=self._get_tool_schema()
+                msg_resp, usage = self._chat_stream(
+                    safe_history, self._get_tool_schema(), current_interaction_id
                 )
 
                 if self._get_current_interaction_id() != current_interaction_id:
                     print("[Warn.Session] 网络响应返回后检测到交互ID过期，丢弃响应")
                     break
 
-                self._track_token_usage(response)
-                msg_resp = response.choices[0].message
+                if usage is not None:
+                    self.window_token = usage.total_tokens
                 has_tools = self._process_assistant_message(msg_resp)
 
                 # 本次消息发起的那一批工具调用（on_tool_calling 的 tool_use_check 只查这一批）
@@ -467,7 +467,101 @@ class Agent:
                 self._handle_interaction_error(e=e)
                 break
 
+        self._live_phase = "idle"
         self.save_checkpoint()
+
+    def _chat_stream(self, messages, tools, interaction_id):
+        """
+        🌟 流式调用主模型（带兜底）：思考增量实时写入 self._live_reasoning
+        （供 /status 轮询透出给前端）；流式链路出任何异常时自动回退到
+        原有非流式调用，保证 Agent 主循环行为不受影响。
+        """
+        try:
+            self._live_phase = "thinking"
+            return self._consume_stream(messages, tools, interaction_id)
+        except Exception as e:
+            if self._get_current_interaction_id() != interaction_id:
+                # 打断/会话切换引起的流中断：结果会被上层丢弃，无需回退
+                raise
+            print(f"[Warn.Stream] 流式调用失败，回退非流式重试: {e}")
+            self._live_reasoning = ""
+            response = self.model.chat(messages=messages, tools=tools)
+            return response.choices[0].message, getattr(response, "usage", None)
+
+    def _consume_stream(self, messages, tools, interaction_id):
+        """
+        真正的流式消费与拼装：思考过程不落盘、不进 history/toolchain，
+        流结束后拼装出与非流式等价的 message 对象，仍走原有的
+        _process_assistant_message 写入路径。
+        """
+        from types import SimpleNamespace
+
+        self._live_reasoning = ""
+        response = self.model.chat(messages=messages, tools=tools, stream=True)
+
+        reasoning_parts = []
+        content_parts = []
+        tool_acc = {}  # index -> {"id","type","name","arguments"}
+        usage = None
+
+        for chunk in response:
+            if self._get_current_interaction_id() != interaction_id:
+                # 人类打断/会话切换：提前掐断流，拼装结果将被上层丢弃
+                break
+            if getattr(chunk, "usage", None):
+                usage = chunk.usage
+            if not getattr(chunk, "choices", None):
+                continue
+            delta = chunk.choices[0].delta
+            if delta is None:
+                continue
+
+            rc = getattr(delta, "reasoning_content", None)
+            if rc is None and hasattr(delta, "model_dump"):
+                try:
+                    rc = delta.model_dump().get("reasoning_content")
+                except Exception:
+                    rc = None
+            if rc:
+                reasoning_parts.append(rc)
+                self._live_reasoning = "".join(reasoning_parts)
+
+            if delta.content:
+                content_parts.append(delta.content)
+
+            for tc in getattr(delta, "tool_calls", None) or []:
+                slot = tool_acc.setdefault(
+                    tc.index,
+                    {"id": "", "type": "function", "name": "", "arguments": ""},
+                )
+                if tc.id:
+                    slot["id"] = tc.id
+                if tc.type:
+                    slot["type"] = tc.type
+                if tc.function:
+                    if tc.function.name:
+                        slot["name"] += tc.function.name
+                    if tc.function.arguments:
+                        slot["arguments"] += tc.function.arguments
+
+        self._live_reasoning = ""
+
+        tool_calls = [
+            SimpleNamespace(
+                id=slot["id"],
+                type=slot["type"],
+                function=SimpleNamespace(
+                    name=slot["name"], arguments=slot["arguments"]
+                ),
+            )
+            for _, slot in sorted(tool_acc.items())
+        ] or None
+
+        reasoning_text = "".join(reasoning_parts)
+        msg = SimpleNamespace(content="".join(content_parts), tool_calls=tool_calls)
+        if reasoning_text:
+            msg.reasoning_content = reasoning_text
+        return msg, usage
 
     def _process_assistant_message(self, msg_resp) -> bool:
         assist_msg = {"role": "assistant", "content": msg_resp.content or ""}
@@ -517,6 +611,7 @@ class Agent:
         return isinstance(args, dict) and args.get("action") == "create"
 
     def _execute_tool_calls(self, tool_calls) -> bool:
+        self._live_phase = "processing"
         # 🌟 快照派发类工具（BrainStorm create）延后到批次末尾执行：
         # 确保同批次其它工具的返回结果先写入 history，BS 随后的快照才能完整兜住
         if len(tool_calls) > 1:
