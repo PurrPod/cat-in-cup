@@ -312,7 +312,9 @@ def get_session_status(session_id: str):
                 "state": status.get("state", "idle"),
                 "compressing": status.get("compressing", False),
                 # 🌟 思考期间透出流式思考内容，思考结束（idle）自动清空
-                "live_reasoning": status.get("live_reasoning", "") if is_thinking else "",
+                "live_reasoning": status.get("live_reasoning", "")
+                if is_thinking
+                else "",
                 # 🌟 交互阶段：thinking=模型推理中 / processing=工具执行中 / idle=空闲
                 "phase": status.get("live_phase", "idle") if is_thinking else "idle",
             }
