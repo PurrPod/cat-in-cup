@@ -1,4 +1,5 @@
 import atexit
+import multiprocessing
 import os
 import re
 import shutil
@@ -80,6 +81,31 @@ def _get_container_exec_cmd(container_name: str) -> str:
 
 _docker_manager_instance: Optional["DockerManager"] = None
 
+# 共享专属沙盒的容器名（start/stop 逻辑都以它为准）
+SANDBOX_CONTAINER_NAME = "agent_computer"
+
+
+def _stop_sandbox_on_exit():
+    """主进程退出时把沙盒容器休眠（保留容器内的系统变更，进程不残留运行）。
+
+    只能由真正的宿主（MainProcess）注册：bash 工具在子进程隔离下每次调用都会
+    新建进程，若让子进程 atexit 去 stop 容器，会在其它并发会话的命令执行到一半时
+    切断其 docker exec 连接，造成随机的 End Of File (EOF) 报错。
+    """
+    try:
+        client = docker.from_env(timeout=5)
+        container = client.containers.get(SANDBOX_CONTAINER_NAME)
+        if container.status == "running":
+            container.stop(timeout=2)
+            print(f"[*] 宿主退出：沙盒 ({SANDBOX_CONTAINER_NAME}) 已休眠")
+    except Exception as e:
+        print(f"[*] 宿主退出时休眠沙盒失败(忽略): {e}")
+
+
+if multiprocessing.current_process().name == "MainProcess":
+    # 只有主进程注册退出清理；spawn 出来的 bash 子进程不应休眠共享容器
+    atexit.register(_stop_sandbox_on_exit)
+
 
 def _get_container_env() -> dict:
     # 既然主机开了 TUN 模式，容器不需要任何代理环境变量，直接跟主机共享网络上下文
@@ -90,7 +116,7 @@ class DockerManager:
     def __init__(
         self,
         image: str,
-        container_name: str = "agent_computer",
+        container_name: str = SANDBOX_CONTAINER_NAME,
         workspace_dir: str | None = None,
     ):
         if not image:
@@ -215,6 +241,25 @@ class DockerManager:
 
         self.container = None
 
+    def _spawn_shell_process(self):
+        """创建一条新的 docker exec bash 会话，并完成就绪握手。"""
+        command = _get_container_exec_cmd(self.container.name)
+        shell_process = None
+        try:
+            shell_process = SpawnClass(command, encoding="utf-8", timeout=120)
+            shell_process.send(
+                "stty -echo\nexport PS1=''\nexport TERM=dumb\necho '__SHELL_READY__'\n"
+            )
+            shell_process.expect("__SHELL_READY__", timeout=10)
+            return shell_process
+        except (pexpect.exceptions.TIMEOUT, pexpect.exceptions.EOF) as e:
+            if shell_process is not None:
+                try:
+                    force_close(shell_process)
+                except Exception:
+                    pass
+            raise RuntimeError(f"沙盒 shell 会话创建失败(容器可能未就绪): {e}") from e
+
     def _ensure_shell(self, session_id: str):
         if not self.container:
             raise RuntimeError("Container not running.")
@@ -223,24 +268,15 @@ class DockerManager:
             return
 
         print(f"[+] Auto-creating new shell session: '{session_id}'")
-        command = _get_container_exec_cmd(self.container.name)
-        try:
-            shell_process = SpawnClass(command, encoding="utf-8", timeout=120)
-            shell_process.send(
-                "stty -echo\nexport PS1=''\nexport TERM=dumb\necho '__SHELL_READY__'\n"
-            )
-            shell_process.expect("__SHELL_READY__", timeout=10)
-
-            with self.pool_lock:
-                if session_id in self.shell_pool:
-                    force_close(shell_process)
-                    return
-                self.shell_pool[session_id] = {
-                    "process": shell_process,
-                    "lock": threading.Lock(),
-                }
-        except pexpect.exceptions.TIMEOUT:
-            raise RuntimeError("Timeout initializing shell environment.")
+        shell_process = self._spawn_shell_process()
+        with self.pool_lock:
+            if session_id in self.shell_pool:
+                force_close(shell_process)
+                return
+            self.shell_pool[session_id] = {
+                "process": shell_process,
+                "lock": threading.Lock(),
+            }
 
     def close_shell(self, session_id: str):
         with self.pool_lock:
@@ -258,13 +294,7 @@ class DockerManager:
             return
         if check_alive(session["process"]):
             force_close(session["process"])
-        command = _get_container_exec_cmd(self.container.name)
-        new_process = SpawnClass(command, encoding="utf-8", timeout=120)
-        new_process.send(
-            "stty -echo\nexport PS1=''\nexport TERM=dumb\necho '__SHELL_READY__'\n"
-        )
-        new_process.expect("__SHELL_READY__", timeout=10)
-        session["process"] = new_process
+        session["process"] = self._spawn_shell_process()
 
     def execute(
         self, session_id: str, command: str, timeout: int = 30
@@ -280,22 +310,45 @@ class DockerManager:
                 self._restart_shell(session_id)
                 process = session["process"]
 
-            marker_id = uuid.uuid4().hex
-            marker_str = f"__CMD_DONE_{marker_id}__"
-            # 新代码：将大模型的命令包在一个代码块中，并强制将其输入重定向到 /dev/null
-            # 这样无论里面跑什么命令，都无法窃取终端后续的输入字符
-            safe_command = command.strip()
             # 通过换行分隔，避免 `{ ` 和 ` ; } < /dev/null` 污染命令末尾的 Heredoc 终结符
-            full_payload = f'{{\n{safe_command}\n}} < /dev/null\necho -e "\\n{marker_str}$?|$(pwd)"'
+            safe_command = command.strip()
+            eof_retried = False
+            while True:
+                marker_id = uuid.uuid4().hex
+                marker_str = f"__CMD_DONE_{marker_id}__"
+                # 将大模型的命令包在一个代码块中，并强制将其输入重定向到 /dev/null
+                # 这样无论里面跑什么命令，都无法窃取终端后续的输入字符
+                full_payload = (
+                    f"{{\n{safe_command}\n}} < /dev/null\n"
+                    f'echo -e "\\n{marker_str}$?|$(pwd)"'
+                )
 
-            process.send(full_payload.replace("\r", "") + "\n")
-            try:
-                process.expect(f"{marker_str}(\\d+)\\|(.*)", timeout=timeout)
-            except pexpect.exceptions.TIMEOUT:
-                partial_output = self._clean_ansi(process.before or "")
-                print(f"[red]⚠️ Shell '{session_id}' timed out. Resetting...[/red]")
-                self._restart_shell(session_id)
-                raise BashTimeoutError(f"部分输出:\n{partial_output.strip()}")
+                process.send(full_payload.replace("\r", "") + "\n")
+                try:
+                    process.expect(f"{marker_str}(\\d+)\\|(.*)", timeout=timeout)
+                    break
+                except pexpect.exceptions.TIMEOUT:
+                    partial_output = self._clean_ansi(process.before or "")
+                    print(f"[red]⚠️ Shell '{session_id}' timed out. Resetting...[/red]")
+                    self._restart_shell(session_id)
+                    process = session["process"]
+                    raise BashTimeoutError(f"部分输出:\n{partial_output.strip()}")
+                except pexpect.exceptions.EOF as e:
+                    # docker exec 会话被意外切断（如容器被并发 stop / Docker 引擎抖动）：
+                    # 重启会话后重试一次，避免把偶发掉线直接暴露给上层
+                    partial_output = self._clean_ansi(process.before or "")
+                    if eof_retried:
+                        raise RuntimeError(
+                            "沙盒 shell 会话意外断开(EOF)，重启重试后仍失败。\n"
+                            f"断开前部分输出:\n{partial_output.strip()}"
+                        ) from e
+                    eof_retried = True
+                    print(
+                        f"[yellow]⚠️ Shell '{session_id}' 会话断开(EOF)，"
+                        "正在重启会话并重试命令...[/yellow]"
+                    )
+                    self._restart_shell(session_id)
+                    process = session["process"]
 
             exit_code = int(process.match.group(1))
             cwd = process.match.group(2).strip()
@@ -319,7 +372,10 @@ def get_docker_manager() -> "DockerManager":
         _docker_manager_instance = DockerManager(
             image="my_agent_env:latest", workspace_dir=AGENT_VM_DIR
         )
-        atexit.register(_docker_manager_instance.stop)
+        # 注意：不再在此处注册 atexit 休眠容器。bash 工具在子进程隔离下每次
+        # 调用都会新建进程，若每个子进程退出时都 stop 共享容器，会切断其它并发
+        # 会话正在执行的 docker exec 连接 → 随机 End Of File (EOF)。
+        # 容器休眠统一由模块顶部 MainProcess 的退出钩子负责。
 
     _docker_manager_instance.start()
     return _docker_manager_instance
