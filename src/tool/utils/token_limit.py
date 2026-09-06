@@ -1,7 +1,7 @@
 """Token 口径的输出限制工具：工具路由与 FileSystem 共用的统一上限计算"""
 
 # 统一输出上限（token 口径）
-DEFAULT_OUTPUT_TOKEN_LIMIT = 5000
+DEFAULT_OUTPUT_TOKEN_LIMIT = 10000
 MIN_OUTPUT_TOKEN_LIMIT = 500
 # 动态模式（传入 available_tokens）下为模型上下文预留的余量
 TOKEN_CONTEXT_RESERVE = 500
