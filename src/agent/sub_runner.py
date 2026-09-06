@@ -443,9 +443,21 @@ class SubAgentRunner:
             # 3. 契约验收逻辑 (无工具调用时)
             if not tool_calls:
                 if file_ready:
-                    self._notify_main(
+                    notify_text = (
                         f"[Success.Report] 子分支 `{self.display_branch_id}` 任务已圆满结束！所有目标交付物文件均已就绪且内容不为空。"
                     )
+                    # 🌟 附加子代理最后一条回复，让主干无需读文件即可拿到收尾汇报
+                    final_reply = (msg_resp.content or "").strip()
+                    if final_reply:
+                        MAX_REPLY_LEN = 1000
+                        snippet = final_reply[:MAX_REPLY_LEN]
+                        omitted = len(final_reply) - MAX_REPLY_LEN
+                        if omitted > 0:
+                            snippet += (
+                                f"\n...(后续 {omitted} 字符已截断，完整内容见该分支的会话记录)"
+                            )
+                        notify_text += f"\n--- 子代理收尾汇报 ---\n{snippet}"
+                    self._notify_main(notify_text)
                     break
                 else:
                     missing_txt = "\n".join([f"- {p}" for p in missing_files])
