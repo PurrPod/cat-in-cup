@@ -13,6 +13,11 @@ import uuid
 from typing import Any
 
 from src.utils.config import BUFFER_DIR
+from src.tool.utils.token_limit import (
+    count_tokens,
+    get_output_token_limit,
+    truncate_to_tokens,
+)
 
 # 工具名到函数名的映射表
 TOOL_FUNC_MAP = {
@@ -45,21 +50,20 @@ PROCESS_ISOLATED_TOOLS = {
 }
 
 
-def _safe_truncate(data: Any, max_len: int) -> str:
-    """结构化安全省略策略：基于纯净 content 直接格式化"""
+def _safe_truncate(data: Any, max_tokens: int) -> str:
+    """结构化安全省略策略：按 token 预算截断预览"""
     data_str = (
         json.dumps(data, ensure_ascii=False, indent=2)
         if isinstance(data, (dict, list))
         else str(data)
     )
 
-    if len(data_str) <= max_len:
+    if count_tokens(data_str) <= max_tokens:
         return data_str
 
-    # 仅保留前端
-    preview_front = data_str[:max_len]
-    omitted = len(data_str) - max_len
-    return f"{preview_front}\n\n... [后续 {omitted} 字符已被截断，请使用 Bash 工具读取落盘的缓存文件] ..."
+    preview = truncate_to_tokens(data_str, max_tokens)
+    omitted_chars = len(data_str) - len(preview)
+    return f"{preview}\n\n... [后续约 {omitted_chars} 字符已被截断，请使用 Bash 工具读取落盘的缓存文件] ..."
 
 
 def _handle_media_content(content_data: Any, tool_name: str) -> Any:
@@ -347,18 +351,16 @@ def dispatch_tool(
         else:
             actual_content_str = str(content_data)
 
-        # 5. 长度拦截判断
-        MAX_LEN = 5000
-        if available_tokens is not None:
-            dynamic_max_len = int((available_tokens - 500) * 1.5)
-            MAX_LEN = min(5000, max(500, dynamic_max_len))
+        # 5. 长度拦截判断（token 口径，与 FileSystem 等工具共用同一上限函数）
+        max_output_tokens = get_output_token_limit(available_tokens)
 
         is_fetch_skill = (
             tool_name_lower == "fetch"
             and arguments.get("source", "").lower() == "skill"
         )
 
-        if len(actual_content_str) > MAX_LEN and not is_fetch_skill:
+        content_token_count = count_tokens(actual_content_str)
+        if content_token_count > max_output_tokens and not is_fetch_skill:
             # 📂 纯净落盘：100% 只保存数据本体，无协议头污染
             buffer_dir = BUFFER_DIR
             tool_dir = os.path.join(buffer_dir, tool_name_lower)
@@ -371,12 +373,12 @@ def dispatch_tool(
                 f.write(actual_content_str)
 
             # 🛠️ 覆盖更新 Context 与 Metadata
-            truncated_str = _safe_truncate(content_data, MAX_LEN)
+            truncated_str = _safe_truncate(content_data, max_output_tokens)
             warning_msg = (
-                f"⚠️ [系统拦截] {tool_name} 输出总长 {len(actual_content_str)} 字符，超出当前安全余量阈值。完整结果已落盘：\n"
+                f"⚠️ [系统拦截] {tool_name} 输出总长约 {content_token_count} token，超出当前安全余量阈值（{max_output_tokens} token）。完整结果已落盘：\n"
                 f"🐳 沙盒内路径: /agent_vm/.buffer/{tool_name_lower}/{file_name}\n"
                 f"如果你需要查看剩余的内容，请务必使用 Bash (cat/grep/sed/tail) 工具去上述缓存文件里分批阅读！\n"
-                f"\n--- 内容预览 (前 {MAX_LEN} 字符) ---\n"
+                f"\n--- 内容预览 (前 {max_output_tokens} token) ---\n"
                 f"{truncated_str}"
             )
 

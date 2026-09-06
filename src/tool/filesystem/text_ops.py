@@ -24,6 +24,18 @@ CACHE_DIR = os.path.join(BUFFER_DIR, "filesystem")
 REGISTRY_FILE = os.path.join(CACHE_DIR, "registry.json")
 
 
+def _normalize_newlines(text: str) -> str:
+    """归一化行尾为 \\n（匹配与替换统一在 \\n 口径进行）"""
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def _detect_dominant_newline(raw: bytes) -> str:
+    """检测字节内容的主导行尾：CRLF 占多数则返回 CRLF，否则 LF"""
+    crlf = raw.count(b"\r\n")
+    lf = raw.count(b"\n") - crlf
+    return "\r\n" if crlf > lf else "\n"
+
+
 def _get_cache(target_path: str, current_mtime: float):
     """读取缓存文件并验证修改时间是否一致"""
     if not os.path.exists(REGISTRY_FILE):
@@ -176,8 +188,15 @@ def edit_file(
 
     try:
         with lock:
-            with open(target_path, "r", encoding="utf-8") as f:
-                content = f.read()
+            # 🌟 字节级读取：检测原始行尾风格，杜绝 Windows 文本模式把 LF 改写成 CRLF
+            with open(target_path, "rb") as f:
+                raw_content = f.read()
+            dominant_nl = _detect_dominant_newline(raw_content)
+            content = _normalize_newlines(raw_content.decode("utf-8"))
+
+            # 匹配口径统一为 \n（read 展示给 Agent 的也是归一化内容）
+            old_string = _normalize_newlines(old_string)
+            new_string = _normalize_newlines(new_string)
 
             occurrences = content.count(old_string)
             if occurrences == 0:
@@ -201,8 +220,14 @@ def edit_file(
                 dir=os.path.dirname(target_path), text=True
             )
             try:
-                with os.fdopen(fd, "w", encoding="utf-8") as f:
-                    f.write(new_content)
+                # newline="" 禁用平台行尾转换，按文件原主导行尾写回
+                write_content = (
+                    new_content.replace("\n", dominant_nl)
+                    if dominant_nl != "\n"
+                    else new_content
+                )
+                with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
+                    f.write(write_content)
                 os.replace(temp_path, target_path)
             except Exception as e:
                 if os.path.exists(temp_path):
@@ -257,20 +282,31 @@ def write_file(path_from: str, content: str) -> dict:
 
     try:
         with lock:
-            # 🌟 1. 在覆盖前，先读取旧文件内容（如果存在的话）
+            # 🌟 1. 在覆盖前，先字节级读取旧文件（如存在）：检测行尾风格供写回适配
             old_content = ""
+            dominant_nl = "\n"
             if os.path.exists(target_path):
-                with open(target_path, "r", encoding="utf-8") as f:
-                    old_content = f.read()
+                with open(target_path, "rb") as f:
+                    old_raw = f.read()
+                dominant_nl = _detect_dominant_newline(old_raw)
+                old_content = _normalize_newlines(old_raw.decode("utf-8"))
 
             backup_id = track_edit(target_path)
+
+            # 归一化后按旧文件主导行尾适配（新文件保持 LF），杜绝平台行尾转换
+            norm_content = _normalize_newlines(content)
+            write_content = (
+                norm_content.replace("\n", dominant_nl)
+                if dominant_nl != "\n"
+                else norm_content
+            )
 
             fd, temp_path = tempfile.mkstemp(
                 dir=os.path.dirname(target_path), text=True
             )
             try:
-                with os.fdopen(fd, "w", encoding="utf-8") as f:
-                    f.write(content)
+                with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
+                    f.write(write_content)
                 os.replace(temp_path, target_path)
             except Exception as e:
                 if os.path.exists(temp_path):
@@ -285,7 +321,7 @@ def write_file(path_from: str, content: str) -> dict:
     diff_lines = list(
         difflib.unified_diff(
             old_content.splitlines(keepends=True),
-            content.splitlines(keepends=True),
+            norm_content.splitlines(keepends=True),
             fromfile=f"a{format_path}",
             tofile=f"b{format_path}",
             n=3,
