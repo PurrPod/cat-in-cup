@@ -22,9 +22,10 @@ An economical, efficient, customizable, local-first personal AI Agent framework.
 
 ### Requirements
 
-- Python 3.10+, [uv](https://docs.astral.sh/uv/), Node.js 18+, Git
+What you need depends on how you deploy:
 
-- [Docker](https://docs.docker.com/get-docker/) (required by the sandboxed Bash tool)
+- **Installer**: only [Docker](https://docs.docker.com/get-docker/) is required (the sandboxed Bash tool and file isolation rely on it) — no extra tools needed
+- **From source**: [Docker](https://docs.docker.com/get-docker/) + Python 3.10+ / [uv](https://docs.astral.sh/uv/) + Node.js 18+; Git is used to fetch the source code (or download the ZIP)
 
 - Alternatively, run `purrcat setup` to initialize the environment (uv, Docker, embedding model, Playwright) in one step
 
