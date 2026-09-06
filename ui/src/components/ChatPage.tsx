@@ -1,7 +1,7 @@
 // src/components/ChatPage.tsx
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Send, Cat, Clock, Activity, Server, Zap, Brain, GitMerge, Loader2, FolderOpen, Bell, Paperclip, X, Heart, List, ExternalLink, Plus, BookOpen, ClipboardCopy, TerminalSquare, AlertTriangle, Globe, Pause, ArrowLeftRight, Search } from 'lucide-react';
+import { Send, Cat, Clock, Activity, Server, Zap, Brain, GitMerge, Loader2, FolderOpen, Bell, Paperclip, X, Heart, List, ExternalLink, Plus, BookOpen, ClipboardCopy, TerminalSquare, AlertTriangle, Globe, ArrowLeftRight, Search } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -28,7 +28,7 @@ const allowFileUrlTransform = (url: string) => {
 };
 
 import { Message, Session } from './chat/ChatTypes';
-import { parseEventsContent, hasMessageInHistory, renderSketchyHeatmap, MarkdownComponents, safeDecodeUri, ToolCallBubble, ToolMessageBubble, sketchyShape1, sketchyShape2, sketchyShape3 } from './chat/ChatShared';
+import { parseEventsContent, hasMessageInHistory, renderSketchyHeatmap, MarkdownComponents, safeDecodeUri, ToolCallBubble, ToolMessageBubble, ReasoningBubble, sketchyShape1, sketchyShape2, sketchyShape3 } from './chat/ChatShared';
 import ChatModals from './chat/ChatModals';
 import ChatSidebar from './chat/ChatSidebar';
 import { FileChangesPanel, RequestQueuePanel, TerminalPanel } from './chat/ChatPanels';
@@ -90,6 +90,10 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isAgentThinking, setIsAgentThinking] = useState(false);
+  // 🌟 流式思考内容：思考期间实时渲染，结束后由 assistant.reasoning_content 接棒
+  const [liveReasoning, setLiveReasoning] = useState('');
+  // 🌟 交互阶段：thinking=模型推理中（THINKING...）/ processing=工具执行中（PROCESSING...）
+  const [livePhase, setLivePhase] = useState<'thinking' | 'processing'>('thinking');
   const [branchToDelete, setBranchToDelete] = useState<string | null>(null);
 
   const [showBusyModal, setShowBusyModal] = useState(false);
@@ -453,7 +457,8 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
       return;
     }
     if (isAutoScroll.current) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // 🌟 liveReasoning 变化也触发贴底（流式思考时保持跟随）
+  }, [messages, liveReasoning]);
   useEffect(() => { pendingMsgsRef.current = []; setMsgGroupCount(1); }, [currentBranchId]);
   useEffect(() => { setMsgGroupCount(1); }, [currentSessionId]);
   const fetchGlobalStats = async () => {
@@ -783,28 +788,50 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
 
   useEffect(() => {
     if (!currentSessionId) return;
+    let tick = 0;
+    const fetchHistory = async () => {
+      const msgRes = await fetch(`/api/sessions/${currentSessionId}?branch_id=${currentBranchId}`);
+      if (!msgRes.ok) return;
+      const history = await msgRes.json();
+      pendingMsgsRef.current = pendingMsgsRef.current.filter(pendingText => !hasMessageInHistory(history, pendingText));
+      const newMessages = [...history];
+      pendingMsgsRef.current.forEach(text => newMessages.push({ role: 'user', content: text }));
+      // 🌟 轮询去重：内容无变化时返回旧引用，跳过整个消息列表的重渲染（卡顿主因）
+      setMessages(prev => {
+        if (prev.length === newMessages.length
+          && prev[prev.length - 1]?.content === newMessages[newMessages.length - 1]?.content
+          && prev[0]?.content === newMessages[0]?.content) return prev;
+        return newMessages;
+      });
+    };
     const interval = setInterval(async () => {
       if (isCheckingOut) return;
+      tick += 1;
+      // 🌟 思考期间 status 0.5s 高频轮询（流式思考顺滑）；history 后端要 deepcopy 全量
+      // 上下文较重，保持 1.5s 节奏（每 3 tick 一次），避免大上下文时 CPU 与锁竞争翻三倍
+      const pollHistory = !isAgentThinking || tick % 3 === 0;
       try {
-        const [msgRes, statusRes] = await Promise.all([ fetch(`/api/sessions/${currentSessionId}?branch_id=${currentBranchId}`), fetch(`/api/sessions/${currentSessionId}/status`) ]);
-        if (msgRes.ok) {
-          const history = await msgRes.json();
-          pendingMsgsRef.current = pendingMsgsRef.current.filter(pendingText => !hasMessageInHistory(history, pendingText));
-          const newMessages = [...history];
-          pendingMsgsRef.current.forEach(text => newMessages.push({ role: 'user', content: text }));
-          // 🌟 轮询去重：内容无变化时返回旧引用，跳过整个消息列表的重渲染（卡顿主因）
-          setMessages(prev => {
-            if (prev.length === newMessages.length
-              && prev[prev.length - 1]?.content === newMessages[newMessages.length - 1]?.content
-              && prev[0]?.content === newMessages[0]?.content) return prev;
-            return newMessages;
-          });
+        if (pollHistory) await fetchHistory();
+        const statusRes = await fetch(`/api/sessions/${currentSessionId}/status`);
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          setIsAgentThinking(statusData.is_thinking);
+          // 🌟 流式思考：思考期间实时取 live_reasoning，结束自动清空（改由 assistant 消息的 reasoning_content 渲染）
+          setLiveReasoning(statusData.is_thinking ? (statusData.live_reasoning || '') : '');
+          // 🌟 交互阶段：模型推理 THINKING... / 工具执行 PROCESSING...
+          setLivePhase(statusData.phase === 'processing' ? 'processing' : 'thinking');
+          if (pollHistory) {
+            loadBranches(currentSessionId);
+          } else if (!statusData.is_thinking) {
+            // 🌟 思考刚结束：立即补拉一次历史，最终 assistant 消息（含 reasoning_content）无缝顶上
+            await fetchHistory();
+            loadBranches(currentSessionId);
+          }
         }
-        if (statusRes.ok) { const statusData = await statusRes.json(); setIsAgentThinking(statusData.is_thinking); loadBranches(currentSessionId); }
       } catch { /* noop */ }
-    }, 1500);
+    }, isAgentThinking ? 500 : 1500);
     return () => clearInterval(interval);
-  }, [currentSessionId, currentBranchId, isCheckingOut]);
+  }, [currentSessionId, currentBranchId, isCheckingOut, isAgentThinking]);
 
   const handleSelectSession = async (id: string) => { setIsCheckingOut(true); setCurrentSessionId(id); setCurrentBranchId('main'); navigate(`/chat/${id}`, { replace: true }); try { await fetch(`/api/sessions/${id}/checkout`, { method: 'POST' }).catch(() => {}); await loadSessionHistory(id, 'main'); await loadBranches(id); } catch { /* noop */ } finally { setIsCheckingOut(false); } };
 
@@ -1349,6 +1376,8 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                 return (
                   <div key={gIdx} className="flex w-full justify-start">
                     <div className="flex flex-col gap-3 w-full max-w-[85%] items-start">
+                      {/* 🌟 思考过程气泡（淡蓝色，与 TOOL 消息同级）：流式结束后落进 assistant 消息 */}
+                      {msg.reasoning_content && <ReasoningBubble text={msg.reasoning_content} />}
                       {msg.content && (
                         <div style={sketchyShape1} className="group/bubble w-full p-6 border-4 border-ink relative bg-cream text-ink shadow-[6px 6px 0px 0px rgba(26,26,26,1)]">
                           <button
@@ -1420,23 +1449,19 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
             })}
             </>
           )}
-          {currentBranchId === 'main' && messages.length > 0 && (
+          {isAgentThinking && (
+            <div className="flex justify-start mb-3 w-full max-w-[85%]">
+              <ReasoningBubble text={liveReasoning} live phase={livePhase} onPause={handleForceInterrupt} />
+            </div>
+          )}
+          {currentBranchId === 'main' && messages.length > 0 && !isAgentThinking && (
             <div className="flex justify-start mb-4 w-full">
-              <div style={sketchyShape1} className={`p-4 w-fit transition-colors ${isAgentThinking ? 'bg-cream text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]' : 'bg-paper text-ink/40'}`}>
+              <div style={sketchyShape1} className="p-4 w-fit transition-colors bg-paper text-ink/40">
                 <div className="flex items-center gap-3 px-2">
-                  {isAgentThinking ? <Loader2 size={20} strokeWidth={3} className="animate-spin text-terracotta" /> : <Clock size={20} strokeWidth={3} className="text-ink/30" />}
+                  <Clock size={20} strokeWidth={3} className="text-ink/30" />
                   <span className="font-black text-sm tracking-widest uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                    {isAgentThinking ? 'Processing...' : 'Dozing...'}
+                    Dozing...
                   </span>
-                  {isAgentThinking && (
-                    <button
-                      onClick={handleForceInterrupt}
-                      className="ml-1 p-0.5 text-terracotta hover:text-ink transition-colors"
-                      title="暂停：物理掐断正在执行的工具（长时请求/死循环命令）"
-                    >
-                      <Pause size={18} strokeWidth={3} />
-                    </button>
-                  )}
                 </div>
               </div>
             </div>

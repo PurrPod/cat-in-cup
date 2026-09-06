@@ -1,7 +1,7 @@
 // src/components/chat/ChatShared.tsx
 /* eslint-disable react-refresh/only-export-components */
-import { useState } from 'react';
-import { Package, ChevronDown, ChevronUp, Wrench } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Package, ChevronDown, ChevronUp, Wrench, Brain, Pause, Loader2 } from 'lucide-react';
 import { EventItem, Message } from './ChatTypes';
 
 export const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
@@ -194,6 +194,103 @@ export const ToolCallBubble = ({ tc }: { tc: any }) => {
           <ChevronUp size={14} strokeWidth={3}/> COLLAPSE
         </button>
       </div>
+    </div>
+  );
+};
+
+// 🌟 Thinking/Reasoning 气泡：live 态（模型思考中/工具执行中）用原 Processing 的 cream 色，
+// phase=thinking 显示 THINKING...（Brain 图标），phase=processing 显示 PROCESSING...（转圈）；
+// 暂停按钮在块内文字后面（复刻原 Processing 布局）；思考结束后落为淡蓝色静态 REASONING 气泡
+// （与 TOOL 消息同级，收起按钮同 ToolMessageBubble 放正文下方左侧）。
+// 宽度统一 w-full 由外层容器控制（避免嵌套 max-w-[85%] 叠乘导致静态气泡比 live 的窄）；
+// 折叠偏好持久化：用户折叠过 Thinking 后，下次思考不再自动展开
+const THINKING_EXPANDED_KEY = 'purrcat-thinking-expanded';
+const readThinkingExpandedPref = (): boolean => {
+  try { return localStorage.getItem(THINKING_EXPANDED_KEY) !== 'collapsed'; } catch { return true; }
+};
+const writeThinkingExpandedPref = (v: boolean) => {
+  try { localStorage.setItem(THINKING_EXPANDED_KEY, v ? 'expanded' : 'collapsed'); } catch { /* noop */ }
+};
+
+export const ReasoningBubble = ({ text, live = false, phase = 'thinking', onPause }: { text: string; live?: boolean; phase?: 'thinking' | 'processing'; onPause?: () => void }) => {
+  const [expanded, setExpanded] = useState(live ? readThinkingExpandedPref() : false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  // live 态的展开/折叠要记住用户偏好（下次 thinking 沿用）；静态气泡不写偏好
+  const setLiveExpanded = (v: boolean) => {
+    setExpanded(v);
+    writeThinkingExpandedPref(v);
+  };
+
+  // 流式阶段：新文本到达时滚动到底部跟随
+  useEffect(() => {
+    if (live && expanded && bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+  }, [text, live, expanded]);
+
+  const title = live ? (phase === 'thinking' ? 'THINKING...' : 'PROCESSING...') : 'REASONING';
+  // PROCESSING 用转圈（工具执行中），THINKING/REASONING 用 Brain
+  const TitleIcon = live && phase === 'processing' ? Loader2 : Brain;
+  const titleIconSpin = live && phase === 'processing' ? 'animate-spin' : '';
+
+  // 🌟 live 折叠态（用户折叠过 或 尚无思考内容/工具执行中）：等价原 Processing 块（cream 色），
+  // 暂停按钮在块内文字后面（复刻原 Processing 布局）
+  if (live && (!expanded || !text)) {
+    return (
+      <div style={sketchyShape1} className="p-4 w-fit bg-cream text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] mb-3 flex items-center gap-3 self-start">
+        <TitleIcon size={20} strokeWidth={3} className={`text-ink shrink-0 ${titleIconSpin}`} />
+        <span className="font-black text-sm tracking-widest uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{title}</span>
+        {onPause && (
+          <button onClick={onPause} className="p-0.5 text-terracotta hover:text-ink transition-colors shrink-0" title="暂停：物理掐断正在执行的工具（长时请求/死循环命令）">
+            <Pause size={18} strokeWidth={3} />
+          </button>
+        )}
+        {text && (
+          <button onClick={() => setLiveExpanded(true)} className="p-0.5 text-ink/60 hover:text-ink transition-colors shrink-0" title="展开思考过程">
+            <ChevronDown size={18} strokeWidth={3} />
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // 静态折叠态：小 chip（淡蓝）
+  if (!expanded) {
+    return (
+      <div onClick={() => setExpanded(true)} style={sketchyShape2} className="w-fit max-w-[250px] p-2 px-4 border-2 border-ink bg-[#D8E2DC]/60 text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] mb-2 flex items-center justify-between gap-3 cursor-pointer hover:bg-[#D8E2DC] transition-all hover:-translate-y-0.5 self-start">
+        <div className="flex items-center gap-2 truncate">
+          <Brain size={14} strokeWidth={3} className="shrink-0 text-[#5e81ac]"/>
+          <span className="font-black text-[11px] uppercase tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>REASONING</span>
+        </div>
+        <ChevronDown size={14} strokeWidth={3} className="shrink-0 opacity-50"/>
+      </div>
+    );
+  }
+
+  // live 展开态（cream）/ 静态展开态（淡蓝）：收起按钮与 ToolMessageBubble 同位（正文下方左侧 mt-3）
+  return (
+    <div style={sketchyShape2} className={`w-full p-6 border-4 border-ink text-ink shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] mb-3 transition-all self-start ${live ? 'bg-cream' : 'bg-[#D8E2DC]/40'}`}>
+      <div className="flex items-center gap-2 mb-3 border-b-2 border-ink/20 pb-2">
+        <TitleIcon size={16} strokeWidth={3} className={`shrink-0 ${live ? 'text-ink' : 'text-[#5e81ac]'} ${titleIconSpin}`}/>
+        <span className="font-black text-xs uppercase tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+          {title}
+        </span>
+        {live && onPause && (
+          <button onClick={onPause} className="p-0.5 text-terracotta hover:text-ink transition-colors shrink-0" title="暂停：物理掐断正在执行的工具（长时请求/死循环命令）">
+            <Pause size={16} strokeWidth={3} />
+          </button>
+        )}
+        {live && (
+          <button onClick={() => setLiveExpanded(false)} className="ml-auto p-0.5 text-ink/60 hover:text-ink transition-colors" title="折叠：隐藏思考过程">
+            <ChevronUp size={16} strokeWidth={3} />
+          </button>
+        )}
+      </div>
+      <div ref={bodyRef} className="font-mono text-[13px] opacity-90 whitespace-pre-wrap break-all max-h-72 overflow-y-auto">{text}</div>
+      {!live && (
+        <button onClick={() => setExpanded(false)} className="mt-3 text-xs font-black text-ink/70 hover:text-terracotta flex items-center gap-1 bg-white/50 px-2 py-1 border-2 border-transparent hover:border-ink transition-all" style={sketchyShape2}>
+          <ChevronUp size={14} strokeWidth={3}/> COLLAPSE
+        </button>
+      )}
     </div>
   );
 };
