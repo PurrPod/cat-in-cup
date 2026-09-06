@@ -25,7 +25,7 @@
 所需依赖取决于部署方式：
 
 - **安装包方式**：只需安装 [Docker](https://docs.docker.com/get-docker/)（沙盒 Bash 工具与文件隔离依赖它）即可运行，无需额外工具
-- **从源码部署**：需要 [Docker](https://docs.docker.com/get-docker/) + Python 3.10+ / [uv](https://docs.astral.sh/uv/) + Node.js 18+；Git 用于获取源码（也可下载压缩包）
+- **从源码部署**：需要 [Docker](https://docs.docker.com/get-docker/) + [uv](https://docs.astral.sh/uv/)（**必需**，负责 Python 依赖与版本管理）+ Node.js 18+；Git 用于获取源码（也可下载压缩包）
 - 推荐运行 `purrcat setup` 一键初始化环境（Docker 沙盒、Python 依赖、嵌入模型）
 
 ### 方式一：Electron 桌面端（推荐）
