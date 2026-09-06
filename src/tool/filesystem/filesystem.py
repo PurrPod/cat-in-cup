@@ -17,6 +17,10 @@ from src.tool.filesystem.text_ops import (
 )
 from src.tool.filesystem.utils import require_write
 from src.tool.utils.format import error_response, text_response
+from src.tool.utils.token_limit import count_tokens, get_output_token_limit
+
+# read 前置拦截相对工具路由上限预留的 token 缓冲（吸收路由层包装文本的开销）
+READ_TOKEN_BUFFER = 100
 
 
 def _summarize_diff(diff_text: str) -> str:
@@ -67,10 +71,13 @@ def FileSystem(action: str, path: str = None, destination: str = None, **kwargs)
             # 🌟 改造：直接把组装好的带行号的字符串作为 content
             read_text = f"文件路径: {result['path']}\n总行数: {result['total_lines']}\n\n{result['content']}"
 
-            # 🌟 新增：在被 route.py 全局落盘机制拦截前，进行前置字数超限拦截
-            if len(read_text) > 5000:
+            # 🌟 前置 token 超限拦截：上限与工具路由共用同一函数（少 READ_TOKEN_BUFFER
+            # 作缓冲），在 route.py 全局落盘机制拦截前给出更友好的分批读取提示
+            max_read_tokens = get_output_token_limit() - READ_TOKEN_BUFFER
+            read_token_count = count_tokens(read_text)
+            if read_token_count > max_read_tokens:
                 return error_response(
-                    "返回字数超5000字已被拦截，请缩小行数限制参数重新分批读取。",
+                    f"返回内容约 {read_token_count} token，超出 {max_read_tokens} token 上限，请缩小 limit 行数参数重新分批读取。",
                     "❌ 文本超限",
                 )
 
