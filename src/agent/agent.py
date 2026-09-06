@@ -496,7 +496,41 @@ class Agent:
 
         return bool(msg_resp.tool_calls)
 
+    @staticmethod
+    def _is_snapshot_dispatch_tool(tool_call) -> bool:
+        """
+        识别「快照主历史并派发子代理」的工具（BrainStorm create）。
+        此类工具必须延后到批次末尾执行：先让同批次其它工具跑完并把结果写入
+        history，子代理快照才能兜住全部工具返回结果，否则 toolchain 断裂
+        会导致子代理首次 LLM 调用被 400 拒绝。
+        """
+        if tool_call.function.name != "BrainStorm":
+            return False
+        try:
+            args = (
+                json.loads(tool_call.function.arguments)
+                if tool_call.function.arguments
+                else {}
+            )
+        except Exception:
+            return False
+        return isinstance(args, dict) and args.get("action") == "create"
+
     def _execute_tool_calls(self, tool_calls) -> bool:
+        # 🌟 快照派发类工具（BrainStorm create）延后到批次末尾执行：
+        # 确保同批次其它工具的返回结果先写入 history，BS 随后的快照才能完整兜住
+        if len(tool_calls) > 1:
+            deferred = [
+                tc for tc in tool_calls if self._is_snapshot_dispatch_tool(tc)
+            ]
+            if deferred:
+                others = [
+                    tc
+                    for tc in tool_calls
+                    if not self._is_snapshot_dispatch_tool(tc)
+                ]
+                tool_calls = others + deferred
+
         for tool_call in tool_calls:
             target_tool_name = tool_call.function.name
             arguments_str = tool_call.function.arguments
@@ -522,6 +556,10 @@ class Agent:
             if target_tool_name == "Bash":
                 arguments["session_id"] = self.session_id
             args_str = str(arguments)
+            if target_tool_name == "BrainStorm":
+                # 🌟 注入本次调用的 tool_call_id，供 BS 伪造子代理上下文的
+                # tool result 时精确定位自己（批次内可能存在多个工具调用）
+                arguments["_tool_call_id"] = tool_call.id
 
             current_iid = self._get_current_interaction_id()
             try:
