@@ -125,6 +125,12 @@ def _fallback_ocr(paths: list, original_error: str) -> dict:
     }
 
 
+def _extract_message(message) -> tuple:
+    """从响应消息中提取 (content, reasoning_content)，兼容 pydantic 与普通对象。"""
+    raw = message.model_dump() if hasattr(message, "model_dump") else vars(message)
+    return raw.get("content") or "", raw.get("reasoning_content") or ""
+
+
 def vision(paths: list, prompt: str) -> dict:
     """
     读取一个或多个图片/视频/音频附件，转码为 base64 并按 OpenAI 多模态格式发送给视觉大模型。
@@ -187,21 +193,15 @@ def vision(paths: list, prompt: str) -> dict:
             else vision_config["model_name"]
         )
 
+        # 不设 max_tokens：思考型模型的思考与正文共享输出预算，人为设小会把预算
+        # 全耗在思考上导致正文为空；输出上限交给服务端按模型能力自行控制
         response = client.chat.completions.create(
             model=actual_model,
             messages=messages,
-            max_tokens=4096,
             extra_body={"enable_thinking": False},
         )
-
-        result_text = response.choices[0].message.content
-
-        return {
-            "attachment_count": len(resolved_paths),
-            "paths": resolved_paths,
-            "analysis_result": result_text,
-            "message": f"成功分析了 {len(resolved_paths)} 个附件",
-        }
+        choice = response.choices[0]
+        result_text, reasoning_text = _extract_message(choice.message)
 
     except Exception as e:
         # API 异常时：含音视频则直接报错，纯图片则触发 OCR 兜底
@@ -210,3 +210,18 @@ def vision(paths: list, prompt: str) -> dict:
                 f"API 访问异常: {str(e)}，且附件中含音视频无法用 OCR 兜底"
             )
         return _fallback_ocr(image_paths, f"API 访问异常: {str(e)}")
+
+    # 正文为空：多半是模型输出超限（思考耗尽预算，finish_reason=length），直接报错给 agent
+    if not result_text.strip():
+        raise ImageReadError(
+            f"vision 模型 {actual_model} 返回空正文 "
+            f"(finish_reason={choice.finish_reason}, 思考内容 {len(reasoning_text)} 字)，"
+            f"模型输出疑似超限"
+        )
+
+    return {
+        "attachment_count": len(resolved_paths),
+        "paths": resolved_paths,
+        "analysis_result": result_text,
+        "message": f"成功分析了 {len(resolved_paths)} 个附件",
+    }
