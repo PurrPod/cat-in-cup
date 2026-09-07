@@ -119,7 +119,9 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
 
   // 终端面板状态
   const [showTerminal, setShowTerminal] = useState(false);
-  const [terminalCmd, setTerminalCmd] = useState<string | null>(null); // null = 默认交互 shell
+  // term:// RUN 事件 { seq, cmd }：每次 RUN 都是新对象 + 新 seq。
+  // 只存命令字符串的话，重复 RUN 同一条命令时 setState 传相同值会被 React bail out，下游 effect 不触发 → 点了没反应
+  const [terminalCmd, setTerminalCmd] = useState<{ seq: number; cmd: string } | null>(null);
   const [pendingTermCmd, setPendingTermCmd] = useState<string | null>(null); // 确认弹窗中的待执行命令
 
   const [sidebarMode, setSidebarMode] = useState<'menu' | 'mcp' | 'skill' | 'cron' | 'sensor'>('menu');
@@ -281,18 +283,18 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
     else if (rawHref.startsWith('/agent_vm/') || rawHref === '/agent_vm' ||
              rawHref.startsWith('./agent_vm/') || rawHref === './agent_vm' ||
              rawHref.startsWith('../agent_vm/')) {
-      localPath = rawHref; // 后端 convert_sandbox_path 会处理
+      localPath = safeDecodeUri(rawHref); // 后端 convert_sandbox_path 会处理
     }
     // 3. Windows 绝对路径: C:/xxx 或 D:\xxx (盘符+冒号开头)
     else if (/^[A-Za-z]:[/\\]/.test(rawHref)) {
-      localPath = rawHref;
+      localPath = safeDecodeUri(rawHref);
     }
     // 4. 其他 ./ 或 ../ 开头的相对路径 + 已知扩展名
     else if ((rawHref.startsWith('./') || rawHref.startsWith('../'))) {
       const ext = rawHref.split('.').pop()?.toLowerCase() || '';
       if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'mp4', 'webm', 'mov', 'ogg',
            'pdf', 'txt', 'md', 'csv', 'json', 'log', 'html'].includes(ext)) {
-        localPath = rawHref;
+        localPath = safeDecodeUri(rawHref);
       }
     }
 
@@ -1761,7 +1763,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
               </button>
               <button
                 onClick={() => {
-                  setTerminalCmd(pendingTermCmd);
+                  setTerminalCmd({ seq: Date.now(), cmd: pendingTermCmd });
                   setShowFileView(false);
                   setShowTerminal(true);
                   setPendingTermCmd(null);
