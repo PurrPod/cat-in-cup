@@ -4,11 +4,12 @@
 //  - 左侧只放 Hook 组件视图（按生命周期组织，action 可展开编辑 config）
 //  - 右侧：带环循环骨架图（风格与 Workflow 一致：白底卡片 + 小色块标记 + 横平竖直连线）
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ReactFlow, Background, Controls, MarkerType, Handle, Position } from '@xyflow/react';
 import type { Node as FlowNode, Edge as FlowEdge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { toast } from 'react-hot-toast';
-import { ChevronDown, Plus, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Plus, Search, Trash2, ToggleLeft, ToggleRight, X } from 'lucide-react';
 
 // ============ 领域模型 ============
 
@@ -29,6 +30,7 @@ const HOOK_KEY_SET = new Set<string>(HOOK_KEYS);
 const ACTION_TYPES = [
   { key: 'injection', label: '提示注入', desc: '注入一段提示文本' },
   { key: 'file_operation', label: '文件操作', desc: '读写 / 检查工作区文件' },
+  { key: 'skill_info', label: '技能注入', desc: '注入主库技能的名称与描述' },
   { key: 'memo_injection', label: '记忆注入', desc: '装载系统共享记忆缓存' },
   { key: 'tool_use_check', label: '工具使用检查', desc: '校验本轮工具调用记录' },
   { key: 'command_run', label: '命令执行', desc: '在终端执行一条命令' },
@@ -61,7 +63,7 @@ const FIELD_SCHEMA: Record<string, FieldDef[]> = {
   ],
   file_operation: [
     { key: 'action', label: '操作', kind: 'select', options: ['read', 'exist_check', 'write_in', 'add_in', 'delete'] },
-    { key: 'path', label: '路径', kind: 'text', placeholder: '例如 @RULES / agent_vm/xxx.txt' },
+    { key: 'path', label: '路径', kind: 'text', placeholder: '例如 @RULES / @SYS（系统信息）/ agent_vm/xxx.txt' },
     {
       key: 'content',
       label: '写入内容',
@@ -69,6 +71,10 @@ const FIELD_SCHEMA: Record<string, FieldDef[]> = {
       placeholder: 'write_in / add_in 时写入的内容',
       when: { key: 'action', in: ['write_in', 'add_in'] },
     },
+    { key: 'failed_prompt', label: '失败提示 failed_prompt', kind: 'text' },
+  ],
+  skill_info: [
+    // skills 字段由专门的主库技能勾选弹窗（SkillPicker）管理
     { key: 'failed_prompt', label: '失败提示 failed_prompt', kind: 'text' },
   ],
   memo_injection: [
@@ -127,8 +133,25 @@ const toActions = (hookKey: HookKey, arr: unknown): AgentAction[] => {
 
 const cloneJson = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 
+// ============ 编辑草稿缓存 ============
+// 视图切换（workflow <-> agent loop）或离开页面会卸载本组件，编辑中的 state 随之丢失；
+// 卸载时若有未保存修改，把完整编辑状态暂存到模块级单槽，TTL 内重新挂载自动恢复
+const DRAFT_TTL_MS = 10 * 60 * 1000; // 草稿保留 10 分钟
+type ParadigmDraft = {
+  activeFile: string;
+  paradigmState: Record<HookKey, AgentAction[]>;
+  rootMeta: Record<string, unknown>;
+  extraHooks: Record<string, unknown>;
+  baselineKey: string | null;
+  savedAt: number;
+};
+let lastDraft: ParadigmDraft | null = null;
+// StrictMode 下挂载 effect 执行两轮，防止“已恢复草稿”的 toast 重复弹
+let lastRestoredToastAt = 0;
+
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
+const sketchyShape3 = { borderRadius: '225px 15px 255px 15px/15px 255px 15px 225px' };
 
 // 隐藏连线用锚点（保留 handle 用于精确连边，但视觉上不显示小圆点）；
 // ag-dummy 为纯路由用的隐形节点（外绕回线轨道）
@@ -614,6 +637,157 @@ function ParameterCheckEditor({
   );
 }
 
+// skill_info 的技能选择器：与聊天界面的 skill 选择器保持同一套样式
+// （已选技能为黄色 ⚡ 标签，弹窗数据来自 /api/tools/skills）
+function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string[]) => void }) {
+  const [open, setOpen] = useState(false);
+  const [library, setLibrary] = useState<{ name: string; description: string }[]>([]);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  const selected: string[] = Array.isArray(value) ? value.map((v) => String(v)) : [];
+
+  const openDialog = async () => {
+    setChecked(new Set(selected));
+    setSearch('');
+    setExpanded(null);
+    setOpen(true);
+    if (library.length > 0) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/tools/skills');
+      if (!res.ok) throw new Error('获取技能列表失败');
+      const data = await res.json();
+      if (Array.isArray(data)) setLibrary(data);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : '获取技能列表失败');
+      setOpen(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleChecked = (name: string) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const kw = search.trim().toLowerCase();
+  const filtered = kw
+    ? library.filter((s) => s.name.toLowerCase().includes(kw) || (s.description ?? '').toLowerCase().includes(kw))
+    : library;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selected.map((name) => (
+            <div
+              key={name}
+              style={sketchyShape3}
+              className="flex items-center gap-1 bg-[#F9E2AF] border-2 border-ink px-3 py-1 font-bold text-sm shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]"
+            >
+              <span>⚡ {name}</span>
+              <button onClick={() => onChange(selected.filter((s) => s !== name))} className="hover:text-terracotta ml-1">
+                <X size={14} strokeWidth={3} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button
+        title="从主库勾选技能"
+        onClick={() => void openDialog()}
+        className="self-start flex items-center gap-1 px-3 py-1.5 bg-cream border-2 border-ink text-ink font-black hover:bg-sand text-[12px]"
+        style={sketchyShape1}
+      >
+        <Plus size={13} strokeWidth={3} />
+        添加技能
+      </button>
+
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <div
+            style={sketchyShape2}
+            className="bg-paper border-4 border-ink p-6 flex flex-col gap-4 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 w-full max-w-md h-[70vh]"
+          >
+            <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-3 shrink-0">
+              <h3 className="text-2xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+                SELECT SKILLS
+              </h3>
+              <button onClick={() => setOpen(false)} className="hover:text-terracotta hover:scale-110 transition-all">
+                <X size={28} strokeWidth={3} />
+              </button>
+            </div>
+            <div className="flex items-center gap-2 -rotate-1 shrink-0">
+              <Search size={15} strokeWidth={2.5} className="text-ink/40 shrink-0" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="搜索技能关键词…"
+                className="flex-1 bg-cream border-2 border-ink px-3 py-2 font-bold text-sm focus:outline-none focus:bg-white shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)] placeholder:text-ink/30"
+                style={sketchyShape3}
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto flex flex-col gap-3 -rotate-1 p-1">
+              {loading && <p className="font-bold text-center mt-6 opacity-50 text-sm">正在加载技能…</p>}
+              {!loading && filtered.length === 0 && (
+                <p className="font-bold text-center mt-6 opacity-50 text-sm">{library.length === 0 ? '主库暂无技能' : '无匹配的技能'}</p>
+              )}
+              {!loading &&
+                filtered.map((s, idx) => {
+                  const on = checked.has(s.name);
+                  return (
+                    <div
+                      key={s.name}
+                      style={idx % 2 === 0 ? sketchyShape1 : sketchyShape3}
+                      className={`border-4 border-ink bg-cream p-3 transition-all ${
+                        on ? 'shadow-[4px_4px_0px_0px_rgba(212,122,90,1)] border-terracotta bg-terracotta/10' : 'shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]'
+                      } flex flex-col gap-2 cursor-pointer`}
+                      onClick={() => toggleChecked(s.name)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 border-2 border-ink flex items-center justify-center ${on ? 'bg-terracotta' : 'bg-paper'}`} style={sketchyShape2}>
+                          {on && <Check size={16} strokeWidth={4} className="text-paper" />}
+                        </div>
+                        <span className="font-black text-lg flex-1">{s.name}</span>
+                        <button onClick={(e) => { e.stopPropagation(); setExpanded(expanded === s.name ? null : s.name); }}>
+                          {expanded === s.name ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        </button>
+                      </div>
+                      {expanded === s.name && <div className="text-xs font-bold opacity-80 pl-8 pt-1 border-t-2 border-ink/10 border-dashed mt-1">{s.description}</div>}
+                    </div>
+                  );
+                })}
+            </div>
+            <div className="shrink-0 flex justify-end gap-3 -rotate-1 pt-2 border-t-4 border-ink/10">
+              <button
+                onClick={() => {
+                  onChange(Array.from(checked));
+                  setOpen(false);
+                }}
+                style={sketchyShape1}
+                className="px-8 bg-[#EBCB8B] text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]"
+              >
+                COMPLETE
+              </button>
+            </div>
+          </div>
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+}
+
 // action 的配置编辑器：已知字段按类型渲染；未知字段用 JSON 兜底（不丢数据）
 function ConfigEditor({
   action,
@@ -632,12 +806,14 @@ function ConfigEditor({
 }) {
   const cfg = action.config;
   const schemaKeys = new Set(schema.map((f) => f.key));
-  // allowTiming 时 delay/interval 由“触发时机”开关管理；tool_use_check 的 parameter_check 走结构化编辑器
+  // allowTiming 时 delay/interval 由“触发时机”开关管理；tool_use_check 的 parameter_check 走结构化编辑器；
+  // skill_info 的 skills 走主库技能勾选弹窗（SkillPicker）
   const isTimingKey = (k: string) => allowTiming && (k === 'delay' || k === 'interval');
   const isParamCheckKey = (k: string) => action.type === 'tool_use_check' && k === 'parameter_check';
+  const isSkillsKey = (k: string) => action.type === 'skill_info' && k === 'skills';
   const isExpectKey = (k: string) => allowExpect && k === 'expect';
   const extraKeys = Object.keys(cfg).filter(
-    (k) => !schemaKeys.has(k) && !isTimingKey(k) && !isParamCheckKey(k) && !isExpectKey(k)
+    (k) => !schemaKeys.has(k) && !isTimingKey(k) && !isParamCheckKey(k) && !isSkillsKey(k) && !isExpectKey(k)
   );
 
   const mergeExtra = (parsed: unknown) => {
@@ -747,6 +923,20 @@ function ConfigEditor({
           />
         </div>
       )}
+      {action.type === 'skill_info' && (
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-black text-ink/60 leading-none">技能选择 skills</span>
+          <SkillPicker
+            value={cfg.skills}
+            onChange={(v) => {
+              const next = { ...cfg };
+              if (v.length > 0) next.skills = v;
+              else delete next.skills;
+              onReplace(next);
+            }}
+          />
+        </div>
+      )}
       {schema.length > 0 && extraKeys.length > 0 && (
         <div className="flex flex-col gap-1">
           <span className="text-[11px] font-black text-ink/60 leading-none">
@@ -801,6 +991,8 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
   const [baselineKey, setBaselineKey] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
+  // dirty 时切换文件的待确认目标（手绘确认弹窗）
+  const [pendingFile, setPendingFile] = useState<string | null>(null);
 
   // 把内部状态汇报给 EditorPage（用于顶部 Toolbar 展示当前文件）
   useEffect(() => {
@@ -843,6 +1035,18 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     setBaselineKey(JSON.stringify(cloneJson(root)));
     setOpenActions(new Set());
     setMenuFor(null);
+    lastDraft = null; // 新基线确立（加载了磁盘内容），旧草稿随之失效
+  };
+
+  // 恢复草稿缓存（视图切回/重新进入编辑器时）
+  const applyDraft = (d: ParadigmDraft) => {
+    setParadigmState(d.paradigmState);
+    setRootMeta(d.rootMeta);
+    setExtraHooks(d.extraHooks);
+    setActiveFile(d.activeFile);
+    setBaselineKey(d.baselineKey);
+    setOpenActions(new Set());
+    setMenuFor(null);
   };
 
   const refreshFiles = async (): Promise<string> => {
@@ -866,10 +1070,26 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     }
   };
 
-  // 启动时默认加载 PARADIGM.yaml（默认 Agent Loop）
+  // 启动时优先恢复草稿缓存（TTL 内），否则加载默认 PARADIGM.yaml
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (lastDraft && lastDraft.activeFile) {
+        if (Date.now() - lastDraft.savedAt < DRAFT_TTL_MS) {
+          if (!cancelled) {
+            applyDraft(lastDraft);
+            if (Date.now() - lastRestoredToastAt > 500) {
+              lastRestoredToastAt = Date.now();
+              toast.success(`已恢复 ${lastDraft.activeFile} 的未保存草稿`);
+            }
+          }
+          // 不清 lastDraft：StrictMode 开发模式挂载 effect 会执行两轮
+          // （mount → cleanup → remount），第二轮必须仍能幂等恢复；
+          // 草稿改在基线刷新时（applyDoc / 保存成功）失效
+          return;
+        }
+        lastDraft = null; // 过期草稿：清掉走默认加载
+      }
       try {
         const defaultName = await refreshFiles();
         if (!cancelled && defaultName) await loadFile(defaultName);
@@ -954,11 +1174,43 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dirty]);
 
-  // Toolbar 通过 ref 打开文件（带未保存确认）
+  // 始终追踪最新编辑状态（供卸载时写入草稿缓存，避免闭包捕获旧值）
+  const latestRef = useRef({ activeFile, paradigmState, rootMeta, extraHooks, baselineKey, dirty });
+  useEffect(() => {
+    latestRef.current = { activeFile, paradigmState, rootMeta, extraHooks, baselineKey, dirty };
+  });
+
+  // 卸载时若有未保存修改，写入草稿缓存（TTL 内切回可恢复）
+  useEffect(() => {
+    return () => {
+      const s = latestRef.current;
+      if (s.activeFile && s.dirty) {
+        lastDraft = {
+          activeFile: s.activeFile,
+          paradigmState: s.paradigmState,
+          rootMeta: s.rootMeta,
+          extraHooks: s.extraHooks,
+          baselineKey: s.baselineKey,
+          savedAt: Date.now(),
+        };
+      }
+    };
+  }, []);
+
+  // Toolbar 通过 ref 打开文件（dirty 时弹手绘确认弹窗，确认后才切换）
   const openFile = async (name: string) => {
     if (!name || name === activeFile) return;
-    if (dirty && !window.confirm('当前文件有未保存的修改，切换将丢弃这些修改，确定继续？')) return;
+    if (dirty) {
+      setPendingFile(name);
+      return;
+    }
     await loadFile(name);
+  };
+
+  const confirmSwitchFile = async () => {
+    const name = pendingFile;
+    setPendingFile(null);
+    if (name) await loadFile(name);
   };
 
   const handleSave = async () => {
@@ -976,6 +1228,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
         throw new Error((errBody && errBody.detail) || '保存失败');
       }
       setBaselineKey(JSON.stringify(doc));
+      lastDraft = null; // 已保存：草稿内容已落盘，无需再恢复
       toast.success(`已保存 ${activeFile}.yaml`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : '保存失败');
@@ -1397,6 +1650,36 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
           </ReactFlow>
         </div>
       </div>
+
+      {/* 切换文件的未保存确认弹窗（dirty 时由 openFile 触发） */}
+      {pendingFile && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
+          <div style={sketchyShape3} className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-sm p-8 relative -rotate-1">
+            <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+              WAIT A MINUTE!
+            </h3>
+            <p className="font-bold mb-6 opacity-80 text-lg">
+              当前文件有未保存的修改。切换到 {pendingFile}.yaml 将丢弃这些修改，确定要继续吗？
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setPendingFile(null)}
+                style={sketchyShape1}
+                className="flex-1 py-3 bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all"
+              >
+                STAY
+              </button>
+              <button
+                onClick={() => void confirmSwitchFile()}
+                style={sketchyShape2}
+                className="flex-1 py-3 bg-[#bf616a] text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500 transition-all"
+              >
+                SWITCH
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 新建 Paradigm 弹窗（由顶部 Toolbar 触发） */}
       {creating && (

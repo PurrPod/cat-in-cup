@@ -205,7 +205,12 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
           {onBack && (
             <button
               onClick={() => {
-                if (useFlowStore.getState().nodes.length > 0) {
+                // workflow：画布有节点时确认退出；agent_loop：文件有未保存修改时确认退出
+                const hasUnsaved =
+                  mode === 'agent_loop'
+                    ? !!agentLoop?.dirty
+                    : useFlowStore.getState().nodes.length > 0;
+                if (hasUnsaved) {
                   setIsExitModalOpen(true);
                 } else {
                   onBack();
@@ -414,7 +419,9 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
           <div style={sketchyShape3} className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-sm p-8 relative -rotate-1">
             <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>WAIT A MINUTE!</h3>
             <p className="font-bold mb-6 opacity-80 text-lg">
-              画布上还有未部署的节点。直接返回可能会丢失进度（尽管浏览器缓存通常会保留）。确定要退出编辑器吗？
+              {mode === 'agent_loop'
+                ? '当前文件有未保存的修改。直接返回可能会丢失这些修改（10 分钟内切回来可恢复草稿）。确定要退出编辑器吗？'
+                : '画布上还有未部署的节点。直接返回可能会丢失进度（尽管浏览器缓存通常会保留）。确定要退出编辑器吗？'}
             </p>
             <div className="flex gap-4">
               <button onClick={() => setIsExitModalOpen(false)} style={sketchyShape1} className="flex-1 py-3 bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand">
