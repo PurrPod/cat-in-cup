@@ -345,7 +345,6 @@ export function TerminalPanel(props: any) {
         t.terminalEl?.remove();
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 🌟 面板打开 / 新命令（term:// 点击 RUN）统一在这里建 tab。

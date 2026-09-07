@@ -65,37 +65,21 @@ def Fetch(
             return warning_response(error, f"⚠️ {source.upper()} 获取失败")
 
         if source == "skill":
+            # 直接把完整 SOP 作为 tool result 返回（route 层 _safe_truncate 会兜底超长内容）
+            # 注意：不要在此处 agent_force_push —— fetch 属于子进程隔离工具，
+            # 子进程里的 AgentManager 是孤儿实例，push 内容会随子进程退出丢失
             skill_instruction = (
                 f"【核心技能载入: {result['name']}】\n"
-                f"技能所在目录: {result['directory']}\n"
+                f"沙盒技能目录(已从主库同步最新): {result['directory']}\n"
                 f"描述: {result['description']}\n\n"
                 f"[技能SOP操作指南]\n{result['content']}\n\n"
-                f"请严格按照上述步骤与约束进行操作。"
+                f"请严格按照上述步骤与约束进行操作。技能附属资源(脚本/模板等)已同步到上述沙盒目录，可直接使用。"
             )
 
-            is_harness = kwargs.get("_caller") == "harness"
-
-            if not is_harness:
-                from src.agent import agent_force_push
-
-                try:
-                    agent_force_push(skill_instruction, type="skill")
-                    print(f"👻 [幽灵注入] 技能 [{name}] 已直接推入 Agent 末尾指令队列")
-                except Exception as e:
-                    print(f"⚠️ [幽灵注入失败]: {e}")
-
-                return text_response(
-                    f"✅ 技能 [{name}] 已成功加载到系统事件中。\n状态: Success\n提示: 请立即查看最新的系统通知获取最新 SOP 约束。",
-                    f"📖 Skill [{name}] 注入成功",
-                )
-            else:
-                print(
-                    f"👻 [Harness独立加载] 技能 [{name}] 完整内容已直接返回给工作流节点上下文"
-                )
-                return text_response(
-                    f"✅ 技能 [{name}] 获取成功\n\n【技能SOP操作指南】\n{skill_instruction}",
-                    f"📖 Skill [{name}] 独立加载",
-                )
+            return text_response(
+                f"✅ 技能 [{name}] 加载成功，完整SOP如下：\n\n{skill_instruction}",
+                f"📖 Skill [{name}]",
+            )
 
         elif source == "mcp":
             if not result:

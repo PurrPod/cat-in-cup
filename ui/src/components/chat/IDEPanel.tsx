@@ -271,7 +271,6 @@ function IDETerminal({ visible }: { visible: boolean }) {
   // 卸载时清理
   useEffect(() => {
     return () => { tabsRef.current.forEach(t => { t.resizeObs?.disconnect(); t.ws?.close(); t.terminal?.dispose(); t.terminalEl?.remove(); }); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 首次可见自动建一个 tab。
