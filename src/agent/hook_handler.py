@@ -266,7 +266,8 @@ class HookHandler:
         if not skill_names:
             return {
                 "success": False,
-                "inject_prompt": failed_prompt or "skill_info: 未配置技能列表（skills）",
+                "inject_prompt": failed_prompt
+                or "skill_info: 未配置技能列表（skills）",
             }
 
         # 懒加载，避免与 skill_helper 产生潜在的 import 环
@@ -276,7 +277,9 @@ class HookHandler:
         for name in skill_names:
             info = get_skill_info(str(name))
             if info:  # 主库中缺失的技能直接跳过
-                lines.append(f"- {info.get('name', name)}：{info.get('description', '')}")
+                lines.append(
+                    f"- {info.get('name', name)}：{info.get('description', '')}"
+                )
 
         if not lines:
             return {
@@ -295,7 +298,9 @@ class HookHandler:
         try:
             r = subprocess.run(
                 ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             if r.returncode == 0 and r.stdout.strip():
                 return r.stdout.strip()
@@ -305,10 +310,14 @@ class HookHandler:
             if platform.system() == "Windows":
                 r = subprocess.run(
                     [
-                        "powershell", "-NoProfile", "-Command",
+                        "powershell",
+                        "-NoProfile",
+                        "-Command",
                         "(Get-CimInstance Win32_VideoController).Name",
                     ],
-                    capture_output=True, text=True, timeout=8,
+                    capture_output=True,
+                    text=True,
+                    timeout=8,
                 )
                 if r.returncode == 0 and r.stdout.strip():
                     return r.stdout.strip()
