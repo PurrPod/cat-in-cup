@@ -129,7 +129,10 @@ class Agent:
         print("[Lock] 触发强行打断！递增交互ID + 激活工具打断信号")
         self._increment_interaction_id()
         self._tool_interrupt_event.set()  # 掐断正在执行的工具（子进程会被物理 terminate）
-        self.state = "idle"
+        # 🌟 不直接写 idle：旧交互（模型调用/工具）还在 unwind，提前报 idle 会让
+        # 前端误显示空闲、新消息排队却无人消费（sensor 线程仍被占）。
+        # aborting 期间 /status 持续报忙，sensor 收尾后自然回落 idle。
+        self.state = "aborting"
 
     def get_history(self):
         with self._history_lock:
@@ -460,7 +463,8 @@ class Agent:
                         )
                         continue
 
-            except KeyboardInterrupt:
+            except (KeyboardInterrupt, InterruptedError):
+                # 用户强制打断（含模型调用重试期间被打断）：不写入交互断层，只记录打断标记
                 self._handle_interaction_error(is_interrupt=True)
                 break
             except Exception as e:
@@ -479,13 +483,18 @@ class Agent:
         try:
             self._live_phase = "thinking"
             return self._consume_stream(messages, tools, interaction_id)
+        except InterruptedError:
+            # 用户打断：不做非流式兜底重试，直接上抛让主循环静默收尾
+            raise
         except Exception as e:
             if self._get_current_interaction_id() != interaction_id:
                 # 打断/会话切换引起的流中断：结果会被上层丢弃，无需回退
                 raise
             print(f"[Warn.Stream] 流式调用失败，回退非流式重试: {e}")
             self._live_reasoning = ""
-            response = self.model.chat(messages=messages, tools=tools)
+            response = self.model.chat(
+                messages=messages, tools=tools, cancel_event=self._tool_interrupt_event
+            )
             return response.choices[0].message, getattr(response, "usage", None)
 
     def _consume_stream(self, messages, tools, interaction_id):
@@ -497,7 +506,12 @@ class Agent:
         from types import SimpleNamespace
 
         self._live_reasoning = ""
-        response = self.model.chat(messages=messages, tools=tools, stream=True)
+        response = self.model.chat(
+            messages=messages,
+            tools=tools,
+            stream=True,
+            cancel_event=self._tool_interrupt_event,
+        )
 
         reasoning_parts = []
         content_parts = []
@@ -804,7 +818,9 @@ class Agent:
         for attempt in range(1, max_retries + 1):
             try:
                 response = self.model.chat(
-                    messages=temp_history, tools=self._get_tool_schema()
+                    messages=temp_history,
+                    tools=self._get_tool_schema(),
+                    cancel_event=self._tool_interrupt_event,
                 )
                 msg_resp = response.choices[0].message
 

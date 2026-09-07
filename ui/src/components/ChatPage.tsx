@@ -93,7 +93,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
   // 🌟 流式思考内容：思考期间实时渲染，结束后由 assistant.reasoning_content 接棒
   const [liveReasoning, setLiveReasoning] = useState('');
   // 🌟 交互阶段：thinking=模型推理中（THINKING...）/ processing=工具执行中（PROCESSING...）
-  const [livePhase, setLivePhase] = useState<'thinking' | 'processing'>('thinking');
+  const [livePhase, setLivePhase] = useState<'thinking' | 'processing' | 'aborting'>('thinking');
   const [branchToDelete, setBranchToDelete] = useState<string | null>(null);
 
   const [showBusyModal, setShowBusyModal] = useState(false);
@@ -737,12 +737,13 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
   const loadSessionHistory = async (id: string, bId: string = 'main') => { const res = await fetch(`/api/sessions/${id}?branch_id=${bId}`); if (res.ok) setMessages(await res.json()); };
 
   // 🌟 强制打断：物理掐断 Agent 正在执行的工具（长时网络请求/死循环命令）
+  // 注意：打断后不本地强制退出思考态——后端进入 aborting（旧交互 unwind 中），
+  // 由 /status 轮询接管：先显示 ABORTING...，等 sensor 收尾回 idle 后自然落到 Dozing。
   const handleForceInterrupt = async () => {
     try {
       const res = await fetch('/api/chat/interrupt', { method: 'POST' });
       if (res.ok) {
-        toast.success('已强制打断 Agent');
-        setIsAgentThinking(false);
+        toast.success('已强制打断 Agent，等待收尾...');
       } else {
         toast.error('打断请求失败');
       }
@@ -821,7 +822,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
           // 🌟 流式思考：思考期间实时取 live_reasoning，结束自动清空（改由 assistant 消息的 reasoning_content 渲染）
           setLiveReasoning(statusData.is_thinking ? (statusData.live_reasoning || '') : '');
           // 🌟 交互阶段：模型推理 THINKING... / 工具执行 PROCESSING...
-          setLivePhase(statusData.phase === 'processing' ? 'processing' : 'thinking');
+          setLivePhase(statusData.phase === 'processing' ? 'processing' : statusData.phase === 'aborting' ? 'aborting' : 'thinking');
           if (pollHistory) {
             loadBranches(currentSessionId);
           } else if (!statusData.is_thinking) {

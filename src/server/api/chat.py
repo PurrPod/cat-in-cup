@@ -306,17 +306,24 @@ def get_session_status(session_id: str):
         _ensure_manager_initialized()
         status = get_agent_status()
         if status.get("session_id") == session_id:
-            is_thinking = status.get("state") != "idle"
+            state = status.get("state", "idle")
+            is_thinking = state != "idle"
+            # 🌟 aborting = 已打断但旧交互还在 unwind（模型调用退出/工具终止中）
+            if state == "aborting":
+                phase = "aborting"
+            else:
+                phase = status.get("live_phase", "idle") if is_thinking else "idle"
             result = {
                 "is_thinking": is_thinking,
-                "state": status.get("state", "idle"),
+                "state": state,
                 "compressing": status.get("compressing", False),
                 # 🌟 思考期间透出流式思考内容，思考结束（idle）自动清空
                 "live_reasoning": status.get("live_reasoning", "")
                 if is_thinking
                 else "",
-                # 🌟 交互阶段：thinking=模型推理中 / processing=工具执行中 / idle=空闲
-                "phase": status.get("live_phase", "idle") if is_thinking else "idle",
+                # 🌟 交互阶段：thinking=模型推理中 / processing=工具执行中 /
+                # aborting=打断等待收尾 / idle=空闲
+                "phase": phase,
             }
         else:
             result = {

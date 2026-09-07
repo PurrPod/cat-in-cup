@@ -212,7 +212,7 @@ const writeThinkingExpandedPref = (v: boolean) => {
   try { localStorage.setItem(THINKING_EXPANDED_KEY, v ? 'expanded' : 'collapsed'); } catch { /* noop */ }
 };
 
-export const ReasoningBubble = ({ text, live = false, phase = 'thinking', onPause }: { text: string; live?: boolean; phase?: 'thinking' | 'processing'; onPause?: () => void }) => {
+export const ReasoningBubble = ({ text, live = false, phase = 'thinking', onPause }: { text: string; live?: boolean; phase?: 'thinking' | 'processing' | 'aborting'; onPause?: () => void }) => {
   const [expanded, setExpanded] = useState(live ? readThinkingExpandedPref() : false);
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -227,10 +227,11 @@ export const ReasoningBubble = ({ text, live = false, phase = 'thinking', onPaus
     if (live && expanded && bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
   }, [text, live, expanded]);
 
-  const title = live ? (phase === 'thinking' ? 'THINKING...' : 'PROCESSING...') : 'REASONING';
-  // PROCESSING 用转圈（工具执行中），THINKING/REASONING 用 Brain
-  const TitleIcon = live && phase === 'processing' ? Loader2 : Brain;
-  const titleIconSpin = live && phase === 'processing' ? 'animate-spin' : '';
+  const title = live ? (phase === 'thinking' ? 'THINKING...' : phase === 'processing' ? 'PROCESSING...' : 'ABORTING...') : 'REASONING';
+  // PROCESSING/ABORTING 用转圈（工具执行中/打断等待收尾），THINKING/REASONING 用 Brain
+  const isSpinning = live && (phase === 'processing' || phase === 'aborting');
+  const TitleIcon = isSpinning ? Loader2 : Brain;
+  const titleIconSpin = isSpinning ? 'animate-spin' : '';
 
   // 🌟 live 折叠态（用户折叠过 或 尚无思考内容/工具执行中）：等价原 Processing 块（cream 色），
   // 暂停按钮在块内文字后面（复刻原 Processing 布局）
@@ -239,7 +240,7 @@ export const ReasoningBubble = ({ text, live = false, phase = 'thinking', onPaus
       <div style={sketchyShape1} className="p-4 w-fit bg-cream text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] mb-3 flex items-center gap-3 self-start">
         <TitleIcon size={20} strokeWidth={3} className={`text-ink shrink-0 ${titleIconSpin}`} />
         <span className="font-black text-sm tracking-widest uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{title}</span>
-        {onPause && (
+        {onPause && phase !== 'aborting' && (
           <button onClick={onPause} className="p-0.5 text-terracotta hover:text-ink transition-colors shrink-0" title="暂停：物理掐断正在执行的工具（长时请求/死循环命令）">
             <Pause size={18} strokeWidth={3} />
           </button>
@@ -274,7 +275,7 @@ export const ReasoningBubble = ({ text, live = false, phase = 'thinking', onPaus
         <span className="font-black text-xs uppercase tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
           {title}
         </span>
-        {live && onPause && (
+        {live && onPause && phase !== 'aborting' && (
           <button onClick={onPause} className="p-0.5 text-terracotta hover:text-ink transition-colors shrink-0" title="暂停：物理掐断正在执行的工具（长时请求/死循环命令）">
             <Pause size={16} strokeWidth={3} />
           </button>

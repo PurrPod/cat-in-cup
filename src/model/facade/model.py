@@ -42,7 +42,7 @@ class Model:
             f"🔗 任务 {self.task_id} 锁定模型 {self.model_name}，绑定 API Key: {self.key_prefix}..."
         )
 
-    def chat(self, messages: list, tools: list = None, **kwargs):
+    def chat(self, messages: list, tools: list = None, cancel_event=None, **kwargs):
         """仅做透传，增加无阻塞的内存记账功能，支持流式调用拦截"""
         start_time = time.time()
 
@@ -57,6 +57,7 @@ class Model:
             task_id=self.task_id,
             semaphore=self.semaphore,
             tools=tools,
+            cancel_event=cancel_event,
             **kwargs,
         )
 
@@ -194,6 +195,6 @@ class AgentModel(Model):
 
         raise ValueError("模型未配置：请在「配置中心」填写 API Key 并保存后再发送消息")
 
-    def chat(self, messages: list, tools: list = None, **kwargs):
+    def chat(self, messages: list, tools: list = None, cancel_event=None, **kwargs):
         self._ensure_client()
-        return super().chat(messages, tools, **kwargs)
+        return super().chat(messages, tools, cancel_event=cancel_event, **kwargs)

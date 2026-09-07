@@ -32,9 +32,10 @@ class LLMClient:
         task_id: str,
         semaphore,
         tools: list = None,
+        cancel_event=None,
         **kwargs,
     ):
-        """执行同步阻塞请求，处理限速和退避"""
+        """执行同步阻塞请求，处理限速和退避；cancel_event 置位时立即中止重试"""
         max_retries = 8
         base_delay = 2.0
         if ":" in model_name:
@@ -45,6 +46,9 @@ class LLMClient:
         request_params.update(kwargs)
 
         for attempt in range(max_retries):
+            if cancel_event is not None and cancel_event.is_set():
+                log(f"🛑 任务 {task_id} 检测到用户打断信号，放弃后续重试")
+                raise InterruptedError(f"cancelled: 任务 {task_id} 被用户打断")
             try:
                 with semaphore:
                     time.sleep(0.2)
@@ -71,7 +75,15 @@ class LLMClient:
                     log(
                         f"⏳ 任务 {task_id} 遇到临时网络异常 ({type(e).__name__})，退避休眠 {sleep_time:.1f} 秒后重试..."
                     )
-                    time.sleep(sleep_time)
+                    # 可打断退避：等待期间收到用户打断信号立即放弃重试
+                    if cancel_event is not None:
+                        if cancel_event.wait(sleep_time):
+                            log(f"🛑 任务 {task_id} 在退避等待中被用户打断，放弃重试")
+                            raise InterruptedError(
+                                f"cancelled: 任务 {task_id} 被用户打断"
+                            )
+                    else:
+                        time.sleep(sleep_time)
                 else:
                     # 对于明确的参数错误 (400) 或权限错误 (401/403)，不应重试，直接抛出
                     log(f"🚨 API 调用发生不可恢复异常:\n{traceback.format_exc()}")
