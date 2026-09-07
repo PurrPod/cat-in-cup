@@ -146,6 +146,8 @@ type ParadigmDraft = {
   savedAt: number;
 };
 let lastDraft: ParadigmDraft | null = null;
+// StrictMode 下挂载 effect 执行两轮，防止“已恢复草稿”的 toast 重复弹
+let lastRestoredToastAt = 0;
 
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
@@ -1031,6 +1033,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     setBaselineKey(JSON.stringify(cloneJson(root)));
     setOpenActions(new Set());
     setMenuFor(null);
+    lastDraft = null; // 新基线确立（加载了磁盘内容），旧草稿随之失效
   };
 
   // 恢复草稿缓存（视图切回/重新进入编辑器时）
@@ -1070,16 +1073,20 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     let cancelled = false;
     (async () => {
       if (lastDraft && lastDraft.activeFile) {
-        const fresh = Date.now() - lastDraft.savedAt < DRAFT_TTL_MS;
-        const d = fresh ? lastDraft : null;
-        lastDraft = null; // 无论是否恢复都清掉，避免过期草稿反复触发
-        if (d) {
+        if (Date.now() - lastDraft.savedAt < DRAFT_TTL_MS) {
           if (!cancelled) {
-            applyDraft(d);
-            toast.success(`已恢复 ${d.activeFile} 的未保存草稿`);
+            applyDraft(lastDraft);
+            if (Date.now() - lastRestoredToastAt > 500) {
+              lastRestoredToastAt = Date.now();
+              toast.success(`已恢复 ${lastDraft.activeFile} 的未保存草稿`);
+            }
           }
+          // 不清 lastDraft：StrictMode 开发模式挂载 effect 会执行两轮
+          // （mount → cleanup → remount），第二轮必须仍能幂等恢复；
+          // 草稿改在基线刷新时（applyDoc / 保存成功）失效
           return;
         }
+        lastDraft = null; // 过期草稿：清掉走默认加载
       }
       try {
         const defaultName = await refreshFiles();
@@ -1210,6 +1217,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
         throw new Error((errBody && errBody.detail) || '保存失败');
       }
       setBaselineKey(JSON.stringify(doc));
+      lastDraft = null; // 已保存：草稿内容已落盘，无需再恢复
       toast.success(`已保存 ${activeFile}.yaml`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : '保存失败');
