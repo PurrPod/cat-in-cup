@@ -8,7 +8,7 @@ import { ReactFlow, Background, Controls, MarkerType, Handle, Position } from '@
 import type { Node as FlowNode, Edge as FlowEdge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { toast } from 'react-hot-toast';
-import { ChevronDown, Plus, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Check, ChevronDown, Plus, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 
 // ============ 领域模型 ============
 
@@ -29,6 +29,7 @@ const HOOK_KEY_SET = new Set<string>(HOOK_KEYS);
 const ACTION_TYPES = [
   { key: 'injection', label: '提示注入', desc: '注入一段提示文本' },
   { key: 'file_operation', label: '文件操作', desc: '读写 / 检查工作区文件' },
+  { key: 'skill_info', label: '技能注入', desc: '注入主库技能的名称与描述' },
   { key: 'memo_injection', label: '记忆注入', desc: '装载系统共享记忆缓存' },
   { key: 'tool_use_check', label: '工具使用检查', desc: '校验本轮工具调用记录' },
   { key: 'command_run', label: '命令执行', desc: '在终端执行一条命令' },
@@ -61,7 +62,7 @@ const FIELD_SCHEMA: Record<string, FieldDef[]> = {
   ],
   file_operation: [
     { key: 'action', label: '操作', kind: 'select', options: ['read', 'exist_check', 'write_in', 'add_in', 'delete'] },
-    { key: 'path', label: '路径', kind: 'text', placeholder: '例如 @RULES / agent_vm/xxx.txt' },
+    { key: 'path', label: '路径', kind: 'text', placeholder: '例如 @RULES / @SYS（系统信息）/ agent_vm/xxx.txt' },
     {
       key: 'content',
       label: '写入内容',
@@ -69,6 +70,10 @@ const FIELD_SCHEMA: Record<string, FieldDef[]> = {
       placeholder: 'write_in / add_in 时写入的内容',
       when: { key: 'action', in: ['write_in', 'add_in'] },
     },
+    { key: 'failed_prompt', label: '失败提示 failed_prompt', kind: 'text' },
+  ],
+  skill_info: [
+    // skills 字段由专门的主库技能勾选弹窗（SkillPicker）管理
     { key: 'failed_prompt', label: '失败提示 failed_prompt', kind: 'text' },
   ],
   memo_injection: [
@@ -614,6 +619,169 @@ function ParameterCheckEditor({
   );
 }
 
+// skill_info 的技能选择器：已选技能以标签展示，
+// 「添加技能」弹出主库技能勾选弹窗（数据来自 /api/tools/skills），确认后写回 skills 列表
+function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string[]) => void }) {
+  const [open, setOpen] = useState(false);
+  const [library, setLibrary] = useState<{ name: string; description: string }[]>([]);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(false);
+
+  const selected: string[] = Array.isArray(value) ? value.map((v) => String(v)) : [];
+
+  const openDialog = async () => {
+    setChecked(new Set(selected));
+    setOpen(true);
+    if (library.length > 0) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/tools/skills');
+      if (!res.ok) throw new Error('获取技能列表失败');
+      const data = await res.json();
+      if (Array.isArray(data)) setLibrary(data);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : '获取技能列表失败');
+      setOpen(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleChecked = (name: string) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {selected.length === 0 ? (
+        <div
+          className="text-center text-[11px] font-bold text-ink/35 border-2 border-dashed border-ink/25 py-2"
+          style={{ fontFamily: '"Comic Sans MS", cursive' }}
+        >
+          未选择技能（点击下方添加）
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1">
+          {selected.map((name) => (
+            <div key={name} className="flex items-center gap-1.5 border-2 border-ink/70 px-2 py-1 bg-cream/60" style={sketchyShape2}>
+              <span className="font-black text-ink text-[12px] leading-none truncate">{name}</span>
+              <button
+                title="移除该技能"
+                onClick={() => onChange(selected.filter((s) => s !== name))}
+                className="ml-auto w-6 h-6 shrink-0 flex items-center justify-center text-ink/40 hover:text-paper hover:bg-[#bf616a]"
+              >
+                <Trash2 size={12} strokeWidth={2.5} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button
+        title="从主库勾选技能"
+        onClick={() => void openDialog()}
+        className="self-start flex items-center gap-1 px-3 py-1.5 bg-cream border-2 border-ink text-ink font-black hover:bg-sand text-[12px]"
+        style={sketchyShape1}
+      >
+        <Plus size={13} strokeWidth={3} />
+        添加技能
+      </button>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            style={sketchyShape1}
+            className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-md max-h-[75vh] flex flex-col relative rotate-1"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 pt-5 pb-3 border-b-2 border-ink/15">
+              <h3 className="text-xl font-black text-ink m-0 tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+                选择技能
+              </h3>
+              <p className="m-0 mt-1 text-[11px] font-bold text-ink/50" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+                从主库勾选要注入名称与描述的技能
+              </p>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-3 flex flex-col gap-1.5">
+              {loading && (
+                <div className="text-center text-[12px] font-bold text-ink/40 py-6" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+                  正在加载主库技能…
+                </div>
+              )}
+              {!loading && library.length === 0 && (
+                <div className="text-center text-[12px] font-bold text-ink/40 py-6" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+                  主库暂无技能
+                </div>
+              )}
+              {library.map((s) => {
+                const on = checked.has(s.name);
+                return (
+                  <button
+                    key={s.name}
+                    onClick={() => toggleChecked(s.name)}
+                    className={`flex items-start gap-2 border-2 px-2.5 py-2 text-left transition-colors ${
+                      on ? 'border-ink bg-cream' : 'border-ink/30 bg-paper hover:bg-cream/50'
+                    }`}
+                    style={sketchyShape2}
+                  >
+                    <span
+                      className={`w-5 h-5 shrink-0 mt-0.5 flex items-center justify-center border-2 border-ink ${
+                        on ? 'bg-ink text-paper' : 'bg-paper'
+                      }`}
+                      style={sketchyShape1}
+                    >
+                      {on && <Check size={13} strokeWidth={3.5} />}
+                    </span>
+                    <span className="min-w-0 flex flex-col gap-0.5">
+                      <span className="font-black text-ink text-[13px] leading-none truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+                        {s.name}
+                      </span>
+                      <span className="text-[11px] font-bold text-ink/45 leading-tight line-clamp-2">{s.description}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-3 px-5 py-4 border-t-2 border-ink/15">
+              <span className="shrink-0 text-[11px] font-black text-ink/50 leading-none" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+                已勾选 {checked.size} 个
+              </span>
+              <div className="flex-1 flex gap-3">
+                <button
+                  onClick={() => setOpen(false)}
+                  style={sketchyShape1}
+                  className="flex-1 py-2 bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={() => {
+                    onChange(Array.from(checked));
+                    setOpen(false);
+                  }}
+                  disabled={checked.size === 0}
+                  style={sketchyShape2}
+                  className="flex-1 py-2 bg-ink text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(212,122,90,1)] hover:bg-gray-800 transition-all disabled:opacity-40"
+                >
+                  确认
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // action 的配置编辑器：已知字段按类型渲染；未知字段用 JSON 兜底（不丢数据）
 function ConfigEditor({
   action,
@@ -632,12 +800,14 @@ function ConfigEditor({
 }) {
   const cfg = action.config;
   const schemaKeys = new Set(schema.map((f) => f.key));
-  // allowTiming 时 delay/interval 由“触发时机”开关管理；tool_use_check 的 parameter_check 走结构化编辑器
+  // allowTiming 时 delay/interval 由“触发时机”开关管理；tool_use_check 的 parameter_check 走结构化编辑器；
+  // skill_info 的 skills 走主库技能勾选弹窗（SkillPicker）
   const isTimingKey = (k: string) => allowTiming && (k === 'delay' || k === 'interval');
   const isParamCheckKey = (k: string) => action.type === 'tool_use_check' && k === 'parameter_check';
+  const isSkillsKey = (k: string) => action.type === 'skill_info' && k === 'skills';
   const isExpectKey = (k: string) => allowExpect && k === 'expect';
   const extraKeys = Object.keys(cfg).filter(
-    (k) => !schemaKeys.has(k) && !isTimingKey(k) && !isParamCheckKey(k) && !isExpectKey(k)
+    (k) => !schemaKeys.has(k) && !isTimingKey(k) && !isParamCheckKey(k) && !isSkillsKey(k) && !isExpectKey(k)
   );
 
   const mergeExtra = (parsed: unknown) => {
@@ -742,6 +912,20 @@ function ConfigEditor({
               const next = { ...cfg };
               if (v.length > 0) next.parameter_check = v;
               else delete next.parameter_check;
+              onReplace(next);
+            }}
+          />
+        </div>
+      )}
+      {action.type === 'skill_info' && (
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-black text-ink/60 leading-none">技能选择 skills</span>
+          <SkillPicker
+            value={cfg.skills}
+            onChange={(v) => {
+              const next = { ...cfg };
+              if (v.length > 0) next.skills = v;
+              else delete next.skills;
               onReplace(next);
             }}
           />

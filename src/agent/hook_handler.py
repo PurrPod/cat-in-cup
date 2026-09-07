@@ -1,4 +1,5 @@
 import os
+import platform
 import yaml
 import json
 import subprocess
@@ -114,6 +115,8 @@ class HookHandler:
                     res = self._command_on(params, **kwargs)
                 elif action_type == "tool_use_check":
                     res = self._tool_use_check(params, **kwargs)
+                elif action_type == "skill_info":
+                    res = self._skill_info(params, **kwargs)
                 elif action_type == "memo_injection":
                     # 兼容保留原有的记忆注入机制
                     res = self._memo_injection(params, **kwargs)
@@ -167,7 +170,8 @@ class HookHandler:
         return path
 
     def _file_operation(self, params, **kwargs):
-        path = self._resolve_path(params.get("path", ""))
+        raw_path = params.get("path", "")
+        path = self._resolve_path(raw_path)
         action = params.get("action")
         content = params.get("content", "")
         failed_prompt = params.get("failed_prompt", f"文件操作 {action} 失败: {path}")
@@ -176,7 +180,12 @@ class HookHandler:
 
         try:
             if action == "read":
-                if os.path.exists(path):
+                if raw_path == "@SYS":
+                    # @SYS：不走文件读取，直接注入当前系统信息
+                    sys_content = self._get_system_info()
+                    res["inject_prompt"] = sys_content
+                    res["content"] = sys_content
+                elif os.path.exists(path):
                     with open(path, "r", encoding="utf-8") as f:
                         file_content = f.read().strip()
                     res["inject_prompt"] = file_content
@@ -246,6 +255,79 @@ class HookHandler:
                     return {"success": False, "inject_prompt": failed_prompt}
         except Exception as e:
             return {"success": False, "inject_prompt": f"{failed_prompt} (Error: {e})"}
+
+    def _skill_info(self, params, **kwargs):
+        """技能描述注入：遍历 skills 列表，从主库读取各技能的 name + description 拼成文本"""
+        skill_names = params.get("skills") or []
+        if isinstance(skill_names, str):
+            skill_names = [skill_names]
+        failed_prompt = params.get("failed_prompt", "")
+
+        if not skill_names:
+            return {
+                "success": False,
+                "inject_prompt": failed_prompt or "skill_info: 未配置技能列表（skills）",
+            }
+
+        # 懒加载，避免与 skill_helper 产生潜在的 import 环
+        from src.utils.skill_helper import get_skill_info
+
+        lines = []
+        for name in skill_names:
+            info = get_skill_info(str(name))
+            if info:  # 主库中缺失的技能直接跳过
+                lines.append(f"- {info.get('name', name)}：{info.get('description', '')}")
+
+        if not lines:
+            return {
+                "success": False,
+                "inject_prompt": failed_prompt
+                or "skill_info: 主库中未找到任何配置的技能",
+            }
+
+        parts = ["【部分技能披露】"]
+        parts.extend(lines)
+        return {"success": True, "inject_prompt": "\n".join(parts)}
+
+    @staticmethod
+    def _get_gpu_info() -> str:
+        """探测 GPU 型号：优先 nvidia-smi，Windows 回退 WMI，均失败返回未知"""
+        try:
+            r = subprocess.run(
+                ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                capture_output=True, text=True, timeout=5,
+            )
+            if r.returncode == 0 and r.stdout.strip():
+                return r.stdout.strip()
+        except Exception:
+            pass
+        try:
+            if platform.system() == "Windows":
+                r = subprocess.run(
+                    [
+                        "powershell", "-NoProfile", "-Command",
+                        "(Get-CimInstance Win32_VideoController).Name",
+                    ],
+                    capture_output=True, text=True, timeout=8,
+                )
+                if r.returncode == 0 and r.stdout.strip():
+                    return r.stdout.strip()
+        except Exception:
+            pass
+        return "未知"
+
+    @classmethod
+    def _get_system_info(cls) -> str:
+        """@SYS：注入当前系统信息（操作系统/主机名/CPU/GPU + AgentVM 绝对路径）"""
+        lines = [
+            "【当前系统信息】",
+            f"- 操作系统: {platform.system()} {platform.release()} ({platform.machine()})",
+            f"- 主机名: {platform.node()}",
+            f"- CPU 核心数: {os.cpu_count() or '未知'}",
+            f"- GPU: {cls._get_gpu_info()}",
+            f"- AgentVM 沙箱目录（绝对路径）: {AGENT_VM_DIR}",
+        ]
+        return "\n".join(lines)
 
     def _tool_use_check(self, params, **kwargs):
         tool_name = params.get("name")
