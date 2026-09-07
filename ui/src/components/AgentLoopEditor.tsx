@@ -8,7 +8,7 @@ import { ReactFlow, Background, Controls, MarkerType, Handle, Position } from '@
 import type { Node as FlowNode, Edge as FlowEdge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { toast } from 'react-hot-toast';
-import { Check, ChevronDown, Plus, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Plus, Search, Trash2, ToggleLeft, ToggleRight, X } from 'lucide-react';
 
 // ============ 领域模型 ============
 
@@ -134,6 +134,7 @@ const cloneJson = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
+const sketchyShape3 = { borderRadius: '225px 15px 255px 15px/15px 255px 15px 225px' };
 
 // 隐藏连线用锚点（保留 handle 用于精确连边，但视觉上不显示小圆点）；
 // ag-dummy 为纯路由用的隐形节点（外绕回线轨道）
@@ -619,18 +620,22 @@ function ParameterCheckEditor({
   );
 }
 
-// skill_info 的技能选择器：已选技能以标签展示，
-// 「添加技能」弹出主库技能勾选弹窗（数据来自 /api/tools/skills），确认后写回 skills 列表
+// skill_info 的技能选择器：与聊天界面的 skill 选择器保持同一套样式
+// （已选技能为黄色 ⚡ 标签，弹窗数据来自 /api/tools/skills）
 function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string[]) => void }) {
   const [open, setOpen] = useState(false);
   const [library, setLibrary] = useState<{ name: string; description: string }[]>([]);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   const selected: string[] = Array.isArray(value) ? value.map((v) => String(v)) : [];
 
   const openDialog = async () => {
     setChecked(new Set(selected));
+    setSearch('');
+    setExpanded(null);
     setOpen(true);
     if (library.length > 0) return;
     setLoading(true);
@@ -656,26 +661,24 @@ function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string
     });
   };
 
+  const kw = search.trim().toLowerCase();
+  const filtered = kw
+    ? library.filter((s) => s.name.toLowerCase().includes(kw) || (s.description ?? '').toLowerCase().includes(kw))
+    : library;
+
   return (
     <div className="flex flex-col gap-1.5">
-      {selected.length === 0 ? (
-        <div
-          className="text-center text-[11px] font-bold text-ink/35 border-2 border-dashed border-ink/25 py-2"
-          style={{ fontFamily: '"Comic Sans MS", cursive' }}
-        >
-          未选择技能（点击下方添加）
-        </div>
-      ) : (
-        <div className="flex flex-col gap-1">
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
           {selected.map((name) => (
-            <div key={name} className="flex items-center gap-1.5 border-2 border-ink/70 px-2 py-1 bg-cream/60" style={sketchyShape2}>
-              <span className="font-black text-ink text-[12px] leading-none truncate">{name}</span>
-              <button
-                title="移除该技能"
-                onClick={() => onChange(selected.filter((s) => s !== name))}
-                className="ml-auto w-6 h-6 shrink-0 flex items-center justify-center text-ink/40 hover:text-paper hover:bg-[#bf616a]"
-              >
-                <Trash2 size={12} strokeWidth={2.5} />
+            <div
+              key={name}
+              style={sketchyShape3}
+              className="flex items-center gap-1 bg-[#F9E2AF] border-2 border-ink px-3 py-1 font-bold text-sm shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]"
+            >
+              <span>⚡ {name}</span>
+              <button onClick={() => onChange(selected.filter((s) => s !== name))} className="hover:text-terracotta ml-1">
+                <X size={14} strokeWidth={3} />
               </button>
             </div>
           ))}
@@ -693,87 +696,71 @@ function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string
       </button>
 
       {open && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4"
-          onClick={() => setOpen(false)}
-        >
+        <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div
-            style={sketchyShape1}
-            className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-md max-h-[75vh] flex flex-col relative rotate-1"
-            onClick={(e) => e.stopPropagation()}
+            style={sketchyShape2}
+            className="bg-paper border-4 border-ink p-6 flex flex-col gap-4 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 w-full max-w-md h-[70vh]"
           >
-            <div className="px-5 pt-5 pb-3 border-b-2 border-ink/15">
-              <h3 className="text-xl font-black text-ink m-0 tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                选择技能
+            <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-3 shrink-0">
+              <h3 className="text-2xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+                SELECT SKILLS
               </h3>
-              <p className="m-0 mt-1 text-[11px] font-bold text-ink/50" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                从主库勾选要注入名称与描述的技能
-              </p>
+              <button onClick={() => setOpen(false)} className="hover:text-terracotta hover:scale-110 transition-all">
+                <X size={28} strokeWidth={3} />
+              </button>
             </div>
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-3 flex flex-col gap-1.5">
-              {loading && (
-                <div className="text-center text-[12px] font-bold text-ink/40 py-6" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                  正在加载主库技能…
-                </div>
+            <div className="flex items-center gap-2 -rotate-1 shrink-0">
+              <Search size={15} strokeWidth={2.5} className="text-ink/40 shrink-0" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="搜索技能关键词…"
+                className="flex-1 bg-cream border-2 border-ink px-3 py-2 font-bold text-sm focus:outline-none focus:bg-white shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)] placeholder:text-ink/30"
+                style={sketchyShape3}
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto flex flex-col gap-3 -rotate-1 p-1">
+              {loading && <p className="font-bold text-center mt-6 opacity-50 text-sm">正在加载技能…</p>}
+              {!loading && filtered.length === 0 && (
+                <p className="font-bold text-center mt-6 opacity-50 text-sm">{library.length === 0 ? '主库暂无技能' : '无匹配的技能'}</p>
               )}
-              {!loading && library.length === 0 && (
-                <div className="text-center text-[12px] font-bold text-ink/40 py-6" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                  主库暂无技能
-                </div>
-              )}
-              {library.map((s) => {
-                const on = checked.has(s.name);
-                return (
-                  <button
-                    key={s.name}
-                    onClick={() => toggleChecked(s.name)}
-                    className={`flex items-start gap-2 border-2 px-2.5 py-2 text-left transition-colors ${
-                      on ? 'border-ink bg-cream' : 'border-ink/30 bg-paper hover:bg-cream/50'
-                    }`}
-                    style={sketchyShape2}
-                  >
-                    <span
-                      className={`w-5 h-5 shrink-0 mt-0.5 flex items-center justify-center border-2 border-ink ${
-                        on ? 'bg-ink text-paper' : 'bg-paper'
-                      }`}
-                      style={sketchyShape1}
+              {!loading &&
+                filtered.map((s, idx) => {
+                  const on = checked.has(s.name);
+                  return (
+                    <div
+                      key={s.name}
+                      style={idx % 2 === 0 ? sketchyShape1 : sketchyShape3}
+                      className={`border-4 border-ink bg-cream p-3 transition-all ${
+                        on ? 'shadow-[4px_4px_0px_0px_rgba(212,122,90,1)] border-terracotta bg-terracotta/10' : 'shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]'
+                      } flex flex-col gap-2 cursor-pointer`}
+                      onClick={() => toggleChecked(s.name)}
                     >
-                      {on && <Check size={13} strokeWidth={3.5} />}
-                    </span>
-                    <span className="min-w-0 flex flex-col gap-0.5">
-                      <span className="font-black text-ink text-[13px] leading-none truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                        {s.name}
-                      </span>
-                      <span className="text-[11px] font-bold text-ink/45 leading-tight line-clamp-2">{s.description}</span>
-                    </span>
-                  </button>
-                );
-              })}
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 border-2 border-ink flex items-center justify-center ${on ? 'bg-terracotta' : 'bg-paper'}`} style={sketchyShape2}>
+                          {on && <Check size={16} strokeWidth={4} className="text-paper" />}
+                        </div>
+                        <span className="font-black text-lg flex-1">{s.name}</span>
+                        <button onClick={(e) => { e.stopPropagation(); setExpanded(expanded === s.name ? null : s.name); }}>
+                          {expanded === s.name ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        </button>
+                      </div>
+                      {expanded === s.name && <div className="text-xs font-bold opacity-80 pl-8 pt-1 border-t-2 border-ink/10 border-dashed mt-1">{s.description}</div>}
+                    </div>
+                  );
+                })}
             </div>
-            <div className="flex items-center gap-3 px-5 py-4 border-t-2 border-ink/15">
-              <span className="shrink-0 text-[11px] font-black text-ink/50 leading-none" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                已勾选 {checked.size} 个
-              </span>
-              <div className="flex-1 flex gap-3">
-                <button
-                  onClick={() => setOpen(false)}
-                  style={sketchyShape1}
-                  className="flex-1 py-2 bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all"
-                >
-                  取消
-                </button>
-                <button
-                  onClick={() => {
-                    onChange(Array.from(checked));
-                    setOpen(false);
-                  }}
-                  disabled={checked.size === 0}
-                  style={sketchyShape2}
-                  className="flex-1 py-2 bg-ink text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(212,122,90,1)] hover:bg-gray-800 transition-all disabled:opacity-40"
-                >
-                  确认
-                </button>
-              </div>
+            <div className="shrink-0 flex justify-end gap-3 -rotate-1 pt-2 border-t-4 border-ink/10">
+              <button
+                onClick={() => {
+                  onChange(Array.from(checked));
+                  setOpen(false);
+                }}
+                style={sketchyShape1}
+                className="px-8 bg-[#EBCB8B] text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]"
+              >
+                COMPLETE
+              </button>
             </div>
           </div>
         </div>
