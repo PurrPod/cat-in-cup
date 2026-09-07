@@ -88,9 +88,12 @@ class InstallSkillReq(BaseModel):
     url: str
 
 
-def _download_skill_from_github(url: str) -> str:
-    """根据 GitHub URL 下载第三方 Skill 到本地 SKILL_DIR，返回 skill 名"""
-    # 1. 解析 GitHub URL (支持子目录或仓库根目录两种形式)
+class InstallSkillsBatchReq(BaseModel):
+    urls: list
+
+
+def _parse_skill_github_url(url: str):
+    """解析 GitHub skill URL，返回 (owner, repo, branch, path)；不匹配则抛 400"""
     match = re.match(
         r"https?://github\.com/([^/]+)/([^/]+)/tree/([^/]+)(?:/(.*))?", url
     )
@@ -99,19 +102,16 @@ def _download_skill_from_github(url: str) -> str:
             status_code=400,
             detail="URL格式错误！正确格式示例: https://github.com/owner/repo/tree/branch/path/to/skill",
         )
-
     owner, repo, branch, path = match.groups()
-    path = (path or "").strip("/")
+    return owner, repo, branch, (path or "").strip("/")
+
+
+def _extract_skill_from_zip(zip_data: bytes, repo: str, path: str) -> str:
+    """从仓库 zip 字节流中解压单个 skill 子目录到 SKILL_DIR，返回 skill 名"""
     # 仓库根目录即 skill 时，用仓库名作为 skill 名
     skill_name = os.path.basename(path) if path else repo
 
-    # 2. 定位 skills 文件夹
     dest_dir = os.path.join(SKILL_DIR, skill_name)
-    zip_url = f"https://github.com/{owner}/{repo}/archive/refs/heads/{branch}.zip"
-
-    # 3. 内存下载并仅解压目标子文件夹
-    response = urllib.request.urlopen(zip_url)
-    zip_data = response.read()
 
     with zipfile.ZipFile(io.BytesIO(zip_data)) as z:
         root_folder = z.namelist()[0].split("/")[0]
@@ -138,6 +138,14 @@ def _download_skill_from_github(url: str) -> str:
     return skill_name
 
 
+def _download_skill_from_github(url: str) -> str:
+    """根据 GitHub URL 下载第三方 Skill 到本地 SKILL_DIR，返回 skill 名"""
+    owner, repo, branch, path = _parse_skill_github_url(url)
+    zip_url = f"https://github.com/{owner}/{repo}/archive/refs/heads/{branch}.zip"
+    zip_data = urllib.request.urlopen(zip_url).read()
+    return _extract_skill_from_zip(zip_data, repo, path)
+
+
 @router.post("/skills/install")
 def install_skill_api(req: InstallSkillReq):
     """根据 GitHub URL 下载第三方 Skill 并热更新内存"""
@@ -158,6 +166,48 @@ def install_skill_api(req: InstallSkillReq):
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Skill 下载/解压失败: {str(e)}")
+
+
+@router.post("/skills/install-batch")
+def install_skills_batch_api(req: InstallSkillsBatchReq):
+    """批量下载多个第三方 Skill 并热更新内存（同一仓库 zip 只下载一次）"""
+    # 1. 解析全部 URL，按 (owner, repo, branch) 分组，同一仓库共享一次 zip 下载
+    groups = {}
+    for url in req.urls:
+        owner, repo, branch, path = _parse_skill_github_url(url)
+        groups.setdefault((owner, repo, branch), []).append(path)
+
+    installed, failed = [], []
+    for (owner, repo, branch), paths in groups.items():
+        zip_url = f"https://github.com/{owner}/{repo}/archive/refs/heads/{branch}.zip"
+        try:
+            zip_data = urllib.request.urlopen(zip_url).read()
+        except Exception as e:
+            for path in paths:
+                failed.append({"path": path or repo, "error": f"仓库下载失败: {e}"})
+            continue
+
+        for path in paths:
+            try:
+                installed.append(_extract_skill_from_zip(zip_data, repo, path))
+            except HTTPException as e:
+                failed.append({"path": path or repo, "error": str(e.detail)})
+            except Exception as e:
+                failed.append({"path": path or repo, "error": str(e)})
+
+    # 2. 只要有成功安装就统一热加载一次
+    if installed:
+        SkillSearcher().reload_index()
+
+    message = f"批量安装完成：成功 {len(installed)} 个"
+    if failed:
+        message += f"，失败 {len(failed)} 个"
+    return {
+        "status": "partial" if failed else "success",
+        "installed": installed,
+        "failed": failed,
+        "message": message,
+    }
 
 
 # ==========================================

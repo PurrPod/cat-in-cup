@@ -168,6 +168,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
   const [selectedSkill, setSelectedSkill] = useState<SkillEntry | null>(null);
   const [installedNames, setInstalledNames] = useState<Set<string>>(new Set());
   const [installingSet, setInstallingSet] = useState<Set<string>>(new Set());
+  const [isInstallingAll, setIsInstallingAll] = useState(false);
 
   // 🌟 容器宽度监听（ResizeObserver）：字号 / 网格列数 / 侧栏显隐全部按容器实际宽度自适应
   const rootRef = useRef<HTMLDivElement>(null);
@@ -446,6 +447,37 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
       toast.error('Skill 安装失败，请检查网络');
     } finally {
       setInstallingSet(prev => { const n = new Set(prev); n.delete(key); return n; });
+    }
+  };
+
+  // 一键安装仓库内全部 skill（后端按仓库分组下载，只装未安装的）
+  const handleInstallAllInRepo = async (skills: SkillEntry[]) => {
+    if (isInstallingAll) return;
+    const pending = skills.filter(s => !isInstalled(s));
+    if (pending.length === 0) return toast.success('该仓库的技能已全部安装！');
+    setIsInstallingAll(true);
+    const tid = toast.loading(`正在批量安装 ${pending.length} 个技能...`);
+    try {
+      const res = await fetch('/api/tools/skills/install-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls: pending.map(s => s['skill-single-link']) }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        if (data?.failed?.length) {
+          toast.error(`${data.message}：${data.failed.map((f: any) => f.path).join('、')}`, { id: tid });
+        } else {
+          toast.success(data?.message || '批量安装完成！', { id: tid });
+        }
+        await fetchLocalSkills();
+      } else {
+        toast.error(data?.detail || '批量安装失败', { id: tid });
+      }
+    } catch {
+      toast.error('批量安装失败，请检查网络', { id: tid });
+    } finally {
+      setIsInstallingAll(false);
     }
   };
 
@@ -1171,11 +1203,33 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                   >
                     <ChevronLeft size={18} strokeWidth={3} /> 返回仓库列表
                   </button>
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FolderGit2 size={22} strokeWidth={2.5} className="text-terracotta shrink-0" />
-                    <span className="text-xl font-black text-ink truncate min-w-0" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{repoDisplayName(selectedRepo)}</span>
-                    <span className="text-xs font-black px-2 py-1 bg-ink text-paper border-2 border-ink shrink-0" style={sketchyShape3}>{(repoGroups.find(([r]) => r === selectedRepo)?.[1] ?? []).length} skills</span>
-                  </div>
+                  {(() => {
+                    const repoSkills = repoGroups.find(([r]) => r === selectedRepo)?.[1] ?? [];
+                    const allInstalled = repoSkills.length > 0 && repoSkills.every(isInstalled);
+                    return (
+                      <div className="flex items-center gap-3 min-w-0">
+                        <FolderGit2 size={22} strokeWidth={2.5} className="text-terracotta shrink-0" />
+                        <span className="text-xl font-black text-ink truncate min-w-0" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{repoDisplayName(selectedRepo)}</span>
+                        <span className="text-xs font-black px-2 py-1 bg-ink text-paper border-2 border-ink shrink-0" style={sketchyShape3}>{repoSkills.length} skills</span>
+                        <button
+                          onClick={() => handleInstallAllInRepo(repoSkills)}
+                          disabled={isInstallingAll || allInstalled}
+                          title={allInstalled ? '已全部安装' : '一键安装本仓库全部技能'}
+                          style={sketchyShape2}
+                          className={`ml-auto h-11 px-5 flex items-center gap-2 border-4 border-ink font-black text-sm shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-1 active:shadow-none shrink-0 ${
+                            allInstalled
+                              ? 'bg-[#d8d8d0] text-ink/40 cursor-not-allowed'
+                              : isInstallingAll
+                                ? 'bg-[#EBCB8B] text-ink cursor-wait'
+                                : 'bg-terracotta text-paper hover:-translate-y-0.5'
+                          }`}
+                        >
+                          {isInstallingAll ? <Loader2 size={18} strokeWidth={3} className="animate-spin" /> : allInstalled ? <Check size={18} strokeWidth={3} /> : <Download size={18} strokeWidth={3} />}
+                          {!isNarrow && <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{isInstallingAll ? '安装中...' : allInstalled ? '已全部安装' : 'INSTALL ALL'}</span>}
+                        </button>
+                      </div>
+                    );
+                  })()}
                   <div className={`grid ${cardCols} ${isNarrow ? 'gap-4' : 'gap-6'}`}>
                     {(repoGroups.find(([r]) => r === selectedRepo)?.[1] ?? []).map((s, idx) => (
                       <button
