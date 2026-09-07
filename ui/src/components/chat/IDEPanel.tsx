@@ -264,15 +264,29 @@ function IDETerminal({ visible }: { visible: boolean }) {
     tabs.forEach(t => { if (t.id !== activeId && t.terminalEl) t.terminalEl.style.display = 'none'; });
   }, [activeId, tabs, visible]);
 
+  // tabs 的 ref 镜像：卸载清理 effect 的闭包捕获的是初始空 tabs（stale closure），走 ref 才能真正关掉连接
+  const tabsRef = useRef<TermTab[]>([]);
+  useEffect(() => { tabsRef.current = tabs; }, [tabs]);
+
   // 卸载时清理
   useEffect(() => {
-    return () => { tabs.forEach(t => { t.resizeObs?.disconnect(); t.ws?.close(); t.terminal?.dispose(); t.terminalEl?.remove(); }); };
+    return () => { tabsRef.current.forEach(t => { t.resizeObs?.disconnect(); t.ws?.close(); t.terminal?.dispose(); t.terminalEl?.remove(); }); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 首次自动建 tab
+  // 首次可见自动建一个 tab。
+  // ref 锁：React StrictMode（dev）对挂载 effect 会跑 setup→cleanup→setup，
+  // 期间第一次建的 tab 还没提交（tabs 仍读到 []），不锁会连建两个 tab / 起两个 PTY —— 即「打开 IDE 多出一个终端」的根因
+  const autoCreateLockRef = useRef(false);
   useEffect(() => {
-    if (visible && tabs.length === 0) createTab(null);
+    if (visible && tabs.length === 0) {
+      if (!autoCreateLockRef.current) {
+        autoCreateLockRef.current = true;
+        createTab(null);
+      }
+    } else if (tabs.length > 0) {
+      autoCreateLockRef.current = false; // tab 已提交；全部关掉后下次仍可自动补一个
+    }
   }, [visible, tabs.length, createTab]);
 
   return (

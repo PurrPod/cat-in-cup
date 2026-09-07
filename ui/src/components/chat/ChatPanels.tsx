@@ -187,7 +187,8 @@ export function TerminalPanel(props: any) {
   // 新建一个 tab
   const createTab = useCallback((cmd: string | null) => {
     const id = `tab-${tabCounterRef.current++}-${Date.now()}`;
-    const label = cmd ? `· ${cmd.length > 28 ? cmd.slice(0, 28) + '…' : cmd}` : `· Shell ${tabCounterRef.current - 1}`;
+    // 标签名统一用普通 Shell 命名（不拿命令本身当标签，与正常打开的终端一致）
+    const label = `· Shell ${tabCounterRef.current - 1}`;
 
     // 先创建容器 DOM
     const container = document.createElement('div');
@@ -209,9 +210,10 @@ export function TerminalPanel(props: any) {
     term.loadAddon(fitAddon);
     term.open(container);
 
-    // WebSocket
-    const cmdParam = cmd ? `?cmd=${encodeURIComponent(cmd)}` : '';
-    const wsUrl = `ws://${window.location.host}/api/terminal/ws${cmdParam}`;
+    // WebSocket — 始终开交互 shell。命令不走 ?cmd=（后端 -Command 静默执行，
+    // 命令本身和运行位置都不回显），改为 shell 就绪后以键盘输入注入：
+    // 提示符（含运行位置）+ 命令回显都像手动敲入一样自然，还避开 -Command 的引号转义问题
+    const wsUrl = `ws://${window.location.host}/api/terminal/ws`;
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
@@ -226,9 +228,16 @@ export function TerminalPanel(props: any) {
       try { fitAddon.fit(); } catch { /* noop */ }
     };
 
+    let cmdInjected = cmd == null; // 无命令的 tab 天然视为已注入
     ws.onmessage = (event) => {
       // PTY 已经输出正确的 CRLF，前端直接 write 即可
       term.write(event.data);
+      if (!cmdInjected) {
+        cmdInjected = true;
+        // 收到第一段输出 = shell 已就绪（提示符已出），此时把命令当键盘输入注入才会被回显；
+        // 更早发会在 shell 完成初始化前丢失。'\r' 即 xterm 里按下 Enter 的原始字节
+        if (cmd && ws.readyState === WebSocket.OPEN) ws.send(cmd + '\r');
+      }
     };
 
     ws.onerror = () => {
@@ -322,10 +331,14 @@ export function TerminalPanel(props: any) {
     });
   }, [activeId, tabs, showTerminal]);
 
+  // tabs 的 ref 镜像：卸载清理 effect 的闭包捕获的是初始空 tabs（stale closure），走 ref 才能真正关掉连接
+  const tabsRef = useRef<TabState[]>([]);
+  useEffect(() => { tabsRef.current = tabs; }, [tabs]);
+
   // 组件卸载时清理所有 tabs
   useEffect(() => {
     return () => {
-      tabs.forEach(t => {
+      tabsRef.current.forEach(t => {
         t.resizeObs?.disconnect();
         t.ws?.close();
         t.terminal?.dispose();
@@ -335,23 +348,25 @@ export function TerminalPanel(props: any) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // commandProp 变化 → 当父组件设置了新命令 (term:// 点击) → 新建 tab
-  const lastCmdRef = useRef<string | null>('__INIT__');
+  // 🌟 面板打开 / 新命令（term:// 点击 RUN）统一在这里建 tab。
+  // 原来拆成两个 effect：RUN 点击时 showTerminal 与 commandProp 在同一次渲染里变化，
+  // 两个 effect 都触发（后者读到的 tabs 还是未提交的旧值 []），导致一次开两个终端；合并后天然只开一个。
+  // commandProp 是 { seq, cmd } 事件对象：seq 变化才算新的一次 RUN（同一条命令重复点也算新）——
+  // 只比字符串的话，重复 RUN 同一条命令会被判重跳过 → 卡住没反应
+  const lastSeqRef = useRef<number>(-1);
   useEffect(() => {
-    if (commandProp !== lastCmdRef.current) {
-      lastCmdRef.current = commandProp;
-      if (commandProp !== undefined && showTerminal) {
-        createTab(commandProp);
-      }
+    const evt: { seq: number; cmd: string } | null = commandProp ?? null;
+    const isNewCmd = !!evt && evt.seq !== lastSeqRef.current;
+    if (evt) lastSeqRef.current = evt.seq;
+    if (!showTerminal) return;
+    if (tabs.length === 0) {
+      // 面板打开但还没有任何 tab：建一个；恰好有新命令就直接在这个 tab 里执行
+      createTab(isNewCmd && evt ? evt.cmd : null);
+      return;
     }
-  }, [commandProp, showTerminal, createTab]);
-
-  // showTerminal 首次打开 + 还没有任何 tab → 自动建一个默认交互 shell
-  useEffect(() => {
-    if (showTerminal && tabs.length === 0) {
-      createTab(commandProp ?? null);
-    }
-  }, [showTerminal, tabs.length, createTab, commandProp]);
+    // 已有 tab 时来了新命令（term:// RUN）：新开一个 tab 执行
+    if (isNewCmd && evt) createTab(evt.cmd);
+  }, [showTerminal, tabs.length, commandProp, createTab]);
 
   // 外层未挂载时不渲染
   if (!showTerminal) return null;
