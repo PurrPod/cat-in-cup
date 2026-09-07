@@ -4,6 +4,7 @@
 //  - 左侧只放 Hook 组件视图（按生命周期组织，action 可展开编辑 config）
 //  - 右侧：带环循环骨架图（风格与 Workflow 一致：白底卡片 + 小色块标记 + 横平竖直连线）
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ReactFlow, Background, Controls, MarkerType, Handle, Position } from '@xyflow/react';
 import type { Node as FlowNode, Edge as FlowEdge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -131,6 +132,20 @@ const toActions = (hookKey: HookKey, arr: unknown): AgentAction[] => {
 };
 
 const cloneJson = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
+
+// ============ 编辑草稿缓存 ============
+// 视图切换（workflow <-> agent loop）或离开页面会卸载本组件，编辑中的 state 随之丢失；
+// 卸载时若有未保存修改，把完整编辑状态暂存到模块级单槽，TTL 内重新挂载自动恢复
+const DRAFT_TTL_MS = 10 * 60 * 1000; // 草稿保留 10 分钟
+type ParadigmDraft = {
+  activeFile: string;
+  paradigmState: Record<HookKey, AgentAction[]>;
+  rootMeta: Record<string, unknown>;
+  extraHooks: Record<string, unknown>;
+  baselineKey: string | null;
+  savedAt: number;
+};
+let lastDraft: ParadigmDraft | null = null;
 
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
@@ -695,8 +710,9 @@ function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string
         添加技能
       </button>
 
-      {open && (
-        <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div
             style={sketchyShape2}
             className="bg-paper border-4 border-ink p-6 flex flex-col gap-4 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 w-full max-w-md h-[70vh]"
@@ -763,8 +779,9 @@ function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string
               </button>
             </div>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
@@ -1016,6 +1033,17 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     setMenuFor(null);
   };
 
+  // 恢复草稿缓存（视图切回/重新进入编辑器时）
+  const applyDraft = (d: ParadigmDraft) => {
+    setParadigmState(d.paradigmState);
+    setRootMeta(d.rootMeta);
+    setExtraHooks(d.extraHooks);
+    setActiveFile(d.activeFile);
+    setBaselineKey(d.baselineKey);
+    setOpenActions(new Set());
+    setMenuFor(null);
+  };
+
   const refreshFiles = async (): Promise<string> => {
     const res = await fetch('/api/paradigms');
     if (!res.ok) throw new Error('获取 paradigm 列表失败');
@@ -1037,10 +1065,22 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     }
   };
 
-  // 启动时默认加载 PARADIGM.yaml（默认 Agent Loop）
+  // 启动时优先恢复草稿缓存（TTL 内），否则加载默认 PARADIGM.yaml
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (lastDraft && lastDraft.activeFile) {
+        const fresh = Date.now() - lastDraft.savedAt < DRAFT_TTL_MS;
+        const d = fresh ? lastDraft : null;
+        lastDraft = null; // 无论是否恢复都清掉，避免过期草稿反复触发
+        if (d) {
+          if (!cancelled) {
+            applyDraft(d);
+            toast.success(`已恢复 ${d.activeFile} 的未保存草稿`);
+          }
+          return;
+        }
+      }
       try {
         const defaultName = await refreshFiles();
         if (!cancelled && defaultName) await loadFile(defaultName);
@@ -1124,6 +1164,29 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     onDirtyChange?.(dirty);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dirty]);
+
+  // 始终追踪最新编辑状态（供卸载时写入草稿缓存，避免闭包捕获旧值）
+  const latestRef = useRef({ activeFile, paradigmState, rootMeta, extraHooks, baselineKey, dirty });
+  useEffect(() => {
+    latestRef.current = { activeFile, paradigmState, rootMeta, extraHooks, baselineKey, dirty };
+  });
+
+  // 卸载时若有未保存修改，写入草稿缓存（TTL 内切回可恢复）
+  useEffect(() => {
+    return () => {
+      const s = latestRef.current;
+      if (s.activeFile && s.dirty) {
+        lastDraft = {
+          activeFile: s.activeFile,
+          paradigmState: s.paradigmState,
+          rootMeta: s.rootMeta,
+          extraHooks: s.extraHooks,
+          baselineKey: s.baselineKey,
+          savedAt: Date.now(),
+        };
+      }
+    };
+  }, []);
 
   // Toolbar 通过 ref 打开文件（带未保存确认）
   const openFile = async (name: string) => {
