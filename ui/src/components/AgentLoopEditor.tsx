@@ -991,6 +991,8 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
   const [baselineKey, setBaselineKey] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
+  // dirty 时切换文件的待确认目标（手绘确认弹窗）
+  const [pendingFile, setPendingFile] = useState<string | null>(null);
 
   // 把内部状态汇报给 EditorPage（用于顶部 Toolbar 展示当前文件）
   useEffect(() => {
@@ -1195,11 +1197,20 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     };
   }, []);
 
-  // Toolbar 通过 ref 打开文件（带未保存确认）
+  // Toolbar 通过 ref 打开文件（dirty 时弹手绘确认弹窗，确认后才切换）
   const openFile = async (name: string) => {
     if (!name || name === activeFile) return;
-    if (dirty && !window.confirm('当前文件有未保存的修改，切换将丢弃这些修改，确定继续？')) return;
+    if (dirty) {
+      setPendingFile(name);
+      return;
+    }
     await loadFile(name);
+  };
+
+  const confirmSwitchFile = async () => {
+    const name = pendingFile;
+    setPendingFile(null);
+    if (name) await loadFile(name);
   };
 
   const handleSave = async () => {
@@ -1639,6 +1650,36 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
           </ReactFlow>
         </div>
       </div>
+
+      {/* 切换文件的未保存确认弹窗（dirty 时由 openFile 触发） */}
+      {pendingFile && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
+          <div style={sketchyShape3} className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-sm p-8 relative -rotate-1">
+            <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+              WAIT A MINUTE!
+            </h3>
+            <p className="font-bold mb-6 opacity-80 text-lg">
+              当前文件有未保存的修改。切换到 {pendingFile}.yaml 将丢弃这些修改，确定要继续吗？
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setPendingFile(null)}
+                style={sketchyShape1}
+                className="flex-1 py-3 bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all"
+              >
+                STAY
+              </button>
+              <button
+                onClick={() => void confirmSwitchFile()}
+                style={sketchyShape2}
+                className="flex-1 py-3 bg-[#bf616a] text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500 transition-all"
+              >
+                SWITCH
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 新建 Paradigm 弹窗（由顶部 Toolbar 触发） */}
       {creating && (
