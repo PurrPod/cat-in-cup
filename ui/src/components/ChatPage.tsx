@@ -1402,48 +1402,6 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                           </div>
                         </div>
                       )}
-                      {msg.role === 'assistant' && gIdx === messages.length - 1 && !isAgentThinking && (
-                        <div className="flex justify-end gap-2 mt-3 animate-in fade-in duration-300">
-                          <button
-                            onClick={() => {
-                              if (skillData.length === 0) fetchSkill();
-                              setShowTraceModal(true);
-                            }}
-                            className="p-2 bg-paper border-2 border-ink hover:bg-[#EBCB8B] hover:text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none"
-                            style={sketchyShape2}
-                            title="Trace to Skill (经验沉淀为技能)"
-                          >
-                            <BookOpen size={18} strokeWidth={2.5} />
-                          </button>
-                          <button
-                            onClick={handleCompressMemory}
-                            disabled={isCompressingMemory}
-                            className="p-2 bg-paper border-2 border-ink hover:bg-[#b48ead] hover:text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:bg-paper disabled:hover:text-ink disabled:hover:translate-y-0"
-                            style={sketchyShape3}
-                            title="Memory Compress (手动触发记忆压缩：全局大总结并截断历史上下文)"
-                          >
-                            {isCompressingMemory ? <Loader2 size={18} strokeWidth={2.5} className="animate-spin" /> : <Brain size={18} strokeWidth={2.5} />}
-                          </button>
-                          <button
-                            onClick={handleQuickBranch}
-                            disabled={isCheckingOut}
-                            className="p-2 bg-paper border-2 border-ink hover:bg-[#a3be8c] hover:text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:bg-paper disabled:hover:text-ink disabled:hover:translate-y-0"
-                            style={sketchyShape1}
-                            title="Branch (基于当前会话新建分支并切换过去)"
-                          >
-                            {isCheckingOut ? <Loader2 size={18} strokeWidth={2.5} className="animate-spin" /> : <GitMerge size={18} strokeWidth={2.5} />}
-                          </button>
-                          <button
-                            onClick={() => { void refreshParadigms(); setParadigmSearch(''); setShowParadigmModal(true); }}
-                            disabled={isCheckingOut}
-                            className="p-2 bg-paper border-2 border-ink hover:bg-[#5e81ac] hover:text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:bg-paper disabled:hover:text-ink disabled:hover:translate-y-0"
-                            style={sketchyShape3}
-                            title="切换 Agent Loop（只换循环逻辑，不动系统提示词，保住 KV Cache）"
-                          >
-                            <ArrowLeftRight size={18} strokeWidth={2.5} />
-                          </button>
-                        </div>
-                      )}
                       {msg.tool_calls && msg.tool_calls.map((tc: any, tIdx: number) => <ToolCallBubble key={`tc-${tIdx}`} tc={tc} />)}
                     </div>
                   </div>
@@ -1455,6 +1413,50 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
           {isAgentThinking && (
             <div className="flex justify-start mb-3 w-full max-w-[85%]">
               <ReasoningBubble text={liveReasoning} live phase={livePhase} onPause={handleForceInterrupt} />
+            </div>
+          )}
+          {/* 🌟 动作按钮行：只看 idle 状态，不再要求最后一条是 assistant 消息（打断后
+              历史可能以 tool 消息悬空结尾，按钮不能因此消失） */}
+          {messages.length > 0 && !isAgentThinking && (
+            <div className="flex gap-2 mt-3 mb-3 w-full max-w-[85%] animate-in fade-in duration-300">
+              <button
+                onClick={() => {
+                  if (skillData.length === 0) fetchSkill();
+                  setShowTraceModal(true);
+                }}
+                className="p-2 bg-paper border-2 border-ink hover:bg-[#EBCB8B] hover:text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none"
+                style={sketchyShape2}
+                title="Trace to Skill (经验沉淀为技能)"
+              >
+                <BookOpen size={18} strokeWidth={2.5} />
+              </button>
+              <button
+                onClick={handleCompressMemory}
+                disabled={isCompressingMemory}
+                className="p-2 bg-paper border-2 border-ink hover:bg-[#b48ead] hover:text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:bg-paper disabled:hover:text-ink disabled:hover:translate-y-0"
+                style={sketchyShape3}
+                title="Memory Compress (手动触发记忆压缩：全局大总结并截断历史上下文)"
+              >
+                {isCompressingMemory ? <Loader2 size={18} strokeWidth={2.5} className="animate-spin" /> : <Brain size={18} strokeWidth={2.5} />}
+              </button>
+              <button
+                onClick={handleQuickBranch}
+                disabled={isCheckingOut}
+                className="p-2 bg-paper border-2 border-ink hover:bg-[#a3be8c] hover:text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:bg-paper disabled:hover:text-ink disabled:hover:translate-y-0"
+                style={sketchyShape1}
+                title="Branch (基于当前会话新建分支并切换过去)"
+              >
+                {isCheckingOut ? <Loader2 size={18} strokeWidth={2.5} className="animate-spin" /> : <GitMerge size={18} strokeWidth={2.5} />}
+              </button>
+              <button
+                onClick={() => { void refreshParadigms(); setParadigmSearch(''); setShowParadigmModal(true); }}
+                disabled={isCheckingOut}
+                className="p-2 bg-paper border-2 border-ink hover:bg-[#5e81ac] hover:text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:bg-paper disabled:hover:text-ink disabled:hover:translate-y-0"
+                style={sketchyShape3}
+                title="切换 Agent Loop（只换循环逻辑，不动系统提示词，保住 KV Cache）"
+              >
+                <ArrowLeftRight size={18} strokeWidth={2.5} />
+              </button>
             </div>
           )}
           {currentBranchId === 'main' && messages.length > 0 && !isAgentThinking && (
