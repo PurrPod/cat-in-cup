@@ -34,11 +34,7 @@ def Bash(command: str, timeout: int = 30, session_id: str = "default", **kwarg) 
         manager = get_docker_manager()
         exit_code, output, cwd = manager.execute(session_id, command, timeout)
 
-        content_str = (
-            f"执行目录: {cwd}\n"
-            f"退出代码: {exit_code}\n"
-            f"输出:\n{output if output else '[无输出]'}"
-        )
+        content_str = output if output else "[无输出]"
 
         if exit_code == 0:
             snip = "✅ 成功"

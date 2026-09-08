@@ -10,6 +10,7 @@ import '@xyflow/react/dist/style.css';
 import { toast } from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { extractToolContent } from './chat/ChatShared';
 
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
@@ -38,7 +39,7 @@ const MarkdownComponents: any = {
 
 const ToolMessageBubble = ({ msg }: { msg: any }) => {
   const [expanded, setExpanded] = useState(false);
-  const contentStr = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+  const contentStr = extractToolContent(msg.content);
   if (!expanded) {
     return (
       <div onClick={() => setExpanded(true)} style={sketchyShape3} className="w-fit max-w-[250px] p-2 px-4 border-2 border-ink bg-[#a3be8c]/30 text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] mb-2 flex items-center justify-between gap-3 cursor-pointer hover:bg-[#a3be8c]/60 transition-all hover:-translate-y-0.5 self-start">
