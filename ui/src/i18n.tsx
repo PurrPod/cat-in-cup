@@ -28,6 +28,48 @@ const messages = {
       unsupported: '当前环境不支持选择文件夹', saved: '数据盘设置成功，请手动重启 PurrCat 后生效',
       saveFailed: '保存失败', networkError: '网络错误，无法连接后端',
     },
+    task: {
+      loading: '正在加载任务…', noHistory: '暂无对话记录。', noLogs: '未找到执行日志。',
+      dashboard: '数据面板', launch: '启动任务', selectGraph: '1. 选择已部署的图谱：',
+      taskAlias: '2. 任务别名：', configInputs: '3. 配置输入（JSON）：', cancel: '取消', delete: '删除',
+      newTrigger: '新建触发器', triggerTitle: '触发器标题…', triggerTime: '时间（HH:MM）',
+      workflowInputs: '工作流输入（JSON）…', create: '创建', run: '运行', monitor: '监控',
+      noRunning: '当前没有运行中的任务。', visualizer: '图谱可视化', stopProcess: '停止进程',
+      selectTask: '请选择任务查看流程…', noAgentNodes: '没有核心 Agent 节点',
+    },
+    memory: {
+      keep: '保留', forget: '遗忘', database: '记忆数据库', search: '搜索', hybrid: '混合检索',
+      cognition: '认知', knowledgeGraph: '知识图谱', experiences: '经历', vector: '向量记忆（前 30 条）',
+      events: '事件', facts: '客观事实（前 30 条）', rawNotes: '原始记忆笔记', refresh: '刷新',
+      ask: '向你的记忆提问…', searchHint: '按 Enter 搜索记忆…', syncing: '正在同步所有三元组…',
+      emptyGraph: '图谱为空，请点击刷新。', forgetConfirm: '确定要遗忘这条记忆吗？',
+    },
+    market: {
+      description: '描述：', mcpServers: 'MCP 服务（Schema）：', requiredEnv: '必需环境变量：',
+      fetching: '正在获取仓库…', skills: '技能', capabilities: 'Agent 能力', servers: 'MCP 服务',
+      providers: '上下文提供者', sensors: '传感器', triggers: '自主触发器', graphs: '图谱',
+      templates: '工作流模板', loops: '循环', paradigms: 'Agent Loop 范式', refresh: '刷新',
+      searchSkills: '搜索技能名称 / 描述 / 仓库 / 作者…', searchMcp: '搜索 MCP 名称 / 描述 / 仓库 / 服务…',
+      searchSensors: '搜索传感器名称 / 描述…', searchGraphs: '搜索图谱名称 / 描述…',
+      noWant: '没找到想要的？试试：', comingSoon: '即将上线', loopSoon: 'Agent Loop 市场即将上线，敬请期待。',
+      buildMcp: '从零构建 MCP', mcpName: 'MCP 名称：', targetFunction: '目标功能：',
+      install: '安装', installed: '已安装', observe: '观察', express: '表达',
+    },
+    evolve: {
+      back: '返回', factory: '工厂', processing: '处理中', noItems: '当前没有处理中的项目。',
+      buildGoal: '构建目标', sandboxFiles: '沙盒文件', archives: '归档', noArchives: '暂无归档。',
+      selectReport: '请选择一次迭代查看报告…', diffReview: '差异审查', reloadDiff: '重新加载差异',
+      revertMain: '恢复主分支', reject: '拒绝并要求返工', approve: '批准并合并',
+      selectProcess: '请选择一个处理项目开始。', feedback: '反馈与返工', cancel: '取消',
+      deleteSandbox: '删除沙盒？', revertConfirm: '恢复主分支？', editEvals: '编辑 evals.json',
+      runEvaluator: '运行评估器', refreshArchives: '刷新归档',
+    },
+    editor: {
+      loadingNodes: '正在加载节点…', workflow: '工作流', open: '打开', savedGraphs: '已保存图谱',
+      nothing: '暂无内容', validate: '校验', clearCanvas: '清空画布', deploy: '部署', file: '文件',
+      paradigms: '范式', save: '保存', saveWorkflow: '保存工作流', namePrompt: '为你的工作流命名：',
+      descriptionPrompt: '添加描述（可选）：', clearConfirm: '清空画布？', deleteParadigm: '删除范式？',
+    },
   },
   'en-US': {
     common: {
@@ -51,14 +93,53 @@ const messages = {
       unsupported: 'Folder selection is not available in this environment', saved: 'Data directory saved. Please restart PurrCat to apply it.',
       saveFailed: 'Save failed', networkError: 'Network error: unable to connect to the backend',
     },
+    task: {
+      loading: 'LOADING TASK...', noHistory: 'No conversation history yet.', noLogs: 'No execution logs found.',
+      dashboard: 'Data Dashboard View', launch: 'LAUNCH MISSION', selectGraph: '1. Select Deployed Graph:',
+      taskAlias: '2. Task Alias:', configInputs: '3. Configuration inputs (JSON):', cancel: 'CANCEL', delete: 'DELETE',
+      newTrigger: 'NEW TRIGGER', triggerTitle: 'Trigger Title...', triggerTime: 'Time (HH:MM)',
+      workflowInputs: 'Workflow Inputs (JSON)...', create: 'CREATE', run: 'Run', monitor: 'MONITOR',
+      noRunning: 'No tasks running.', visualizer: 'GRAPH VISUALIZER', stopProcess: 'STOP PROCESS',
+      selectTask: 'Select a task to view its flow...', noAgentNodes: 'No Core Agent Nodes',
+    },
+    memory: {
+      keep: 'KEEP', forget: 'FORGET', database: 'MEMORY DB', search: 'SEARCH', hybrid: 'Hybrid Retrieval',
+      cognition: 'COGNITION', knowledgeGraph: 'Knowledge Graph', experiences: 'EXPERIENCES', vector: 'Vector Memory (Top 30)',
+      events: 'EVENTS', facts: 'Objective Facts (Top 30)', rawNotes: 'Raw Memory Notes', refresh: 'REFRESH',
+      ask: 'Ask your memory anything...', searchHint: 'Hit Enter to search the void...', syncing: 'Syncing All Triples...',
+      emptyGraph: 'Graph is empty. Try clicking REFRESH.', forgetConfirm: 'Forget this memory?',
+    },
+    market: {
+      description: 'DESCRIPTION:', mcpServers: 'MCP SERVERS (SCHEMA):', requiredEnv: 'REQUIRED ENV:',
+      fetching: 'Fetching Repositories...', skills: 'SKILLS', capabilities: 'Agent Capabilities', servers: 'MCP SERVERS',
+      providers: 'Context Providers', sensors: 'SENSORS', triggers: 'Autonomous Triggers', graphs: 'GRAPHS',
+      templates: 'Workflow Templates', loops: 'LOOPS', paradigms: 'Agent Loop Paradigms', refresh: 'REFRESH',
+      searchSkills: 'Search skills / descriptions / repositories / authors…', searchMcp: 'Search MCP names / descriptions / repositories / servers…',
+      searchSensors: 'Search sensor names / descriptions…', searchGraphs: 'Search graph names / descriptions…',
+      noWant: 'No want? Try:', comingSoon: 'COMING SOON', loopSoon: 'Agent Loop marketplace is coming soon.',
+      buildMcp: 'Build a MCP from Scratch', mcpName: 'MCP NAME:', targetFunction: 'TARGET FUNCTION:',
+      install: 'Install', installed: 'Installed', observe: 'OBSERVE', express: 'EXPRESS',
+    },
+    evolve: {
+      back: 'BACK', factory: 'FACTORY', processing: 'Processing Lines', noItems: 'No items processing.',
+      buildGoal: 'Build Goal', sandboxFiles: 'SANDBOX FILES', archives: 'ARCHIVES', noArchives: 'No archives yet.',
+      selectReport: 'Select an iteration to view report...', diffReview: 'DIFF REVIEW', reloadDiff: 'Reload Diff',
+      revertMain: 'Revert Main to Previous', reject: 'Reject & Request Rework', approve: 'Approve & Merge',
+      selectProcess: 'Select a process to start.', feedback: 'FEEDBACK & REWORK', cancel: 'CANCEL',
+      deleteSandbox: 'DELETE SANDBOX?', revertConfirm: 'REVERT MAIN?', editEvals: 'Edit Evals.json',
+      runEvaluator: 'Run Evaluator', refreshArchives: 'Refresh Archives',
+    },
+    editor: {
+      loadingNodes: 'Loading Nodes...', workflow: 'WORKFLOW', open: 'OPEN', savedGraphs: 'SAVED GRAPHS',
+      nothing: 'Nothing here', validate: 'Validate', clearCanvas: 'Clear Canvas', deploy: 'DEPLOY', file: 'FILE',
+      paradigms: 'PARADIGMS', save: 'Save', saveWorkflow: 'SAVE WORKFLOW', namePrompt: 'Give your cat-powered graph a name:',
+      descriptionPrompt: 'Add a description (optional):', clearConfirm: 'CLEAR CANVAS?', deleteParadigm: 'DELETE PARADIGM?',
+    },
   },
 } as const
 
 type Messages = typeof messages['zh-CN']
-type TranslationKey =
-  | `common.${keyof Messages['common']}`
-  | `home.${keyof Messages['home']}`
-  | `setup.${keyof Messages['setup']}`
+type TranslationKey = string
 
 function getInitialLocale(): Locale {
   try {

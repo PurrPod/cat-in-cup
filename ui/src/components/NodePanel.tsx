@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
 import { useFlowStore } from '../store/flowStore';
+import { useTranslation } from '../i18n';
 
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
 const sketchyShape3 = { borderRadius: '225px 15px 255px 15px/15px 255px 15px 225px' };
 
 export default function NodePanel() {
+  const { t } = useTranslation();
   const catalog = useFlowStore((state) => state.catalog);
   const fetchCatalog = useFlowStore((state) => state.fetchCatalog);
 
@@ -29,7 +31,7 @@ export default function NodePanel() {
       </div>
 
       {catalog.length === 0 && (
-        <div className="text-center font-bold text-ink/50 mt-10">Loading Nodes...</div>
+        <div className="text-center font-bold text-ink/50 mt-10">{t('editor.loadingNodes')}</div>
       )}
 
       {catalog.map((node, idx) => (

@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { ArrowLeft, Store, RefreshCw, User, AlertCircle, Zap, Server, Activity, GitMerge, X, Copy, Search, LayoutGrid, FolderGit2, Download, Check, ChevronLeft, Loader2, Link2, Repeat } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from '../i18n';
 
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
@@ -124,6 +125,7 @@ function shortDesc(desc: string, n = 30): string {
 }
 
 export default function MarketPage({ onBack, initialTab }: { onBack: () => void; initialTab?: MarketTab }) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<MarketTab>(initialTab ?? 'skill');
 
   const [skillData, setSkillData] = useState<Record<string, SkillEntry>>({});
@@ -618,7 +620,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
 
               {/* 弹窗 Body：完整描述 */}
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh]">
-                <span className="font-black text-ink tracking-widest text-sm">DESCRIPTION:</span>
+                <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
                 <p className="text-[15px] font-bold leading-relaxed text-ink/80 mt-3 whitespace-pre-wrap break-words">{selectedSkill.desc || '（暂无描述）'}</p>
                 <p className="text-xs font-bold text-ink/40 mt-4 break-all">来源仓库: {selectedSkill.repo}</p>
               </div>
@@ -689,7 +691,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
 
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-end">
-                    <span className="font-black text-ink tracking-widest text-sm">MCP SERVERS (SCHEMA):</span>
+                    <span className="font-black text-ink tracking-widest text-sm">{t('market.mcpServers')}</span>
                     <button onClick={() => copyToClipboard(JSON.stringify({ mcpServers: selectedMcpInfo.mcpServers }, null, 2))} className="flex items-center gap-1 text-xs font-black bg-cream border-2 border-ink px-2 py-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#a3be8c] transition-all active:translate-y-[1px] active:shadow-none" style={sketchyShape2}>
                       <Copy size={12} strokeWidth={3}/> COPY
                     </button>
@@ -804,10 +806,10 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                     <h2 className="text-2xl font-black tracking-wide text-ink break-all" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{selectedSensor.name}</h2>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       {selectedSensor.capabilities?.observe && (
-                        <span className="text-[10px] font-black px-2 py-0.5 bg-cream border-2 border-ink text-ink" style={sketchyShape3}>OBSERVE</span>
+                        <span className="text-[10px] font-black px-2 py-0.5 bg-cream border-2 border-ink text-ink" style={sketchyShape3}>{t('market.observe')}</span>
                       )}
                       {selectedSensor.capabilities?.express && (
-                        <span className="text-[10px] font-black px-2 py-0.5 bg-cream border-2 border-ink text-ink" style={sketchyShape1}>EXPRESS</span>
+                        <span className="text-[10px] font-black px-2 py-0.5 bg-cream border-2 border-ink text-ink" style={sketchyShape1}>{t('market.express')}</span>
                       )}
                       {installed && (
                         <span className="text-[10px] font-black px-2 py-0.5 bg-[#a3be8c] border-2 border-ink text-ink flex items-center gap-1" style={sketchyShape3}>
@@ -825,14 +827,14 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
 
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh] flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
-                  <span className="font-black text-ink tracking-widest text-sm">DESCRIPTION:</span>
+                  <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
                   <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedSensor.description || '（暂无描述）'}</p>
                 </div>
 
                 {envKeys.length > 0 && (
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between items-end">
-                      <span className="font-black text-ink tracking-widest text-sm">REQUIRED ENV:</span>
+                      <span className="font-black text-ink tracking-widest text-sm">{t('market.requiredEnv')}</span>
                       <span className="text-[11px] font-bold text-ink/40">安装后请到配置里填写真实值</span>
                     </div>
                     <div style={sketchyShape1} className="bg-[#FDF8F0] border-4 border-ink p-4 overflow-x-auto shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]">
@@ -922,13 +924,13 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
 
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh] flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
-                  <span className="font-black text-ink tracking-widest text-sm">DESCRIPTION:</span>
+                <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
                   <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedGraph.description || '（暂无描述）'}</p>
                 </div>
 
                 {selectedGraph.global_schema && Object.keys(selectedGraph.global_schema).length > 0 && (
                   <div className="flex flex-col gap-2">
-                    <span className="font-black text-ink tracking-widest text-sm">INPUT SCHEMA (启动参数):</span>
+                    <span className="font-black text-ink tracking-widest text-sm">INPUT SCHEMA（启动参数）：</span>
                     <pre style={sketchyShape3} className="bg-[#FDF8F0] border-4 border-ink p-4 overflow-x-auto text-xs font-mono font-bold shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)] text-ink">
                       {JSON.stringify(selectedGraph.global_schema, null, 2)}
                     </pre>
@@ -978,7 +980,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
             <div className="absolute -top-4 left-1/4 w-32 h-10 bg-[#88c0d0]/60 border-2 border-ink rotate-2 z-50 pointer-events-none" style={sketchyShape1}></div>
 
             <div className="flex justify-between items-center p-5 border-b-4 border-ink/20 shrink-0">
-              <h3 className="text-xl font-black text-ink tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Build a MCP from Scratch</h3>
+              <h3 className="text-xl font-black text-ink tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.buildMcp')}</h3>
               <button onClick={() => setShowMcpFactoryModal(false)} className="p-1.5 border-2 border-ink bg-cream text-ink hover:bg-[#bf616a] hover:text-paper transition-all" style={sketchyShape3}>
                 <X size={20} strokeWidth={3} />
               </button>
@@ -986,7 +988,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
 
             <div className="p-6 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <span className="font-black text-ink text-sm tracking-widest">MCP NAME:</span>
+                <span className="font-black text-ink text-sm tracking-widest">{t('market.mcpName')}</span>
                 <input
                   value={factoryMcpName}
                   onChange={e => setFactoryMcpName(e.target.value)}
@@ -996,7 +998,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <span className="font-black text-ink text-sm tracking-widest">TARGET FUNCTION (目标功能):</span>
+                <span className="font-black text-ink text-sm tracking-widest">{t('market.targetFunction')}</span>
                 <textarea
                   value={factoryGoal}
                   onChange={e => setFactoryGoal(e.target.value)}
@@ -1050,40 +1052,40 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
             <button onClick={() => setActiveTab('skill')} style={sketchyShape1} className={`p-4 border-4 border-ink text-left transition-all flex items-center gap-4 ${activeTab === 'skill' ? 'bg-terracotta text-paper shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-cream text-ink hover:bg-sand'}`}>
               <Zap size={28} strokeWidth={2.5} className="shrink-0"/>
               <div className="min-w-0">
-                <div className="font-black text-xl tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SKILLS</div>
-                <div className="text-xs font-bold opacity-70 truncate">Agent Capabilities</div>
+                <div className="font-black text-xl tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.skills')}</div>
+                <div className="text-xs font-bold opacity-70 truncate">{t('market.capabilities')}</div>
               </div>
             </button>
 
             <button onClick={() => setActiveTab('mcp')} style={sketchyShape2} className={`p-4 border-4 border-ink text-left transition-all flex items-center gap-4 ${activeTab === 'mcp' ? 'bg-[#EBCB8B] text-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-cream text-ink hover:bg-sand'}`}>
               <Server size={28} strokeWidth={2.5} className="shrink-0"/>
               <div className="min-w-0">
-                <div className="font-black text-xl tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>MCP SERVERS</div>
-                <div className="text-xs font-bold opacity-70 truncate">Context Providers</div>
+                <div className="font-black text-xl tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.servers')}</div>
+                <div className="text-xs font-bold opacity-70 truncate">{t('market.providers')}</div>
               </div>
             </button>
 
             <button onClick={() => setActiveTab('sensor')} style={sketchyShape3} className={`p-4 border-4 border-ink text-left transition-all flex items-center gap-4 ${activeTab === 'sensor' ? 'bg-[#a3be8c] text-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-cream text-ink hover:bg-sand'}`}>
               <Activity size={28} strokeWidth={2.5} className="shrink-0"/>
               <div className="min-w-0">
-                <div className="font-black text-xl tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SENSORS</div>
-                <div className="text-xs font-bold opacity-70 truncate">Autonomous Triggers</div>
+                <div className="font-black text-xl tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.sensors')}</div>
+                <div className="text-xs font-bold opacity-70 truncate">{t('market.triggers')}</div>
               </div>
             </button>
 
             <button onClick={() => setActiveTab('graph')} style={sketchyShape1} className={`p-4 border-4 border-ink text-left transition-all flex items-center gap-4 ${activeTab === 'graph' ? 'bg-[#b48ead] text-paper shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-cream text-ink hover:bg-sand'}`}>
               <GitMerge size={28} strokeWidth={2.5} className="shrink-0"/>
               <div className="min-w-0">
-                <div className="font-black text-xl tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>GRAPHS</div>
-                <div className="text-xs font-bold opacity-70 truncate">Workflow Templates</div>
+                <div className="font-black text-xl tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.graphs')}</div>
+                <div className="text-xs font-bold opacity-70 truncate">{t('market.templates')}</div>
               </div>
             </button>
 
             <button onClick={() => setActiveTab('loop')} style={sketchyShape2} className={`p-4 border-4 border-ink text-left transition-all flex items-center gap-4 ${activeTab === 'loop' ? 'bg-[#5e81ac] text-paper shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-cream text-ink hover:bg-sand'}`}>
               <Repeat size={28} strokeWidth={2.5} className="shrink-0"/>
               <div className="min-w-0">
-                <div className="font-black text-xl tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>LOOPS</div>
-                <div className="text-xs font-bold opacity-70 truncate">Agent Loop Paradigms</div>
+                <div className="font-black text-xl tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.loops')}</div>
+                <div className="text-xs font-bold opacity-70 truncate">{t('market.paradigms')}</div>
               </div>
             </button>
 
@@ -1122,7 +1124,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
             className="flex items-center gap-2 px-5 py-2.5 bg-[#EBCB8B] text-ink border-4 border-ink font-black text-lg shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all rotate-2 disabled:opacity-50 shrink-0"
           >
             <RefreshCw size={20} strokeWidth={3} className={isFetching ? "animate-spin text-terracotta" : "text-ink"} />
-            {!isNarrow && <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>REFRESH</span>}
+            {!isNarrow && <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.refresh')}</span>}
           </button>
         </div>
 
@@ -1138,7 +1140,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                   <input
                     value={searchQuery}
                     onChange={e => { setSearchQuery(e.target.value); setSelectedRepo(null); }}
-                    placeholder="搜索技能名 / 描述 / 仓库 / 作者..."
+                    placeholder={t('market.searchSkills')}
                     className="flex-1 min-w-0 bg-transparent outline-none font-bold text-ink placeholder:text-ink/40 text-[15px]"
                   />
                   {searchQuery && (
@@ -1165,7 +1167,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               </div>
 
               {isFetchingSkill && Object.keys(skillData).length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-terracotta" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Fetching Repositories...</p></div>
+                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-terracotta" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.fetching')}</p></div>
               ) : filteredSkills.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{searchQuery ? 'No Match.' : 'Registry is empty.'}</p></div>
               ) : layoutMode === 'repo' && !selectedRepo ? (
@@ -1278,7 +1280,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 <input
                   value={mcpSearchQuery}
                   onChange={e => setMcpSearchQuery(e.target.value)}
-                  placeholder="搜索 MCP 名称 / 描述 / 仓库 / server..."
+                  placeholder={t('market.searchMcp')}
                   className="flex-1 min-w-0 bg-transparent outline-none font-bold text-ink placeholder:text-ink/40 text-[15px]"
                 />
                 {mcpSearchQuery && (
@@ -1289,7 +1291,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               </div>
 
               {isFetchingMcp && mcpData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-[#EBCB8B]" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Fetching Repositories...</p></div>
+                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-[#EBCB8B]" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.fetching')}</p></div>
               ) : filteredMcps.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{mcpSearchQuery ? 'No Match.' : 'Registry is empty.'}</p></div>
               ) : (
@@ -1330,7 +1332,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 onClick={() => setShowMcpFactoryModal(true)}
                 className="w-full flex items-center justify-center gap-2 py-3 opacity-60 hover:opacity-100 transition-opacity"
               >
-                <span className="text-sm font-bold text-ink/50">No want? Try：</span>
+                <span className="text-sm font-bold text-ink/50">{t('market.noWant')}</span>
                 <span className="text-sm font-black text-terracotta underline decoration-wavy decoration-2 underline-offset-4" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
                   build a mcp from scratch!
                 </span>
@@ -1347,7 +1349,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 <input
                   value={sensorSearchQuery}
                   onChange={e => setSensorSearchQuery(e.target.value)}
-                  placeholder="搜索 Sensor 名称 / 描述..."
+                  placeholder={t('market.searchSensors')}
                   className="flex-1 min-w-0 bg-transparent outline-none font-bold text-ink placeholder:text-ink/40 text-[15px]"
                 />
                 {sensorSearchQuery && (
@@ -1358,7 +1360,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               </div>
 
               {isFetchingSensor && sensorData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-[#a3be8c]" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Fetching Sensors...</p></div>
+                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-[#a3be8c]" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.fetching')}</p></div>
               ) : filteredSensors.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{sensorSearchQuery ? 'No Match.' : 'Registry is empty.'}</p></div>
               ) : (
@@ -1424,7 +1426,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 <input
                   value={graphSearchQuery}
                   onChange={e => setGraphSearchQuery(e.target.value)}
-                  placeholder="搜索 Graph 名称 / 描述..."
+                  placeholder={t('market.searchGraphs')}
                   className="flex-1 min-w-0 bg-transparent outline-none font-bold text-ink placeholder:text-ink/40 text-[15px]"
                 />
                 {graphSearchQuery && (
@@ -1435,7 +1437,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               </div>
 
               {isFetchingGraph && graphData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-[#b48ead]" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Fetching Graphs...</p></div>
+                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-[#b48ead]" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.fetching')}</p></div>
               ) : filteredGraphs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{graphSearchQuery ? 'No Match.' : 'Registry is empty.'}</p></div>
               ) : (
@@ -1489,7 +1491,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 <div style={sketchyShape1} className="w-24 h-24 bg-[#5e81ac] border-4 border-ink flex items-center justify-center rotate-6 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">
                   <Repeat size={52} strokeWidth={2.5} className="text-paper" />
                 </div>
-                <h3 className="text-4xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>COMING SOON</h3>
+                <h3 className="text-4xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.comingSoon')}</h3>
                 <p className="text-sm font-bold text-ink/60 leading-relaxed">Agent Loop 市场即将上线，敬请期待。</p>
               </div>
             </div>
