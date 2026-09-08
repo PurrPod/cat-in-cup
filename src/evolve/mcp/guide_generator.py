@@ -4,11 +4,17 @@ MCP 指南生成器模块 (evolve/mcp/guide_generator.py)
 """
 
 
-def generate_mcp_guide(mcp_name: str, goal: str = "") -> str:
+def generate_mcp_guide(mcp_name: str, goal: str = "", agent_vm_dir: str = "") -> str:
     goal_section = f"\n> 🎯 **本次构建目标**：{goal}\n\n" if goal else ""
+    path_section = (
+        f"\n> 🗺️ **路径映射**：MCP 服务在**宿主机**上运行，所有相关路径必须按宿主机环境定义；"
+        f"沙盒 `/agent_vm` 对应宿主机 `{agent_vm_dir}`。\n\n"
+        if agent_vm_dir
+        else ""
+    )
     return f"""# {mcp_name} MCP 工厂指南 (GUIDE)
 
-{goal_section}## 1. 架构（防循环导入）
+{goal_section}{path_section}## 1. 架构（防循环导入）
 * `app.py`：全局实例，只有一行 `mcp = FastMCP("{mcp_name}")`。
 * `server.py`：主入口，导入 app 与所有 tools（合并后系统以它为唯一启动入口）。
 * `tools/`：所有 Tool 函数写这里，从 app 导入 mcp 实例（⚠️ 工具函数名勿与 import 的业务函数同名，防递归）。
@@ -31,7 +37,17 @@ def generate_mcp_guide(mcp_name: str, goal: str = "") -> str:
 * `triggers`：至少 10 个正反例，检验 description 的语义竞争力。
 * `executions`：覆盖所有边界场景的入参，检验 inputSchema 健壮性。
 
-## 5. 配置文件（mcp_server_config.json）🚨 必读
+## 5. 路径与宿主机环境 🚨 必读
+MCP 合并后将在**宿主机**上运行（宿主机读取 mcp_config.json 并以子进程启动你的 server），
+而非当前沙盒！因此配置与代码中的所有相关路径（`--directory`、文件读写路径等）
+都必须按**宿主机环境**定义：
+* 当前沙盒根目录与宿主机的映射关系：`/agent_vm` → `{agent_vm_dir}`
+* 示例：沙盒内路径 `/agent_vm/mcp_workplace/xxx` 在宿主机上是 `{agent_vm_dir}/mcp_workplace/xxx`
+* 🔴 严禁在配置或代码中硬编码沙盒路径（`/agent_vm/...`）：合并后在宿主机上运行时路径不存在，启动即失败。
+  优先使用相对路径（如 `--directory "."`，系统合并时自动定位到正式目录）；
+  确需绝对路径时，必须通过上述映射换算为宿主机真实路径。
+
+## 6. 配置文件（mcp_server_config.json）🚨 必读
 系统已在沙盒根目录为你生成标准配置文件 `mcp_server_config.json`。
 开发完成后你**必须**根据实际情况修改它，合并时系统将**完全依赖该文件**注册你的 MCP！
 1. **启动命令**：入口文件不是 `server.py`，或通过 `uvx` 等指令启动时，务必修改 `command` 和 `args`
@@ -48,7 +64,7 @@ def generate_mcp_guide(mcp_name: str, goal: str = "") -> str:
      ```
 3. 该文件必须是格式合法的 JSON 且**不得重命名**，否则合并将直接报错失败！
 
-## 6. 流水线
+## 7. 流水线
 ① 编写 `tools/`、`core/` → ② `bash setup.sh` 建环境 → ③ `scripts/` 真实链路自测 →
 ④ `python scripts/evaluation.py` 生成 schema_dump 与执行产物 →
 ⑤ `KernelUpgrade(action="test_mcp")` 呼叫宿主机盲测 →

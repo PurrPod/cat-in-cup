@@ -4,7 +4,7 @@ FILESYSTEM_TOOL_SCHEMA = {
         "name": "FileSystem",
         "description": (
             "高级文件系统操作工具。\n"
-            "支持目录浏览(list)。\n"
+            "目录浏览：list 类似 ls，仅列出单层内容（类型、大小、修改时间），不递归；查看子目录请再次调用并指定其路径。\n"
             "文件级管理：移动/重命名(move)、复制(copy)与安全删除(delete)。\n"
             "强大的代码操作能力：读取(read)、编辑(edit)、复写(write)、文本搜索(search)与文件模式匹配(glob)。\n"
             "支持防冲突校验。任何编辑或删除错误均可通过 action='undo' 将文件安全回滚至上一状态。\n"
@@ -65,10 +65,6 @@ FILESYSTEM_TOOL_SCHEMA = {
                 "pattern": {
                     "type": "string",
                     "description": "仅 search/glob 使用。search 传入正则，glob 传入通配符。",
-                },
-                "depth": {
-                    "type": "integer",
-                    "description": "仅 list 使用。目录递归深度，默认 1。",
                 },
             },
             "required": ["action"],

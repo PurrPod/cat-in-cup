@@ -1,6 +1,7 @@
 """Memo 工具主入口 - 统一记忆工具，支持写入和搜索"""
 
 import json
+import os
 import re
 import traceback
 from datetime import datetime
@@ -68,10 +69,11 @@ def _handle_add(memo_data: dict = None) -> str:
 
     try:
         filepath = add_memory(memo_data)
+        filename = os.path.splitext(os.path.basename(filepath))[0]
 
         return text_response(
-            f"归档路径: {filepath}",
-            f"🧠 记忆归档成功：{filepath}",
+            f"已归档（{filename}）",
+            f"🧠 记忆归档成功：{filename}",
         )
     except ValueError as e:
         return error_response(f"参数校验失败: {str(e)}", "❌ 参数校验失败")

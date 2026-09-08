@@ -134,9 +134,27 @@ export function renderSketchyHeatmap(heatmapData: Record<string, number> = {}) {
   );
 }
 
+// 🌟 提取工具结果的纯净 content：后端把 {"content": ..., "metadata": {...}} 整体 JSON 序列化后
+// 作为 tool 消息的 content 下发，直接展示会带出 metadata 且换行变成字面 \n。
+// 这里解析后只取 content 字段（真实换行交给 whitespace-pre-wrap 渲染）；
+// 兼容异常路径的 {"error": ...} 格式；非该格式则原样展示。
+export function extractToolContent(content: unknown): string {
+  if (typeof content === 'string') {
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed && typeof parsed === 'object') {
+        if (typeof parsed.content === 'string') return parsed.content;
+        if (typeof parsed.error === 'string') return parsed.error;
+      }
+    } catch { /* 非 JSON 格式，原样展示 */ }
+    return content;
+  }
+  return JSON.stringify(content, null, 2);
+}
+
 export const ToolMessageBubble = ({ msg }: { msg: Message }) => {
   const [expanded, setExpanded] = useState(false);
-  const contentStr = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+  const contentStr = extractToolContent(msg.content);
 
   if (!expanded) {
     return (
