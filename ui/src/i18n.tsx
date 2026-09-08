@@ -70,6 +70,16 @@ const messages = {
       paradigms: '范式', save: '保存', saveWorkflow: '保存工作流', namePrompt: '为你的工作流命名：',
       descriptionPrompt: '添加描述（可选）：', clearConfirm: '清空画布？', deleteParadigm: '删除范式？',
     },
+    chat: {
+      greeting: '今天我们要构建什么？', todayCalls: '今日调用', tokensBurnt: '消耗 Token', cacheHit: '缓存命中',
+      annualContributions: '年度贡献', copied: '已复制！', assistant: '助手', dropFiles: '将文件拖到这里以添加！',
+      writePrompt: '在这里输入你的指令…', selectChat: '请先选择一个会话！', moreTools: '更多工具',
+      openBrowser: '在浏览器中打开', linkPreview: '链接预览', loadingMarkdown: '正在加载 Markdown…',
+      allFilesClean: '所有文件都已处理！', selectFile: '请选择文件…', noVisualDiff: '未检测到可视差异。',
+      seconds: '秒', saveConfig: '保存配置', openExternally: '在外部浏览器打开', cancel: '取消',
+      noMcpLoaded: '尚未加载 MCP', noSkillsLoaded: '尚未加载技能', noAlarms: '尚未配置提醒', noSensors: '未找到传感器',
+      noFileOpen: '没有打开文件', selectFileExplorer: '请从文件浏览器选择文件', newChat: '新建会话',
+    },
   },
   'en-US': {
     common: {
@@ -134,6 +144,16 @@ const messages = {
       nothing: 'Nothing here', validate: 'Validate', clearCanvas: 'Clear Canvas', deploy: 'DEPLOY', file: 'FILE',
       paradigms: 'PARADIGMS', save: 'Save', saveWorkflow: 'SAVE WORKFLOW', namePrompt: 'Give your cat-powered graph a name:',
       descriptionPrompt: 'Add a description (optional):', clearConfirm: 'CLEAR CANVAS?', deleteParadigm: 'DELETE PARADIGM?',
+    },
+    chat: {
+      greeting: 'Hi, what are we building today?', todayCalls: 'TODAY CALLS', tokensBurnt: 'TOKENS BURNT', cacheHit: 'CACHE HIT',
+      annualContributions: 'ANNUAL CONTRIBUTIONS', copied: 'Copied!', assistant: 'ASSISTANT', dropFiles: 'Drop files here to attach!',
+      writePrompt: 'Write your prompt here...', selectChat: 'Select a chat first!', moreTools: 'More Tools',
+      openBrowser: 'Open in Browser', linkPreview: 'Link Preview', loadingMarkdown: 'LOADING MARKDOWN...',
+      allFilesClean: 'All files clean!', selectFile: 'Select a file...', noVisualDiff: 'No visual difference detected.',
+      seconds: 'SECONDS', saveConfig: 'SAVE CONFIG', openExternally: 'OPEN EXTERNALLY', cancel: 'CANCEL',
+      noMcpLoaded: 'No MCP loaded', noSkillsLoaded: 'No Skills loaded', noAlarms: 'No Alarms configured', noSensors: 'No Sensors found',
+      noFileOpen: 'No file open', selectFileExplorer: 'Select a file from the explorer', newChat: 'NEW CHAT',
     },
   },
 } as const

@@ -2,8 +2,10 @@
 import { useState } from 'react';
 import { Loader2, X, Trash2, Check, ChevronUp, ChevronDown, Plus, Download, Save, FileText, GitFork, Pencil, Clock, BookOpen, Search } from 'lucide-react';
 import { sketchyShape1, sketchyShape2, sketchyShape3 } from './ChatShared';
+import { useTranslation } from '../../i18n';
 
 export default function ChatModals(props: any) {
+  const { t } = useTranslation();
   const {
     isCheckingOut, showBusyModal, setShowBusyModal,
     showModal, setShowModal, newAlias, setNewAlias, selectedParadigm, setSelectedParadigm, paradigmFiles, confirmNewSession,
@@ -114,7 +116,7 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 max-w-md w-full">
             <div className="flex justify-between items-center -rotate-1">
-              <h3 className="text-3xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>NEW CHAT</h3>
+              <h3 className="text-3xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.newChat')}</h3>
               <button onClick={() => setShowModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             {/* 🌟 修改这里，变成两行输入 */}

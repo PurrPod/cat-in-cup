@@ -2,9 +2,11 @@
 import { ArrowLeft, Terminal, List, Brain, Server, Zap, AlarmClock, Activity, ChevronDown, ChevronUp, Plus, RefreshCw, Trash2, FileText, GitMerge } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { sketchyShape1, sketchyShape2, sketchyShape3 } from './ChatShared';
+import { useTranslation } from '../../i18n';
 
 export default function ChatSidebar(props: any) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const {
     onBack, setShowSessionModal,
     sidebarMode, setSidebarMode,
@@ -86,7 +88,7 @@ export default function ChatSidebar(props: any) {
                    </div>
                </div>
                <div className="flex-1 overflow-y-auto flex flex-col gap-4 p-2 mb-2">
-                  {Object.keys(mcpData).length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">No MCP loaded</p> :
+                  {Object.keys(mcpData).length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{t('chat.noMcpLoaded')}</p> :
                     Object.entries(mcpData).map(([server, tools]: any, idx) => (
                       <div key={server} style={idx % 2 === 0 ? sketchyShape2 : sketchyShape3} className={`border-4 border-ink bg-cream p-3 transition-all ${expandedMcp === server ? 'shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] translate-y-1' : 'shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:-translate-y-1 cursor-pointer'}`}>
                           <div className="flex justify-between items-center" onClick={() => setExpandedMcp(expandedMcp === server ? null : server)}>
@@ -120,7 +122,7 @@ export default function ChatSidebar(props: any) {
                    </div>
                </div>
                <div className="flex-1 overflow-y-auto flex flex-col gap-4 p-2 mb-2">
-                  {skillData.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">No Skills loaded</p> :
+                  {skillData.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{t('chat.noSkillsLoaded')}</p> :
                     skillData.map((skill: any, idx: number) => (
                       <div key={skill.name} style={idx % 2 === 0 ? sketchyShape1 : sketchyShape2} className={`border-4 border-ink bg-cream p-3 transition-all ${expandedSkill === skill.name ? 'shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] translate-y-1' : 'shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:-translate-y-1 cursor-pointer'}`}>
                           <div className="flex justify-between items-center" onClick={() => setExpandedSkill(expandedSkill === skill.name ? null : skill.name)}>
@@ -142,7 +144,7 @@ export default function ChatSidebar(props: any) {
                    <button onClick={fetchCron} className="p-1 bg-[#E8D1C5] border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:rotate-180 transition-all"><RefreshCw size={18} strokeWidth={3}/></button>
                </div>
                <div className="flex-1 overflow-y-auto flex flex-col gap-4 p-2 mb-2">
-                  {cronData.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">No Alarms configured</p> :
+                  {cronData.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{t('chat.noAlarms')}</p> :
                     cronData.map((cron: any, idx: number) => (
                       <div key={cron.id || cron.title} style={idx % 2 === 0 ? sketchyShape3 : sketchyShape1} className={`border-4 border-ink bg-cream p-3 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex flex-col gap-1 relative group ${idx % 2 === 0 ? 'rotate-1' : '-rotate-1'}`}>
                          <div className="flex justify-between items-center">
@@ -168,7 +170,7 @@ export default function ChatSidebar(props: any) {
                    </div>
                </div>
                <div className="flex-1 overflow-y-auto flex flex-col gap-4 p-2 mb-2">
-                  {!sensorData || Object.keys(sensorData).length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">No Sensors found</p> : (
+                  {!sensorData || Object.keys(sensorData).length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{t('chat.noSensors')}</p> : (
                     Object.entries(sensorData).map(([name, cfg]: [string, any], idx) => (
                       <div key={name} style={idx % 2 === 0 ? sketchyShape2 : sketchyShape3} className="border-4 border-ink bg-cream p-3 transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex flex-col gap-2 relative">
                           <div className="flex justify-between items-center pr-2">

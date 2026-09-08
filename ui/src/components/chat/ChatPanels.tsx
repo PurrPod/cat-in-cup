@@ -5,8 +5,10 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { sketchyShape1, sketchyShape2, sketchyShape3 } from './ChatShared';
+import { useTranslation } from '../../i18n';
 
 export function FileChangesPanel(props: any) {
+  const { t } = useTranslation();
   const { showFileView, setShowFileView, fileChanges, activeDiffPath, setActiveDiffPath, handleAck, handleRollback, handleAckAll } = props;
   if (!showFileView) return null;
 
@@ -27,7 +29,7 @@ export function FileChangesPanel(props: any) {
         </div>
 
         {fileChanges.length === 0 ? (
-          <div className="flex flex-col items-center py-10 opacity-50"><CheckCircle size={48} strokeWidth={1.5} /><p className="font-bold text-sm mt-2">All files clean!</p></div>
+          <div className="flex flex-col items-center py-10 opacity-50"><CheckCircle size={48} strokeWidth={1.5} /><p className="font-bold text-sm mt-2">{t('chat.allFilesClean')}</p></div>
         ) : (
           <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0 items-stretch">
             <div className="w-full md:w-72 shrink-0 overflow-y-auto flex flex-col gap-3 pr-2">
@@ -51,7 +53,7 @@ export function FileChangesPanel(props: any) {
             <div className="flex-1 flex flex-col min-w-0">
               {(() => {
                 const currentChange = fileChanges.find((c:any) => c.path === activeDiffPath);
-                if (!currentChange) return <div className="flex-1 flex items-center justify-center italic opacity-40 text-sm">Select a file...</div>;
+                if (!currentChange) return <div className="flex-1 flex items-center justify-center italic opacity-40 text-sm">{t('chat.selectFile')}</div>;
                 return (
                   <div className="flex-1 flex flex-col min-h-0">
                     <div className="flex-1 bg-[#FDF8F0] p-4 border-4 border-ink font-mono text-xs overflow-auto shadow-[inset_3px_3px_6px_rgba(0,0,0,0.05)]" style={sketchyShape2}>
@@ -61,7 +63,7 @@ export function FileChangesPanel(props: any) {
                         if (line.startsWith('-')) colorClass = 'text-[#bf616a] font-bold bg-[#bf616a]/10';
                         if (line.startsWith('@')) colorClass = 'text-[#88c0d0]';
                         return <div key={i} className={`${colorClass} leading-relaxed whitespace-pre rounded px-1`}>{line || '\u00A0'}</div>;
-                      }) : <span className="opacity-50 italic p-2 block">No visual difference detected.</span>}
+                      }) : <span className="opacity-50 italic p-2 block">{t('chat.noVisualDiff')}</span>}
                     </div>
                     <div className="flex gap-4 mt-3 shrink-0">
                       <button onClick={() => handleAck(currentChange.path, currentChange.newest_backup_id)} className="flex-1 bg-[#a3be8c] text-ink font-black py-2.5 border-2 border-ink shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-0.5 active:shadow-none transition-all flex justify-center items-center gap-2" style={sketchyShape2}><CheckCircle size={16} strokeWidth={3}/> ACKNOWLEDGE</button>

@@ -33,6 +33,7 @@ import ChatModals from './chat/ChatModals';
 import ChatSidebar from './chat/ChatSidebar';
 import { FileChangesPanel, RequestQueuePanel, TerminalPanel } from './chat/ChatPanels';
 import AgentBrowserPanel from './chat/AgentBrowserPanel';
+import { useTranslation } from '../i18n';
 import IDEPanel from './chat/IDEPanel';
 import ConfigModal from './ConfigModal';
 
@@ -40,6 +41,7 @@ import ConfigModal from './ConfigModal';
 export type BrowserTab = { id: string; url: string; title: string };
 
 export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => void; onSwitchToTask?: () => void }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { sessionId } = useParams<{ sessionId: string }>();
 
@@ -1313,15 +1315,15 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
         <div ref={messagesContainerRef} onScroll={handleScroll} onClick={handleMessageClick} className={`flex-1 overflow-y-auto ${(showBrowser || showIDE) ? 'px-4' : 'px-10'} pb-6 flex flex-col gap-6 w-full z-10 pt-4`}>
           {messages.length === 0 && !showBrowser && !showIDE ? (
             <div className={`flex flex-col items-center justify-center h-full text-ink gap-5 p-2 w-full ${showBrowser ? 'max-w-none' : 'max-w-3xl'} mx-auto select-none`}>
-              <div className="flex items-center mb-2"><p className="text-3xl font-black rotate-1 text-ink tracking-tight" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Hi, what are we building today?</p></div>
+              <div className="flex items-center mb-2"><p className="text-3xl font-black rotate-1 text-ink tracking-tight" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.greeting')}</p></div>
               <div className="grid grid-cols-3 gap-4 w-full">
-                <div style={sketchyShape2} className="bg-paper border-4 border-ink p-3 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center gap-3 rotate-1"><div className="p-2 bg-[#EBCB8B]/30 border-2 border-ink" style={sketchyShape3}><Activity size={20} className="text-ink" strokeWidth={3} /></div><div className="flex-1 min-w-0"><div className="text-[10px] font-black text-ink/40">TODAY CALLS</div><div className="text-xl font-black font-mono text-ink truncate">{globalStats?.today?.calls ?? 0}</div></div></div>
-                <div style={sketchyShape3} className="bg-paper border-4 border-ink p-3 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center gap-3 -rotate-1"><div className="p-2 bg-[#88c0d0]/30 border-2 border-ink" style={sketchyShape1}><Zap size={20} className="text-[#5e81ac]" strokeWidth={3} /></div><div className="flex-1 min-w-0"><div className="text-[10px] font-black text-ink/40">TOKENS BURNT</div><div className="text-xl font-black font-mono text-ink truncate">{globalStats?.today?.total_tokens ? globalStats.today.total_tokens.toLocaleString() : 0}</div></div></div>
-                <div style={sketchyShape1} className="bg-paper border-4 border-ink p-3 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center gap-3 rotate-2"><div className="p-2 bg-[#a3be8c]/30 border-2 border-ink shrink-0" style={sketchyShape2}><Server size={20} className="text-[#729654]" strokeWidth={3} /></div><div className="flex-1 min-w-0 flex flex-col justify-center"><div className="text-[10px] font-black text-ink/40 leading-tight">CACHE HIT</div><div className="flex flex-col mt-0.5"><span className="text-lg font-black font-mono text-ink truncate leading-none">{globalStats?.today?.cached_tokens?.toLocaleString() || 0}</span></div></div></div>
+                 <div style={sketchyShape2} className="bg-paper border-4 border-ink p-3 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center gap-3 rotate-1"><div className="p-2 bg-[#EBCB8B]/30 border-2 border-ink" style={sketchyShape3}><Activity size={20} className="text-ink" strokeWidth={3} /></div><div className="flex-1 min-w-0"><div className="text-[10px] font-black text-ink/40">{t('chat.todayCalls')}</div><div className="text-xl font-black font-mono text-ink truncate">{globalStats?.today?.calls ?? 0}</div></div></div>
+                 <div style={sketchyShape3} className="bg-paper border-4 border-ink p-3 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center gap-3 -rotate-1"><div className="p-2 bg-[#88c0d0]/30 border-2 border-ink" style={sketchyShape1}><Zap size={20} className="text-[#5e81ac]" strokeWidth={3} /></div><div className="flex-1 min-w-0"><div className="text-[10px] font-black text-ink/40">{t('chat.tokensBurnt')}</div><div className="text-xl font-black font-mono text-ink truncate">{globalStats?.today?.total_tokens ? globalStats.today.total_tokens.toLocaleString() : 0}</div></div></div>
+                 <div style={sketchyShape1} className="bg-paper border-4 border-ink p-3 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center gap-3 rotate-2"><div className="p-2 bg-[#a3be8c]/30 border-2 border-ink shrink-0" style={sketchyShape2}><Server size={20} className="text-[#729654]" strokeWidth={3} /></div><div className="flex-1 min-w-0 flex flex-col justify-center"><div className="text-[10px] font-black text-ink/40 leading-tight">{t('chat.cacheHit')}</div><div className="flex flex-col mt-0.5"><span className="text-lg font-black font-mono text-ink truncate leading-none">{globalStats?.today?.cached_tokens?.toLocaleString() || 0}</span></div></div></div>
               </div>
               <div style={sketchyShape1} className="w-full bg-paper border-4 border-ink p-5 shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] flex flex-col gap-3 relative mt-2">
                 <div className="absolute -top-2 left-10 w-16 h-4 bg-[#d08770]/60 border-2 border-ink rotate-2" style={sketchyShape2}></div>
-                <div className="flex justify-between items-end px-1"><span className="font-black text-sm tracking-wider" style={{ fontFamily: '"Comic Sans MS", cursive' }}>ANNUAL CONTRIBUTIONS</span></div>
+                 <div className="flex justify-between items-end px-1"><span className="font-black text-sm tracking-wider" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.annualContributions')}</span></div>
                 <div className="w-full">{renderSketchyHeatmap(globalStats?.heatmap)}</div>
               </div>
             </div>
@@ -1358,7 +1360,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                           <div style={sketchyShape2} className="group/bubble w-full p-6 border-4 border-ink relative bg-cream text-ink shadow-[6px 6px 0px 0px rgba(26,26,26,1)]">
                             <button
                               onClick={() => {
-                                navigator.clipboard.writeText(userMsg.content).then(() => toast.success('Copied!'));
+                              navigator.clipboard.writeText(userMsg.content).then(() => toast.success(t('chat.copied')));
                               }}
                               className="absolute top-2 right-2 p-1.5 bg-paper border-2 border-ink text-ink/60 hover:text-ink hover:bg-[#F9E2AF] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all opacity-0 group-hover/bubble:opacity-100 z-10"
                               style={sketchyShape3}
@@ -1385,7 +1387,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                         <div style={sketchyShape1} className="group/bubble w-full p-6 border-4 border-ink relative bg-cream text-ink shadow-[6px 6px 0px 0px rgba(26,26,26,1)]">
                           <button
                             onClick={() => {
-                              navigator.clipboard.writeText(msg.content).then(() => toast.success('Copied!'));
+                              navigator.clipboard.writeText(msg.content).then(() => toast.success(t('chat.copied')));
                             }}
                             className="absolute top-2 right-2 p-1.5 bg-paper border-2 border-ink text-ink/60 hover:text-ink hover:bg-[#F9E2AF] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all opacity-0 group-hover/bubble:opacity-100 z-10"
                             style={sketchyShape3}
@@ -1396,7 +1398,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                           <div>
                             <div className="flex items-center gap-2 mb-4">
                               <Cat size={20} strokeWidth={2.5}/>
-                              <span className="font-black text-sm uppercase tracking-widest bg-ink text-paper px-2 py-0.5" style={{ ...sketchyShape3, fontFamily: '"Comic Sans MS", cursive' }}>ASSISTANT</span>
+                              <span className="font-black text-sm uppercase tracking-widest bg-ink text-paper px-2 py-0.5" style={{ ...sketchyShape3, fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.assistant')}</span>
                             </div>
                             <div className="text-[17px] font-bold text-ink"><ReactMarkdown remarkPlugins={[remarkGfm]} components={MarkdownComponents} urlTransform={allowFileUrlTransform}>{msg.content}</ReactMarkdown></div>
                           </div>
@@ -1492,9 +1494,9 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
 
            {!showFileView && !showTerminal && (
            <div className={`flex gap-4 relative transition-all ${isDragging ? 'ring-4 ring-terracotta bg-terracotta/5' : ''}`} onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop}>
-             {isDragging && <div className="absolute inset-0 z-50 flex items-center justify-center bg-cream/90 border-4 border-dashed border-terracotta" style={sketchyShape2}><span className="text-2xl font-black text-terracotta">Drop files here to attach!</span></div>}
+             {isDragging && <div className="absolute inset-0 z-50 flex items-center justify-center bg-cream/90 border-4 border-dashed border-terracotta" style={sketchyShape2}><span className="text-2xl font-black text-terracotta">{t('chat.dropFiles')}</span></div>}
              <div className="flex-1 relative flex flex-col">
-               <textarea ref={chatInputRef} style={sketchyShape3} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }} onPaste={handlePaste} placeholder={currentSessionId ? "Write your prompt here..." : "Select a chat first!"} disabled={!currentSessionId} rows={2} className="w-full bg-[#FDF8F0] border-4 border-ink p-5 pr-40 font-bold focus:outline-none resize-none text-lg -rotate-[0.5deg] placeholder:text-ink/30" />
+             <textarea ref={chatInputRef} style={sketchyShape3} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }} onPaste={handlePaste} placeholder={currentSessionId ? t('chat.writePrompt') : t('chat.selectChat')} disabled={!currentSessionId} rows={2} className="w-full bg-[#FDF8F0] border-4 border-ink p-5 pr-40 font-bold focus:outline-none resize-none text-lg -rotate-[0.5deg] placeholder:text-ink/30" />
                <div className="absolute right-3 bottom-3 flex items-center gap-2 z-10">
                  {/* 展开的工具菜单 */}
                  {showToolMenu && (
@@ -1532,7 +1534,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                    onClick={() => setShowToolMenu(!showToolMenu)}
                    className={`p-2 border-2 border-ink transition-all shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] ${showToolMenu ? 'bg-terracotta text-paper' : 'bg-cream text-ink hover:bg-sand'}`}
                    style={sketchyShape1}
-                   title="More Tools"
+                   title={t('chat.moreTools')}
                  >
                    {/* 点击后十字架旋转45度变成一个 X 按钮，手感会更好 */}
                    <Plus size={24} strokeWidth={3} className={`transition-transform duration-300 ${showToolMenu ? 'rotate-45' : ''}`}/>
@@ -1613,7 +1615,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                     onChange={e => setHeartbeatConfig({...heartbeatConfig, interval: Math.max(60, parseInt(e.target.value) || 60)})}
                     className="w-20 bg-transparent font-black text-xl text-center focus:outline-none"
                   />
-                  <span className="font-bold opacity-60">SECONDS</span>
+                  <span className="font-bold opacity-60">{t('chat.seconds')}</span>
                 </div>
 
                 {/* 纯净的粗线条 Sensor 风格拨键开关 */}
@@ -1648,7 +1650,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
             </div>
 
             <button onClick={saveHeartbeat} style={sketchyShape2} className="mt-2 w-full bg-[#bf616a] text-paper font-black py-4 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 rotate-1 text-xl tracking-widest">
-              SAVE CONFIG
+                  {t('chat.saveConfig')}
             </button>
           </div>
         </div>
@@ -1670,8 +1672,8 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
 
               <div className="flex items-center gap-4 shrink-0 ml-4">
                 {/* 外部浏览器打开兜底按钮：显式走 shell.openExternal 唤起系统浏览器 */}
-                <button onClick={() => { const full = window.location.origin + previewUrl; if ((window as any).purrcat?.openExternal) (window as any).purrcat.openExternal(full); else window.open(full, '_blank'); }} className="flex items-center gap-2 p-2 px-4 bg-cream border-4 border-ink hover:bg-[#3498DB] hover:text-paper shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] transition-all font-black text-sm active:translate-y-1 active:shadow-none" title="Open in Browser" style={sketchyShape1}>
-                  OPEN EXTERNALLY <ExternalLink size={16} strokeWidth={3} />
+                <button onClick={() => { const full = window.location.origin + previewUrl; if ((window as any).purrcat?.openExternal) (window as any).purrcat.openExternal(full); else window.open(full, '_blank'); }} className="flex items-center gap-2 p-2 px-4 bg-cream border-4 border-ink hover:bg-[#3498DB] hover:text-paper shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] transition-all font-black text-sm active:translate-y-1 active:shadow-none" title={t('chat.openBrowser')} style={sketchyShape1}>
+                  {t('chat.openExternally')} <ExternalLink size={16} strokeWidth={3} />
                 </button>
                 <button onClick={() => setPreviewUrl(null)} className="hover:text-terracotta hover:scale-110 transition-all">
                   <X size={32} strokeWidth={3} />
@@ -1691,7 +1693,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                 <iframe
                   src={previewUrl}
                   className="w-full h-full border-none"
-                  title="Link Preview"
+                  title={t('chat.linkPreview')}
                   sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                 />
               )}
@@ -1709,7 +1711,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                   }}
                 >
                   {previewMdContent === null ? (
-                    <div className="font-black text-ink/40 animate-pulse tracking-widest">LOADING MARKDOWN...</div>
+                    <div className="font-black text-ink/40 animate-pulse tracking-widest">{t('chat.loadingMarkdown')}</div>
                   ) : (
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
@@ -1762,7 +1764,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                 className="px-6 py-3 bg-cream text-ink font-black border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand active:translate-y-1 active:shadow-none transition-all"
                 style={sketchyShape2}
               >
-                CANCEL
+                {t('chat.cancel')}
               </button>
               <button
                 onClick={() => {
