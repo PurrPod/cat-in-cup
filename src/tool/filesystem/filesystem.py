@@ -160,7 +160,7 @@ def FileSystem(action: str, path: str = None, destination: str = None, **kwargs)
 
         if action == "list":
             try:
-                result = list_filesystem(path=path, depth=kwargs.get("depth", 1))
+                result = list_filesystem(path=path)
                 return text_response(
                     result["tree"],
                     f"📂 📁{result['dir_count']} 📄{result['file_count']}",
