@@ -237,7 +237,7 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
                       mode === m ? 'bg-ink text-paper' : 'text-ink hover:bg-sand'
                     }`}
                   >
-                    {m === 'workflow' ? 'WORKFLOW' : 'AGENT LOOP'}
+                    {m === 'workflow' ? t('editor.workflow') : t('editor.agentLoop')}
                   </button>
                 ))}
               </div>

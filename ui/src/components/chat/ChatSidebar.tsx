@@ -25,7 +25,7 @@ export default function ChatSidebar(props: any) {
         </button>
         <button onClick={() => setShowSessionModal(true)} style={sketchyShape1} className="flex-1 h-16 flex items-center justify-center gap-2 bg-[#EBCB8B] text-ink border-4 border-ink hover:bg-[#d8b877] transition-all active:scale-95 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] rotate-2 hover:-rotate-1">
           <List size={22} strokeWidth={3} />
-          <span className="tracking-widest text-lg font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SWITCH</span>
+          <span className="tracking-widest text-lg font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.switchSession')}</span>
         </button>
       </div>
 
@@ -35,24 +35,24 @@ export default function ChatSidebar(props: any) {
                {/* EVOLVE 按钮 */}
                <button onClick={() => navigate('/evolve')} style={sketchyShape2} className="shrink-0 border-4 border-ink bg-[#a3be8c]/40 hover:bg-[#a3be8c] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-center gap-3 hover:-translate-y-1 hover:scale-[1.02] transition-all rotate-1 active:shadow-none active:translate-y-1 min-h-[60px]">
                    <Activity size={28} strokeWidth={2.5} className="text-[#729654]"/>
-                   <span className="font-black text-xl tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>EVOLVE</span>
+                    <span className="font-black text-xl tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.evolve')}</span>
                </button>
 
                {/* TASK 按钮 */}
                <button onClick={() => navigate('/task')} style={sketchyShape3} className="shrink-0 border-4 border-ink bg-[#D8E2DC]/50 hover:bg-[#D8E2DC] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-center gap-3 hover:-translate-y-1 hover:scale-[1.02] transition-all -rotate-1 active:shadow-none active:translate-y-1 min-h-[60px]">
                    <Terminal size={28} strokeWidth={2.5} className="text-[#5e81ac]"/>
-                   <span className="font-black text-xl tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>TASK</span>
+                    <span className="font-black text-xl tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.task')}</span>
                </button>
 
                {/* EDITOR 按钮 */}
                <button onClick={() => navigate('/editor')} style={sketchyShape1} className="shrink-0 border-4 border-ink bg-[#EBCB8B]/50 hover:bg-[#EBCB8B] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-center gap-3 hover:-translate-y-1 hover:scale-[1.02] transition-all rotate-2 active:shadow-none active:translate-y-1 min-h-[60px]">
                    <GitMerge size={28} strokeWidth={2.5} className="text-[#d08770]"/>
-                   <span className="font-black text-xl tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>EDITOR</span>
+                    <span className="font-black text-xl tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.editor')}</span>
                </button>
 
                <button onClick={() => navigate('/memory')} style={sketchyShape1} className="shrink-0 border-4 border-ink bg-[#FFB5A7]/40 hover:bg-[#FFB5A7] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-center gap-3 hover:-translate-y-1 hover:scale-[1.02] transition-all -rotate-1 active:shadow-none active:translate-y-1 min-h-[60px]">
                    <Brain size={28} strokeWidth={2.5} className="text-[#c76c6c]"/>
-                   <span className="font-black text-xl tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>MEMORY</span>
+                    <span className="font-black text-xl tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.memory')}</span>
                </button>
                <button onClick={() => {setSidebarMode('mcp'); fetchMcp();}} style={sketchyShape2} className="shrink-0 border-4 border-ink bg-[#F9E2AF]/50 hover:bg-[#F9E2AF] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-center gap-3 hover:-translate-y-1 hover:scale-[1.02] transition-all rotate-1 active:shadow-none active:translate-y-1 min-h-[60px]">
                    <Server size={28} strokeWidth={2.5} className="text-[#b8956e]"/>
@@ -140,7 +140,7 @@ export default function ChatSidebar(props: any) {
            <div className="flex-1 flex flex-col h-full overflow-hidden mt-1">
                <div className="flex justify-between items-center mb-4 shrink-0 border-b-4 border-ink/20 pb-3">
                    <button onClick={() => setSidebarMode('menu')} className="p-1 bg-cream border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:-translate-x-1 transition-all"><ArrowLeft size={18} strokeWidth={3}/></button>
-                   <span className="font-black tracking-widest text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>ALARMS</span>
+                    <span className="font-black tracking-widest text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.alarms')}</span>
                    <button onClick={fetchCron} className="p-1 bg-[#E8D1C5] border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:rotate-180 transition-all"><RefreshCw size={18} strokeWidth={3}/></button>
                </div>
                <div className="flex-1 overflow-y-auto flex flex-col gap-4 p-2 mb-2">
@@ -155,7 +155,7 @@ export default function ChatSidebar(props: any) {
                       </div>
                   ))}
                </div>
-               <button onClick={() => { if (!graphData || graphData.length === 0) fetchGraphData(); setShowAddCronModal(true); }} style={sketchyShape2} className="shrink-0 p-3 bg-[#E8D1C5] text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-center gap-2 mt-2"><Plus size={20} strokeWidth={3}/> ADD ALARM</button>
+                <button onClick={() => { if (!graphData || graphData.length === 0) fetchGraphData(); setShowAddCronModal(true); }} style={sketchyShape2} className="shrink-0 p-3 bg-[#E8D1C5] text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-center gap-2 mt-2"><Plus size={20} strokeWidth={3}/> {t('chat.addAlarm')}</button>
            </div>
         )}
 
@@ -163,7 +163,7 @@ export default function ChatSidebar(props: any) {
            <div className="flex-1 flex flex-col h-full overflow-hidden mt-1">
                <div className="flex justify-between items-center mb-4 shrink-0 border-b-4 border-ink/20 pb-3">
                    <button onClick={() => setSidebarMode('menu')} className="p-1 bg-cream border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:-translate-x-1 transition-all"><ArrowLeft size={18} strokeWidth={3}/></button>
-                   <span className="font-black tracking-widest text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SENSORS</span>
+                    <span className="font-black tracking-widest text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.sensors')}</span>
                    <div className="flex items-center gap-2">
                       <button onClick={() => setShowInstallSensorModal(true)} title="Add Sensor via JSON" className="p-1 bg-[#a3be8c] text-ink border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:scale-110 transition-all"><Plus size={18} strokeWidth={3}/></button>
                       <button onClick={reloadSensors} disabled={isReloadingSensors} title={isReloadingSensors ? '正在热重启 Sensors…' : '强制热重启'} className="p-1 bg-[#EBCB8B] text-ink border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:rotate-180 transition-all disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed"><RefreshCw size={18} strokeWidth={3} className={isReloadingSensors ? 'animate-spin' : ''}/></button>

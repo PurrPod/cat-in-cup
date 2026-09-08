@@ -25,7 +25,7 @@ export default function NodePanel() {
     <div className="flex flex-col gap-6 pt-2 pb-8 px-2">
       <div className="text-center mb-4 relative">
         <h2 className="text-3xl font-black text-ink tracking-widest -rotate-2 inline-block relative z-10" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-          TOOLKIT
+          {t('editor.toolkit')}
         </h2>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-6 bg-[#EBCB8B]/40 -rotate-1 z-0" style={sketchyShape1}></div>
       </div>

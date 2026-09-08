@@ -1113,7 +1113,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               {activeTab === 'loop' && <Repeat className="text-[#5e81ac]" strokeWidth={2.5} />}
             </div>
             <h2 className={`${isNarrow ? 'text-lg' : 'text-3xl'} font-black tracking-widest text-ink uppercase truncate min-w-0`} style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-              {activeTab} EXPLORER
+              {activeTab === 'skill' ? t('market.skillTitle') : activeTab === 'mcp' ? t('market.mcpTitle') : activeTab === 'sensor' ? t('market.sensorTitle') : activeTab === 'graph' ? t('market.graphTitle') : t('market.loopTitle')}
             </h2>
           </div>
 

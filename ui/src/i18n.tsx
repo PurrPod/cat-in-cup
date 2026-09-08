@@ -42,7 +42,7 @@ const messages = {
       cognition: '认知', knowledgeGraph: '知识图谱', experiences: '经历', vector: '向量记忆（前 30 条）',
       events: '事件', facts: '客观事实（前 30 条）', rawNotes: '原始记忆笔记', refresh: '刷新',
       ask: '向你的记忆提问…', searchHint: '按 Enter 搜索记忆…', syncing: '正在同步所有三元组…',
-      emptyGraph: '图谱为空，请点击刷新。', forgetConfirm: '确定要遗忘这条记忆吗？',
+      emptyGraph: '图谱为空，请点击刷新。', forgetConfirm: '确定要遗忘这条记忆吗？', hybridTitle: '混合搜索', graphTitle: '知识图谱', vectorTitle: '向量记忆', eventsTitle: '客观事件', tip: '提示：点击任意边（连线）即可遗忘关系。', saveToDisk: '保存到磁盘',
     },
     market: {
       description: '描述：', mcpServers: 'MCP 服务（Schema）：', requiredEnv: '必需环境变量：',
@@ -51,7 +51,7 @@ const messages = {
       templates: '工作流模板', loops: '循环', paradigms: 'Agent Loop 范式', refresh: '刷新',
       searchSkills: '搜索技能名称 / 描述 / 仓库 / 作者…', searchMcp: '搜索 MCP 名称 / 描述 / 仓库 / 服务…',
       searchSensors: '搜索传感器名称 / 描述…', searchGraphs: '搜索图谱名称 / 描述…',
-      noWant: '没找到想要的？试试：', comingSoon: '即将上线', loopSoon: 'Agent Loop 市场即将上线，敬请期待。',
+      noWant: '没找到想要的？试试：', comingSoon: '即将上线', loopSoon: 'Agent Loop 市场即将上线，敬请期待。', skillTitle: '技能浏览器', mcpTitle: 'MCP 浏览器', sensorTitle: '传感器浏览器', graphTitle: '图谱浏览器', loopTitle: 'Agent Loop',
       buildMcp: '从零构建 MCP', mcpName: 'MCP 名称：', targetFunction: '目标功能：',
       install: '安装', installed: '已安装', observe: '观察', express: '表达',
     },
@@ -68,7 +68,7 @@ const messages = {
       loadingNodes: '正在加载节点…', workflow: '工作流', open: '打开', savedGraphs: '已保存图谱',
       nothing: '暂无内容', validate: '校验', clearCanvas: '清空画布', deploy: '部署', file: '文件',
       paradigms: '范式', save: '保存', saveWorkflow: '保存工作流', namePrompt: '为你的工作流命名：',
-      descriptionPrompt: '添加描述（可选）：', clearConfirm: '清空画布？', deleteParadigm: '删除范式？',
+      descriptionPrompt: '添加描述（可选）：', clearConfirm: '清空画布？', deleteParadigm: '删除范式？', toolkit: '工具箱', agentLoop: 'Agent Loop',
     },
     chat: {
       greeting: '今天我们要构建什么？', todayCalls: '今日调用', tokensBurnt: '消耗 Token', cacheHit: '缓存命中',
@@ -78,7 +78,7 @@ const messages = {
       allFilesClean: '所有文件都已处理！', selectFile: '请选择文件…', noVisualDiff: '未检测到可视差异。',
       seconds: '秒', saveConfig: '保存配置', openExternally: '在外部浏览器打开', cancel: '取消',
       noMcpLoaded: '尚未加载 MCP', noSkillsLoaded: '尚未加载技能', noAlarms: '尚未配置提醒', noSensors: '未找到传感器',
-      noFileOpen: '没有打开文件', selectFileExplorer: '请从文件浏览器选择文件', newChat: '新建会话',
+      noFileOpen: '没有打开文件', selectFileExplorer: '请从文件浏览器选择文件', newChat: '新建会话', config: '配置', saveAll: '全部保存', edit: '编辑', closeEdit: '收起', coreModel: '核心模型', backgroundModel: '后台模型', visionAdvisor: '视觉顾问', back: '返回', switchSession: '切换会话', evolve: '进化', alarms: '提醒', sensors: '传感器', addAlarm: '添加提醒',
     },
   },
   'en-US': {
@@ -117,7 +117,7 @@ const messages = {
       cognition: 'COGNITION', knowledgeGraph: 'Knowledge Graph', experiences: 'EXPERIENCES', vector: 'Vector Memory (Top 30)',
       events: 'EVENTS', facts: 'Objective Facts (Top 30)', rawNotes: 'Raw Memory Notes', refresh: 'REFRESH',
       ask: 'Ask your memory anything...', searchHint: 'Hit Enter to search the void...', syncing: 'Syncing All Triples...',
-      emptyGraph: 'Graph is empty. Try clicking REFRESH.', forgetConfirm: 'Forget this memory?',
+      emptyGraph: 'Graph is empty. Try clicking REFRESH.', forgetConfirm: 'Forget this memory?', hybridTitle: 'HYBRID SEARCH', graphTitle: 'KNOWLEDGE GRAPH', vectorTitle: 'VECTOR EXPERIENCES', eventsTitle: 'OBJECTIVE EVENTS', tip: 'Tip: Click any edge (line) to forget a relationship.', saveToDisk: 'SAVE TO DISK',
     },
     market: {
       description: 'DESCRIPTION:', mcpServers: 'MCP SERVERS (SCHEMA):', requiredEnv: 'REQUIRED ENV:',
@@ -126,7 +126,7 @@ const messages = {
       templates: 'Workflow Templates', loops: 'LOOPS', paradigms: 'Agent Loop Paradigms', refresh: 'REFRESH',
       searchSkills: 'Search skills / descriptions / repositories / authors…', searchMcp: 'Search MCP names / descriptions / repositories / servers…',
       searchSensors: 'Search sensor names / descriptions…', searchGraphs: 'Search graph names / descriptions…',
-      noWant: 'No want? Try:', comingSoon: 'COMING SOON', loopSoon: 'Agent Loop marketplace is coming soon.',
+      noWant: 'No want? Try:', comingSoon: 'COMING SOON', loopSoon: 'Agent Loop marketplace is coming soon.', skillTitle: 'SKILL EXPLORER', mcpTitle: 'MCP EXPLORER', sensorTitle: 'SENSOR EXPLORER', graphTitle: 'GRAPH EXPLORER', loopTitle: 'AGENT LOOP',
       buildMcp: 'Build a MCP from Scratch', mcpName: 'MCP NAME:', targetFunction: 'TARGET FUNCTION:',
       install: 'Install', installed: 'Installed', observe: 'OBSERVE', express: 'EXPRESS',
     },
@@ -143,7 +143,7 @@ const messages = {
       loadingNodes: 'Loading Nodes...', workflow: 'WORKFLOW', open: 'OPEN', savedGraphs: 'SAVED GRAPHS',
       nothing: 'Nothing here', validate: 'Validate', clearCanvas: 'Clear Canvas', deploy: 'DEPLOY', file: 'FILE',
       paradigms: 'PARADIGMS', save: 'Save', saveWorkflow: 'SAVE WORKFLOW', namePrompt: 'Give your cat-powered graph a name:',
-      descriptionPrompt: 'Add a description (optional):', clearConfirm: 'CLEAR CANVAS?', deleteParadigm: 'DELETE PARADIGM?',
+      descriptionPrompt: 'Add a description (optional):', clearConfirm: 'CLEAR CANVAS?', deleteParadigm: 'DELETE PARADIGM?', toolkit: 'TOOLKIT', agentLoop: 'AGENT LOOP',
     },
     chat: {
       greeting: 'Hi, what are we building today?', todayCalls: 'TODAY CALLS', tokensBurnt: 'TOKENS BURNT', cacheHit: 'CACHE HIT',
@@ -153,7 +153,7 @@ const messages = {
       allFilesClean: 'All files clean!', selectFile: 'Select a file...', noVisualDiff: 'No visual difference detected.',
       seconds: 'SECONDS', saveConfig: 'SAVE CONFIG', openExternally: 'OPEN EXTERNALLY', cancel: 'CANCEL',
       noMcpLoaded: 'No MCP loaded', noSkillsLoaded: 'No Skills loaded', noAlarms: 'No Alarms configured', noSensors: 'No Sensors found',
-      noFileOpen: 'No file open', selectFileExplorer: 'Select a file from the explorer', newChat: 'NEW CHAT',
+      noFileOpen: 'No file open', selectFileExplorer: 'Select a file from the explorer', newChat: 'NEW CHAT', config: 'CONFIG', saveAll: 'SAVE ALL', edit: 'EDIT', closeEdit: 'CLOSE', coreModel: 'Core Model', backgroundModel: 'Background Model', visionAdvisor: 'Vision Advisor', back: 'Back', switchSession: 'SWITCH', evolve: 'EVOLVE', alarms: 'ALARMS', sensors: 'SENSORS', addAlarm: 'ADD ALARM',
     },
   },
 } as const

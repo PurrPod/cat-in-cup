@@ -284,11 +284,11 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
             {/* 底部功能组合键 */}
             <div className="shrink-0 flex justify-end gap-4 -rotate-1 pt-2">
               <button onClick={() => setShowMdModal(false)} style={sketchyShape3} className="px-8 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">
-                CANCEL
+                {t('common.close')}
               </button>
               <button onClick={saveMdContent} disabled={isSavingMd} style={sketchyShape1} className="px-10 bg-[#a3be8c] text-ink font-black py-3 border-4 border-ink hover:bg-[#8eb072] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 flex items-center gap-2">
                 {isSavingMd ? <Loader2 className="animate-spin" size={24} strokeWidth={3}/> : <Save size={24} strokeWidth={3}/>} 
-                SAVE TO DISK
+                {t('memory.saveToDisk')}
               </button>
             </div>
 
@@ -365,9 +365,9 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
                viewMode === 'experiences' ? <Database className="text-[#3498DB]" strokeWidth={2.5}/> : <List className="text-terracotta" strokeWidth={2.5}/>}
             </div>
             <h2 className="text-3xl font-black tracking-widest text-ink uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-              {viewMode === 'search' ? 'HYBRID SEARCH' : 
-               viewMode === 'graph' ? 'KNOWLEDGE GRAPH' : 
-               viewMode === 'experiences' ? 'VECTOR EXPERIENCES' : 'OBJECTIVE EVENTS'}
+              {viewMode === 'search' ? t('memory.hybridTitle') :
+               viewMode === 'graph' ? t('memory.graphTitle') :
+               viewMode === 'experiences' ? t('memory.vectorTitle') : t('memory.eventsTitle')}
             </h2>
           </div>
 
@@ -416,7 +416,7 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
           {viewMode === 'graph' && (
             <>
               <div className="absolute top-4 left-6 z-20 pointer-events-none bg-paper border-2 border-ink/30 px-3 py-1 font-bold text-ink/50 text-sm" style={sketchyShape2}>
-                Tip: Click any edge (line) to forget a relationship.
+                {t('memory.tip')}
               </div>
               {isGraphLoading && (
                 <div className="absolute inset-0 bg-paper/60 backdrop-blur-sm z-50 flex items-center justify-center gap-3">
