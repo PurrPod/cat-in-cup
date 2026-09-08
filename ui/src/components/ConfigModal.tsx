@@ -281,7 +281,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
       setMcpServers(servers);
       setMcpExpanded(null);
       setMcpEditStr('');
-      toast.success(`[${name}] 已修改，记得点 SAVE ALL 落盘！`);
+      toast.success(`[${name}] 已修改，请点击“${t('chat.saveAll')}”保存到磁盘。`);
     } catch {
       toast.error('JSON 格式不合法，无法保存此服务器');
     }
@@ -292,7 +292,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     delete servers[name];
     setMcpServers(servers);
     if (mcpExpanded === name) { setMcpExpanded(null); setMcpEditStr(''); }
-    toast.success(`[${name}] 已删除，记得点 SAVE ALL 落盘！`);
+    toast.success(`[${name}] 已删除，请点击“${t('chat.saveAll')}”保存到磁盘。`);
   };
 
   const addMcpServer = () => {
@@ -310,7 +310,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     setMcpServers({ ...servers, [name]: parsed });
     setNewServerName('');
     setNewServerJson(MCP_NEW_SERVER_TEMPLATE);
-    toast.success(`已添加 [${name}]，记得点 SAVE ALL 落盘！`);
+    toast.success(`已添加 [${name}]，请点击“${t('chat.saveAll')}”保存到磁盘。`);
   };
 
   // ══════════════ 通用 key-value 逻辑 ══════════════
@@ -332,7 +332,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
       setConfigData(newData);
       setRawJsonStr(JSON.stringify(getRawData(newData), null, 2));
       setExpandedKey(null);
-      toast.success(`[${key}] 已修改，记得点 SAVE ALL 落盘！`);
+      toast.success(`[${key}] 已修改，请点击“${t('chat.saveAll')}”保存到磁盘。`);
     } catch {
       toast.error("JSON 格式不合法，无法保存此项");
     }
@@ -344,7 +344,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     setConfigData(newData);
     setRawJsonStr(JSON.stringify(getRawData(newData), null, 2));
     if (expandedKey === key) { setExpandedKey(null); setKeyEditStr(''); }
-    toast.success(`[${key}] 已删除，记得点 SAVE ALL 落盘！`);
+    toast.success(`[${key}] 已删除，请点击“${t('chat.saveAll')}”保存到磁盘。`);
   };
 
   const handleAddKey = () => {
@@ -369,7 +369,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     setConfigData(newData);
     setRawJsonStr(JSON.stringify(getRawData(newData), null, 2));
     resetNewKeyForm();
-    toast.success(`已添加 [${newKey}]，记得点 SAVE ALL 落盘！`);
+    toast.success(`已添加 [${newKey}]，请点击“${t('chat.saveAll')}”保存到磁盘。`);
   };
 
   // ── 整体保存（可视化模式和 raw 模式统一走这里） ──
@@ -718,7 +718,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                     </div>
                     <div>
                       <div className="text-xl font-black text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>新增 MCP 服务器</div>
-                      <div className="text-sm font-bold text-ink/50">填完点击右侧 ADD 按钮，然后记得 SAVE ALL 落盘</div>
+                      <div className="text-sm font-bold text-ink/50">填写完成后点击右侧“添加”，再点击“{t('chat.saveAll')}”保存到磁盘</div>
                     </div>
                   </div>
 
@@ -827,7 +827,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                     </div>
                     <div>
                       <div className="text-xl font-black text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>新增配置项</div>
-                      <div className="text-sm font-bold text-ink/50">填完后点击右侧 ADD 按钮，然后记得 SAVE ALL 落盘</div>
+                      <div className="text-sm font-bold text-ink/50">填写完成后点击右侧“添加”，再点击“{t('chat.saveAll')}”保存到磁盘</div>
                     </div>
                   </div>
 

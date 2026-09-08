@@ -60,9 +60,9 @@ export default function ChatModals(props: any) {
               </div>
             </div>
             <div className="text-center mt-2">
-              <h3 className="text-3xl font-black tracking-widest text-ink mb-2" style={{ fontFamily: '"Comic Sans MS", cursive' }}>CHECKING OUT...</h3>
+              <h3 className="text-3xl font-black tracking-widest text-ink mb-2" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.checkingOut')}</h3>
               <p className="font-bold opacity-70 text-base text-ink/80 bg-terracotta/10 px-3 py-1 border-2 border-dashed border-ink/20 inline-block" style={sketchyShape1}>
-                Waiting for the agent to complete tasks...
+                {t('chat.waitingAgent')}
               </p>
             </div>
           </div>
@@ -73,7 +73,7 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] -rotate-1 max-w-sm w-full">
             <div className="flex justify-between items-center rotate-1 border-b-4 border-ink/10 pb-2">
-              <h3 className="text-2xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>AGENT IS BUSY!</h3>
+              <h3 className="text-2xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.agentBusy')}</h3>
               <button onClick={() => setShowBusyModal(false)} className="hover:text-terracotta hover:scale-110 transition-all">
                 <X size={28} strokeWidth={3}/>
               </button>
@@ -94,7 +94,7 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] -rotate-1 max-w-sm w-full">
             <div className="flex justify-between items-center rotate-1 border-b-4 border-ink/10 pb-2">
-              <h3 className="text-2xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>FILE CHANGES!</h3>
+              <h3 className="text-2xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.fileChanges')}</h3>
               <button onClick={() => setPendingSwitchId(null)} className="hover:text-terracotta hover:scale-110 transition-all">
                 <X size={28} strokeWidth={3}/>
               </button>
@@ -146,7 +146,7 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 max-w-md w-full">
             <div className="flex justify-between items-center -rotate-1">
-              <h3 className="text-3xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>BRANCH CHAT</h3>
+              <h3 className="text-3xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.branchChat')}</h3>
               <button onClick={() => setShowBranchModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="-rotate-1">
@@ -164,13 +164,13 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] -rotate-1 max-w-sm w-full">
             <div className="flex justify-between items-center rotate-1">
-              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DELETE CHAT?</h3>
+              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.deleteChat')}</h3>
               <button onClick={() => setSessionToDelete(null)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <p className="font-bold text-ink/70 rotate-1">确定要删除这个分支会话吗？该分支上的历史记忆将永久丢失！</p>
             <div className="flex gap-4 rotate-1 mt-2">
-              <button onClick={() => setSessionToDelete(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">CANCEL</button>
-              <button onClick={confirmDeleteSession} style={sketchyShape1} className="flex-1 bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">DELETE</button>
+              <button onClick={() => setSessionToDelete(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">{t('common.cancel')}</button>
+              <button onClick={confirmDeleteSession} style={sketchyShape1} className="flex-1 bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">{t('common.delete')}</button>
             </div>
           </div>
         </div>
@@ -180,12 +180,12 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] -rotate-1 max-w-sm w-full">
             <div className="flex justify-between items-center rotate-1">
-              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DESTROY BRANCH?</h3>
+              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.destroyBranch')}</h3>
               <button onClick={() => setBranchToDelete(null)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <p className="font-bold text-ink/70 rotate-1">确定要彻底销毁支线 [{branchToDelete}] 的全部历史记忆吗？</p>
             <div className="flex gap-4 rotate-1 mt-2">
-              <button onClick={() => setBranchToDelete(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">CANCEL</button>
+              <button onClick={() => setBranchToDelete(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">{t('common.cancel')}</button>
               <button onClick={async () => {
                  if (!currentSessionId) return;
                  try {
@@ -197,7 +197,7 @@ export default function ChatModals(props: any) {
                        setBranchToDelete(null);
                      }
                    } catch { /* noop */ }
-              }} style={sketchyShape1} className="flex-1 bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">DESTROY</button>
+              }} style={sketchyShape1} className="flex-1 bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">{t('chat.destroy')}</button>
             </div>
           </div>
         </div>
@@ -206,10 +206,10 @@ export default function ChatModals(props: any) {
       {showAddCronModal && (
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-4 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 max-w-sm w-full">
-            <h3 className="text-2xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>NEW ALARM</h3>
+            <h3 className="text-2xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.newAlarm')}</h3>
             
-            <input placeholder="Alarm Title..." value={newCron.title} onChange={e=>setNewCron({...newCron, title:e.target.value})} className="border-4 border-ink p-3 font-bold bg-cream focus:outline-none" style={sketchyShape3} />
-            <input placeholder="Trigger Time (HH:MM)" value={newCron.trigger_time} onChange={e=>setNewCron({...newCron, trigger_time:e.target.value})} className="border-4 border-ink p-3 font-bold bg-cream focus:outline-none" style={sketchyShape1} />
+            <input placeholder={t('chat.alarmTitle')} value={newCron.title} onChange={e=>setNewCron({...newCron, title:e.target.value})} className="border-4 border-ink p-3 font-bold bg-cream focus:outline-none" style={sketchyShape3} />
+            <input placeholder={t('chat.triggerTime')} value={newCron.trigger_time} onChange={e=>setNewCron({...newCron, trigger_time:e.target.value})} className="border-4 border-ink p-3 font-bold bg-cream focus:outline-none" style={sketchyShape1} />
             
             <p className="text-xs font-black opacity-60 -mb-2 pl-1">🎯 触发动作绑定：</p>
             <select 
@@ -238,8 +238,8 @@ export default function ChatModals(props: any) {
             )}
 
             <div className="flex gap-4 mt-2">
-              <button onClick={() => setShowAddCronModal(false)} className="flex-1 bg-cream border-4 border-ink font-black py-3 active:translate-y-1 transition-transform shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none" style={sketchyShape2}>CANCEL</button>
-              <button onClick={addCron} className="flex-1 bg-[#d08770] text-paper border-4 border-ink font-black py-3 active:translate-y-1 transition-transform shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none" style={sketchyShape1}>SAVE</button>
+              <button onClick={() => setShowAddCronModal(false)} className="flex-1 bg-cream border-4 border-ink font-black py-3 active:translate-y-1 transition-transform shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none" style={sketchyShape2}>{t('common.cancel')}</button>
+              <button onClick={addCron} className="flex-1 bg-[#d08770] text-paper border-4 border-ink font-black py-3 active:translate-y-1 transition-transform shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none" style={sketchyShape1}>{t('common.save')}</button>
             </div>
           </div>
         </div>
@@ -249,7 +249,7 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 max-w-lg w-full">
             <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-2">
-              <h3 className="text-3xl font-black tracking-widest text-terracotta" style={{ fontFamily: '"Comic Sans MS", cursive' }}>INSTALL SKILL</h3>
+              <h3 className="text-3xl font-black tracking-widest text-terracotta" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.installSkill')}</h3>
               <button onClick={() => setShowInstallSkillModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="-rotate-1">
@@ -257,9 +257,9 @@ export default function ChatModals(props: any) {
               <input value={skillInstallUrl} onChange={e => setSkillInstallUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleInstallSkill()} placeholder="https://github.com/..." className="w-full border-4 border-ink bg-[#FDF8F0] p-4 font-bold text-base focus:outline-none shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]" style={sketchyShape3} />
             </div>
             <div className="flex gap-4 -rotate-1 mt-2">
-              <button onClick={() => setShowInstallSkillModal(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:translate-y-[1px] hover:shadow-none transition-all">CANCEL</button>
+              <button onClick={() => setShowInstallSkillModal(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:translate-y-[1px] hover:shadow-none transition-all">{t('common.cancel')}</button>
               <button onClick={handleInstallSkill} disabled={isInstallingSkill} style={sketchyShape1} className="flex-1 bg-[#a3be8c] text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] hover:translate-y-[1px] flex items-center justify-center gap-2">
-                {isInstallingSkill ? <Loader2 size={24} className="animate-spin" strokeWidth={3}/> : <Download size={24} strokeWidth={3}/>} DOWNLOAD
+                {isInstallingSkill ? <Loader2 size={24} className="animate-spin" strokeWidth={3}/> : <Download size={24} strokeWidth={3}/>} {t('chat.download')}
               </button>
             </div>
           </div>
@@ -270,16 +270,16 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 max-w-lg w-full">
             <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-2">
-              <h3 className="text-3xl font-black tracking-widest text-[#88c0d0]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>INSTALL MCP</h3>
+              <h3 className="text-3xl font-black tracking-widest text-[#88c0d0]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.installMcp')}</h3>
               <button onClick={() => setShowInstallMcpModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="-rotate-1 flex flex-col h-full">
               <textarea value={mcpInstallJson} onChange={e => setMcpInstallJson(e.target.value)} placeholder={'{\n  "mcpServers": { ... }\n}'} className="w-full h-64 border-4 border-ink bg-[#FDF8F0] p-4 font-bold text-sm font-mono focus:outline-none resize-none shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]" style={sketchyShape3} spellCheck={false} />
             </div>
             <div className="flex gap-4 -rotate-1 mt-2">
-              <button onClick={() => setShowInstallMcpModal(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:translate-y-[1px] transition-all">CANCEL</button>
+              <button onClick={() => setShowInstallMcpModal(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:translate-y-[1px] transition-all">{t('common.cancel')}</button>
               <button onClick={handleInstallMcp} disabled={isInstallingMcp} style={sketchyShape1} className="flex-1 bg-[#88c0d0] text-paper font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#72a6b5] flex items-center justify-center gap-2">
-                {isInstallingMcp ? <Loader2 size={24} className="animate-spin" strokeWidth={3}/> : <Save size={24} strokeWidth={3}/>} SAVE & LOAD
+                {isInstallingMcp ? <Loader2 size={24} className="animate-spin" strokeWidth={3}/> : <Save size={24} strokeWidth={3}/>} {t('chat.saveLoad')}
               </button>
             </div>
           </div>
@@ -290,16 +290,16 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 max-w-lg w-full">
             <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-2">
-              <h3 className="text-3xl font-black tracking-widest text-[#a3be8c]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>ADD SENSOR</h3>
+              <h3 className="text-3xl font-black tracking-widest text-[#a3be8c]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.addSensor')}</h3>
               <button onClick={() => setShowInstallSensorModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="-rotate-1 flex flex-col h-full">
               <textarea value={sensorInstallJson} onChange={e => setSensorInstallJson(e.target.value)} placeholder={'{\n  "my_custom_sensor": { ... }\n}'} className="w-full h-64 border-4 border-ink bg-[#FDF8F0] p-4 font-bold text-sm font-mono focus:outline-none resize-none shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]" style={sketchyShape3} spellCheck={false} />
             </div>
             <div className="flex gap-4 -rotate-1 mt-2">
-              <button onClick={() => setShowInstallSensorModal(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:translate-y-[1px] transition-all">CANCEL</button>
+              <button onClick={() => setShowInstallSensorModal(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:translate-y-[1px] transition-all">{t('common.cancel')}</button>
               <button onClick={handleInstallSensor} disabled={isInstallingSensor} style={sketchyShape1} className="flex-1 bg-[#a3be8c] text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] flex items-center justify-center gap-2">
-                {isInstallingSensor ? <Loader2 size={24} className="animate-spin" strokeWidth={3}/> : <Save size={24} strokeWidth={3}/>} SAVE & LOAD
+                {isInstallingSensor ? <Loader2 size={24} className="animate-spin" strokeWidth={3}/> : <Save size={24} strokeWidth={3}/>} {t('chat.saveLoad')}
               </button>
             </div>
           </div>
@@ -320,9 +320,9 @@ export default function ChatModals(props: any) {
               <textarea value={mdContent} onChange={e => setMdContent(e.target.value)} className="w-full h-full border-4 border-ink bg-[#FDF8F0] p-6 font-mono text-base font-bold focus:outline-none resize-none" style={sketchyShape3} spellCheck={false} />
             </div>
             <div className="shrink-0 flex justify-end gap-4 -rotate-1 pt-2">
-              <button onClick={() => setShowMdModal(false)} style={sketchyShape3} className="px-8 bg-cream text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">CANCEL</button>
+              <button onClick={() => setShowMdModal(false)} style={sketchyShape3} className="px-8 bg-cream text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">{t('common.cancel')}</button>
               <button onClick={saveMdContent} disabled={isSavingMd} style={sketchyShape1} className="px-10 bg-[#a3be8c] text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] flex items-center gap-2">
-                {isSavingMd ? <Loader2 className="animate-spin" size={24} strokeWidth={3}/> : <Save size={24} strokeWidth={3}/>} SAVE FILE
+                {isSavingMd ? <Loader2 className="animate-spin" size={24} strokeWidth={3}/> : <Save size={24} strokeWidth={3}/>} {t('chat.saveFile')}
               </button>
             </div>
           </div>
@@ -333,7 +333,7 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-6 flex flex-col gap-4 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 w-full max-w-md h-[70vh]">
             <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-3 shrink-0">
-              <h3 className="text-2xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SELECT SKILLS</h3>
+              <h3 className="text-2xl font-black tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.selectSkills')}</h3>
               <button onClick={() => setShowSkillSelectModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="flex items-center gap-2 -rotate-1 shrink-0">
@@ -347,7 +347,7 @@ export default function ChatModals(props: any) {
               />
             </div>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 -rotate-1 p-1">
-              {filteredSkills.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{skillData.length === 0 ? 'No Skills loaded' : '无匹配的技能'}</p> : (
+              {filteredSkills.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{skillData.length === 0 ? t('chat.noSkillsLoaded') : '无匹配的技能'}</p> : (
                  filteredSkills.map((skill: any, idx: number) => {
                    const isSelected = tempSelectedSkills.includes(skill.name);
                    return (
@@ -371,7 +371,7 @@ export default function ChatModals(props: any) {
               )}
             </div>
             <div className="shrink-0 flex justify-end gap-3 -rotate-1 pt-2 border-t-4 border-ink/10">
-              <button onClick={() => { setSelectedSkills(tempSelectedSkills); setShowSkillSelectModal(false); }} style={sketchyShape1} className="px-8 bg-[#EBCB8B] text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">COMPLETE</button>
+              <button onClick={() => { setSelectedSkills(tempSelectedSkills); setShowSkillSelectModal(false); }} style={sketchyShape1} className="px-8 bg-[#EBCB8B] text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">{t('common.complete')}</button>
             </div>
           </div>
         </div>
@@ -381,7 +381,7 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-6 flex flex-col gap-4 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 w-full max-w-md h-[70vh]">
             <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-3 shrink-0">
-              <h3 className="text-2xl font-black tracking-widest text-[#b8956e]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SELECT MCP</h3>
+              <h3 className="text-2xl font-black tracking-widest text-[#b8956e]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.selectMcp')}</h3>
               <button onClick={() => setShowMcpSelectModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="flex items-center gap-2 -rotate-1 shrink-0">
@@ -395,7 +395,7 @@ export default function ChatModals(props: any) {
               />
             </div>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 -rotate-1 p-1">
-              {filteredMcpEntries.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{Object.keys(mcpData).length === 0 ? 'No MCP loaded' : '无匹配的 MCP'}</p> : (
+              {filteredMcpEntries.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{Object.keys(mcpData).length === 0 ? t('chat.noMcpLoaded') : '无匹配的 MCP'}</p> : (
                  filteredMcpEntries.map(([server, tools]: any, idx) => {
                    const isSelected = tempSelectedMcps.includes(server);
                    return (
@@ -423,7 +423,7 @@ export default function ChatModals(props: any) {
               )}
             </div>
             <div className="shrink-0 flex justify-end gap-3 -rotate-1 pt-2 border-t-4 border-ink/10">
-              <button onClick={() => { setSelectedMcps(tempSelectedMcps); setShowMcpSelectModal(false); }} style={sketchyShape1} className="px-8 bg-[#EBCB8B] text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">COMPLETE</button>
+              <button onClick={() => { setSelectedMcps(tempSelectedMcps); setShowMcpSelectModal(false); }} style={sketchyShape1} className="px-8 bg-[#EBCB8B] text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">{t('common.complete')}</button>
             </div>
           </div>
         </div>
@@ -433,7 +433,7 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 max-w-lg w-full">
             <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-2">
-              <h3 className="text-3xl font-black tracking-widest text-[#88c0d0]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>REFERENCE FILE</h3>
+              <h3 className="text-3xl font-black tracking-widest text-[#88c0d0]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.referenceFile')}</h3>
               <button onClick={() => setShowRefModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="-rotate-1">
@@ -441,8 +441,8 @@ export default function ChatModals(props: any) {
               <input autoFocus value={tempRefPath} onChange={e => setTempRefPath(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && tempRefPath.trim()) { setRefPaths((prev: string[]) => [...new Set([...prev, tempRefPath.trim()])]); setTempRefPath(''); setShowRefModal(false); } }} placeholder="/Users/dev/my_project/file.py" className="w-full border-4 border-ink bg-[#FDF8F0] p-4 font-bold text-base focus:outline-none shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]" style={sketchyShape3} />
             </div>
             <div className="flex gap-4 -rotate-1 mt-2">
-              <button onClick={() => setShowRefModal(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">CANCEL</button>
-              <button onClick={() => { if (tempRefPath.trim()) { setRefPaths((prev: string[]) => [...new Set([...prev, tempRefPath.trim()])]); setTempRefPath(''); setShowRefModal(false); } }} style={sketchyShape1} className="flex-1 bg-[#88c0d0] text-paper font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#72a6b5] flex items-center justify-center gap-2"><Plus size={24} strokeWidth={3}/> ADD PATH</button>
+              <button onClick={() => setShowRefModal(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">{t('common.cancel')}</button>
+              <button onClick={() => { if (tempRefPath.trim()) { setRefPaths((prev: string[]) => [...new Set([...prev, tempRefPath.trim()])]); setTempRefPath(''); setShowRefModal(false); } }} style={sketchyShape1} className="flex-1 bg-[#88c0d0] text-paper font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#72a6b5] flex items-center justify-center gap-2"><Plus size={24} strokeWidth={3}/> {t('chat.addPath')}</button>
             </div>
           </div>
         </div>
@@ -452,7 +452,7 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-6 flex flex-col gap-4 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 w-full max-w-md h-[70vh]">
             <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-3 shrink-0">
-              <h3 className="text-2xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SELECT GRAPH</h3>
+              <h3 className="text-2xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.selectGraph')}</h3>
               <button onClick={() => setShowGraphSelectModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="flex items-center gap-2 -rotate-1 shrink-0">
@@ -466,7 +466,7 @@ export default function ChatModals(props: any) {
               />
             </div>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 -rotate-1 p-1">
-              {filteredGraphs.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{graphData.length === 0 ? 'No Graphs found' : '无匹配的工作流'}</p> : (
+              {filteredGraphs.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{graphData.length === 0 ? t('task.noGraphs') : '无匹配的工作流'}</p> : (
                  filteredGraphs.map((graph: any, idx: number) => {
                    const graphName = graph.name.replace('.json', '');
                    const isSelected = tempSelectedGraphs.includes(graphName);
@@ -487,7 +487,7 @@ export default function ChatModals(props: any) {
               )}
             </div>
             <div className="shrink-0 flex justify-end gap-3 -rotate-1 pt-2 border-t-4 border-ink/10">
-              <button onClick={() => { setSelectedGraphs(tempSelectedGraphs); setShowGraphSelectModal(false); }} style={sketchyShape1} className="px-8 bg-ink text-paper font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">COMPLETE</button>
+              <button onClick={() => { setSelectedGraphs(tempSelectedGraphs); setShowGraphSelectModal(false); }} style={sketchyShape1} className="px-8 bg-ink text-paper font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">{t('common.complete')}</button>
             </div>
           </div>
         </div>
@@ -497,7 +497,7 @@ export default function ChatModals(props: any) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 max-w-2xl w-full h-[80vh]">
             <div className="flex justify-between items-center border-b-4 border-ink/20 pb-4 shrink-0">
-              <h3 className="text-3xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SWITCH CHAT</h3>
+            <h3 className="text-3xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.switchChat')}</h3>
               <div className="flex items-center gap-4">
                  <button onClick={() => {
                    if (isAgentThinking) { setShowBusyModal(true); return; }
@@ -541,15 +541,15 @@ export default function ChatModals(props: any) {
             <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-2 shrink-0">
               <div className="flex items-center gap-3">
                 <BookOpen size={28} className="text-[#EBCB8B]" strokeWidth={2.5} />
-                <h3 className="text-3xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Trace 2 Skill</h3>
+                <h3 className="text-3xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.traceSkill')}</h3>
               </div>
               <button onClick={() => setShowTraceModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             
             <div className="flex flex-col gap-4 -rotate-1">
               <div className="flex gap-4">
-                <button onClick={() => setTraceType('upgrade')} style={sketchyShape1} className={`flex-1 py-3 border-4 border-ink font-black ${traceType === 'upgrade' ? 'bg-[#88c0d0] text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]' : 'bg-cream text-ink/50 hover:bg-sand'}`}>UPGRADE EXIST</button>
-                <button onClick={() => setTraceType('create')} style={sketchyShape3} className={`flex-1 py-3 border-4 border-ink font-black ${traceType === 'create' ? 'bg-[#EBCB8B] text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]' : 'bg-cream text-ink/50 hover:bg-sand'}`}>CREATE NEW</button>
+                <button onClick={() => setTraceType('upgrade')} style={sketchyShape1} className={`flex-1 py-3 border-4 border-ink font-black ${traceType === 'upgrade' ? 'bg-[#88c0d0] text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]' : 'bg-cream text-ink/50 hover:bg-sand'}`}>{t('chat.upgradeExisting')}</button>
+                <button onClick={() => setTraceType('create')} style={sketchyShape3} className={`flex-1 py-3 border-4 border-ink font-black ${traceType === 'create' ? 'bg-[#EBCB8B] text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]' : 'bg-cream text-ink/50 hover:bg-sand'}`}>{t('chat.createNew')}</button>
               </div>
               
               <div className="flex flex-col gap-2">
@@ -591,10 +591,10 @@ export default function ChatModals(props: any) {
             
             <div className="flex gap-4 -rotate-1 mt-2">
               <button onClick={() => setShowTraceModal(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:translate-y-[1px] hover:shadow-none transition-all">
-                CANCEL
+                {t('common.cancel')}
               </button>
               <button onClick={confirmTraceToSkill} disabled={isTracing} style={sketchyShape1} className="flex-[1.5] bg-[#EBCB8B] text-ink font-black tracking-widest text-lg py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#d8b877] hover:translate-y-[1px] hover:shadow-none transition-all flex justify-center items-center gap-2">
-                {isTracing ? <Loader2 className="animate-spin" size={24} strokeWidth={3}/> : <BookOpen size={22} strokeWidth={3}/>} EXTRACT SKILL
+                {isTracing ? <Loader2 className="animate-spin" size={24} strokeWidth={3}/> : <BookOpen size={22} strokeWidth={3}/>} {t('chat.extractSkill')}
               </button>
             </div>
           </div>

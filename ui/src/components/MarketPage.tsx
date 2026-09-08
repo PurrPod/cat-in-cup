@@ -1042,7 +1042,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
           </button>
           <div style={sketchyShape1} className="flex-1 min-w-0 h-16 flex items-center justify-center gap-2 bg-[#88c0d0] text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] rotate-2">
             <Store size={22} strokeWidth={2.5} className="shrink-0" />
-            <span className="tracking-widest text-lg font-black truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>MARKET</span>
+            <span className="tracking-widest text-lg font-black truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.market')}</span>
           </div>
         </div>
 
@@ -1398,10 +1398,10 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                         <div className="flex items-center justify-between mt-1 pt-3 border-t-2 border-ink/10 border-dashed gap-2">
                           <div className="flex items-center gap-1 flex-wrap min-w-0">
                             {s.capabilities?.observe && (
-                              <span className="text-[9px] font-black px-1.5 py-0.5 bg-cream border-2 border-ink text-ink" style={sketchyShape1}>OBSERVE</span>
+                              <span className="text-[9px] font-black px-1.5 py-0.5 bg-cream border-2 border-ink text-ink" style={sketchyShape1}>{t('market.observe')}</span>
                             )}
                             {s.capabilities?.express && (
-                              <span className="text-[9px] font-black px-1.5 py-0.5 bg-cream border-2 border-ink text-ink" style={sketchyShape3}>EXPRESS</span>
+                              <span className="text-[9px] font-black px-1.5 py-0.5 bg-cream border-2 border-ink text-ink" style={sketchyShape3}>{t('market.express')}</span>
                             )}
                             {s.env && Object.keys(s.env).length > 0 && (
                               <span className="text-[9px] font-black px-1.5 py-0.5 bg-[#FDF8F0] border-2 border-ink text-[#bf616a]" style={sketchyShape2}>ENV x{Object.keys(s.env).length}</span>

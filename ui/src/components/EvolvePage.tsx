@@ -381,9 +381,9 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                   </div>
                   <div className="flex-1 flex flex-col min-w-0 gap-4">
                     <div className="flex justify-between items-end">
-                      <h2 className="text-2xl font-black text-ink tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{activeFile || 'No file selected'}</h2>
+                      <h2 className="text-2xl font-black text-ink tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{activeFile || t('evolve.noFileSelected')}</h2>
                       <button onClick={() => handleSaveFile(activeFile, fileContent)} disabled={!activeFile} style={sketchyShape3} className="px-6 py-2 bg-[#a3be8c] border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-1 active:shadow-none flex items-center gap-2 disabled:opacity-50">
-                        <Save size={18} strokeWidth={3}/> SAVE
+                        <Save size={18} strokeWidth={3}/> {t('common.save')}
                       </button>
                     </div>
                     <textarea value={fileContent} onChange={(e) => setFileContent(e.target.value)} disabled={!activeFile} className="flex-1 w-full bg-[#FDF8F0] border-4 border-ink p-6 font-mono text-sm font-bold focus:outline-none resize-none shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)] disabled:opacity-50" style={sketchyShape2} spellCheck={false} />
@@ -399,10 +399,10 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                   <div className="flex justify-between items-end mb-4 px-2 border-b-4 border-ink/20 pb-4 shrink-0">
                      <h2 className="text-3xl font-black tracking-widest flex items-center gap-3 text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
                         <Server size={36} strokeWidth={3} className="text-[#EBCB8B] -rotate-3"/>
-                        MCP TOOLS
+                        {t('evolve.mcpTools')}
                      </h2>
                      <button onClick={loadMcpSchema} style={sketchyShape3} className="px-5 py-2.5 bg-cream border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#EBCB8B] active:translate-y-1 active:shadow-none flex items-center gap-2 transition-all">
-                       <RefreshCw size={20} strokeWidth={3}/> REFRESH
+                       <RefreshCw size={20} strokeWidth={3}/> {t('memory.refresh')}
                      </button>
                   </div>
 
@@ -478,7 +478,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                                             </td>
                                             <td className="p-3 px-4 text-center">
                                               {requiredList.includes(key) ? (
-                                                <span className="bg-[#bf616a] text-paper px-3 py-1 text-xs font-black rounded shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] tracking-wider">YES</span>
+                                                <span className="bg-[#bf616a] text-paper px-3 py-1 text-xs font-black rounded shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] tracking-wider">{t('common.yes')}</span>
                                               ) : (
                                                 <span className="bg-ink/10 text-ink/60 px-3 py-1 text-xs font-black rounded tracking-wider whitespace-nowrap">
                                                   NO {val.default !== undefined ? `(def: ${val.default})` : ''}
@@ -615,10 +615,10 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
             </div>
             <div className="flex gap-4 -rotate-1 mt-2">
               <button onClick={() => setShowRejectModal(false)} style={sketchyShape1} className="flex-1 py-3 bg-cream text-ink border-4 border-ink font-black text-lg tracking-widest shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand active:translate-y-1 active:shadow-none">
-                CANCEL
+                {t('evolve.cancel')}
               </button>
               <button onClick={handleSendReject} style={sketchyShape3} className="flex-[1.5] py-3 bg-[#bf616a] text-paper border-4 border-ink font-black text-lg tracking-widest shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#a54e56] active:translate-y-1 active:shadow-none flex items-center justify-center gap-2">
-                <MessageSquare size={20}/> SEND FEEDBACK
+                <MessageSquare size={20}/> {t('evolve.sendFeedback')}
               </button>
             </div>
           </div>
@@ -636,7 +636,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
             <div className="shrink-0 flex justify-end gap-4 pt-2 rotate-1">
               <button onClick={() => setShowEvalModal(false)} style={sketchyShape3} className="px-8 bg-cream text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">{t('evolve.cancel')}</button>
               <button onClick={() => handleSaveFile('evals/evals.json', evalJson)} style={sketchyShape1} className="px-10 bg-[#EBCB8B] text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center gap-2 hover:bg-[#d8b877] transition-all">
-                <Save size={24} strokeWidth={3}/> SAVE
+                <Save size={24} strokeWidth={3}/> {t('common.save')}
               </button>
             </div>
           </div>
@@ -660,10 +660,10 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
             </div>
             <div className="flex gap-4 rotate-1 mt-2">
               <button onClick={() => setWorkplaceToDelete(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">
-                CANCEL
+                {t('evolve.cancel')}
               </button>
               <button onClick={executeDeleteWorkplace} style={sketchyShape1} className="flex-[1.5] bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 flex items-center justify-center gap-2">
-                <Trash2 size={20} strokeWidth={3}/> DESTROY IT
+                <Trash2 size={20} strokeWidth={3}/> {t('evolve.destroyIt')}
               </button>
             </div>
           </div>
@@ -687,10 +687,10 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
             </div>
             <div className="flex gap-4 -rotate-1 mt-2">
               <button onClick={() => setShowRollbackConfirm(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">
-                CANCEL
+                {t('evolve.cancel')}
               </button>
               <button onClick={executeRollback} style={sketchyShape2} className="flex-[1.5] bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 flex items-center justify-center gap-2">
-                <Undo2 size={20} strokeWidth={3}/> DO REVERT
+                <Undo2 size={20} strokeWidth={3}/> {t('evolve.doRevert')}
               </button>
             </div>
           </div>

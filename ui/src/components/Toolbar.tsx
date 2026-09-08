@@ -430,7 +430,7 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
                 STAY
               </button>
               <button onClick={() => { setIsExitModalOpen(false); onBack?.(); }} style={sketchyShape2} className="flex-1 py-3 bg-[#bf616a] text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500">
-                LEAVE
+                {t('editor.leave')}
               </button>
             </div>
           </div>
@@ -441,16 +441,16 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
       {isClearModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4 pointer-events-auto">
           <div style={sketchyShape3} className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-sm p-8 relative -rotate-1">
-            <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>CLEAR CANVAS?</h3>
+            <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.clearConfirm')}</h3>
             <p className="font-bold mb-6 opacity-80 text-lg">
               确定要清空画布吗？当前画板上未部署的内容将永远丢失！
             </p>
             <div className="flex gap-4">
               <button onClick={() => setIsClearModalOpen(false)} style={sketchyShape1} className="flex-1 py-3 bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">
-                CANCEL
+                {t('editor.cancel')}
               </button>
               <button onClick={() => { clearGraph(); setIsClearModalOpen(false); }} style={sketchyShape2} className="flex-1 py-3 bg-[#bf616a] text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500 transition-all">
-                CLEAR
+                {t('editor.clear')}
               </button>
             </div>
           </div>
@@ -461,20 +461,20 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
       {paradigmToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4 pointer-events-auto">
           <div style={sketchyShape3} className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-sm p-8 relative -rotate-1">
-            <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DELETE PARADIGM?</h3>
+            <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.deleteParadigm')}</h3>
             <p className="font-bold mb-6 opacity-80 text-lg">
               确定要删除 paradigm「{paradigmToDelete}」？该操作不可恢复！
             </p>
             <div className="flex gap-4">
               <button onClick={() => setParadigmToDelete(null)} style={sketchyShape1} className="flex-1 py-3 bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">
-                CANCEL
+                {t('editor.cancel')}
               </button>
               <button
                 onClick={() => void deleteParadigm(paradigmToDelete)}
                 style={sketchyShape2}
                 className="flex-1 py-3 bg-[#bf616a] text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500 transition-all"
               >
-                DELETE
+                {t('editor.delete')}
               </button>
             </div>
           </div>

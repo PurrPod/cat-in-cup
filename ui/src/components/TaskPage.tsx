@@ -632,7 +632,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
                                    <div style={sketchyShape1} className="w-full p-6 border-4 border-ink relative bg-cream text-ink shadow-[6px_6px_0px_0px_rgba(26,26,26,1)]">
                                      <div className="flex items-center gap-2 mb-4">
                                        <Cat size={20} strokeWidth={2.5}/>
-                                       <span className="font-black text-sm uppercase tracking-widest bg-ink text-paper px-2 py-0.5" style={{ ...sketchyShape3, fontFamily: '"Comic Sans MS", cursive' }}>ASSISTANT</span>
+                                       <span className="font-black text-sm uppercase tracking-widest bg-ink text-paper px-2 py-0.5" style={{ ...sketchyShape3, fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.assistant')}</span>
                                      </div>
                                      <div className="text-[17px] font-bold text-ink">
                                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>{msg.content}</ReactMarkdown>
@@ -731,7 +731,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
                 className="w-full bg-cream border-4 border-ink p-3 text-lg font-bold cursor-pointer shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-between hover:-translate-y-[1px] transition-transform select-none"
               >
                 <span className="truncate">
-                  {availableGraphs.length === 0 ? "No deployed graphs" : (launchGraphName || "Select a graph...")}
+                  {availableGraphs.length === 0 ? t('task.noGraphs') : (launchGraphName || t('task.selectGraphPlaceholder'))}
                 </span>
                 <ChevronDown
                   size={20}
@@ -789,10 +789,10 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
 
             <div className="flex gap-4 mt-2">
               <button onClick={() => { setIsCreateModalOpen(false); setIsDropdownOpen(false); }} style={sketchyShape2} className="flex-1 py-3 bg-cream border-4 border-ink text-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">
-                CANCEL
+                {t('task.cancel')}
               </button>
               <button onClick={handleLaunchTaskSubmit} style={sketchyShape1} className="flex-1 py-3 bg-terracotta border-4 border-ink text-paper font-black text-lg shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:translate-y-0.5 hover:shadow-none transition-all">
-                LAUNCH <Play size={16} className="inline ml-1" strokeWidth={3} fill="currentColor"/>
+                {t('task.launchAction')} <Play size={16} className="inline ml-1" strokeWidth={3} fill="currentColor"/>
               </button>
             </div>
           </div>
@@ -803,7 +803,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] -rotate-1 max-w-sm w-full">
             <div className="flex justify-between items-center rotate-1">
-              <h3 className="text-2xl font-black text-[#bf616a] tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DESTROY RECORD?</h3>
+              <h3 className="text-2xl font-black text-[#bf616a] tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.destroyRecord')}</h3>
               <button onClick={() => setTaskToDelete(null)} className="hover:scale-110 hover:text-terracotta transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <p className="font-bold text-ink/70 rotate-1">确定要抹除该记录吗？此操作属于物理删除！</p>
