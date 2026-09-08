@@ -32,7 +32,10 @@ def _format_entry_line(name: str, full_path: str) -> tuple[str, bool]:
                 target = os.readlink(full_path)
             except OSError:
                 target = "?"
-            return f"l    {_human_size(st.st_size):>10}  {mtime}  {name} -> {target}", False
+            return (
+                f"l    {_human_size(st.st_size):>10}  {mtime}  {name} -> {target}",
+                False,
+            )
 
         if os.path.isdir(full_path):
             return f"d    {'-':>10}  {mtime}  {name}/", True

@@ -65,7 +65,7 @@ def _write_goal_and_guide(workplace_root: str, mcp_name: str, goal: str):
     with open(
         os.path.join(workplace_root, "GUIDE.md"), "w", encoding="utf-8", newline="\n"
     ) as f:
-        f.write(generate_mcp_guide(mcp_name, goal))
+        f.write(generate_mcp_guide(mcp_name, goal, AGENT_VM_DIR))
 
 
 def mcp_improve_init(mcp_name: str, goal: str = "") -> tuple[str, str]:
