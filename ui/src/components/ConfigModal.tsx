@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Settings, X, Save, FileJson, AlertCircle, Plus, Trash2, RefreshCw,
+  X, Save, FileJson, AlertCircle, Plus, Trash2, RefreshCw,
   ToggleLeft, ToggleRight, Folder, FolderRoot, Info, HardDrive, Pencil,
   Loader2, Server, Cpu, Eye, Store, Languages
 } from 'lucide-react';
@@ -431,7 +431,6 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
           {/* 左侧：标签栏 */}
           <div className="w-64 shrink-0 border-r-4 border-ink/20 flex flex-col p-6 gap-6 overflow-y-auto">
             <div className="flex items-center gap-3">
-              <Settings size={36} strokeWidth={2.5} className="text-terracotta" />
               <h2 className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.config')}</h2>
               <button
                 onClick={() => setLocale(locale === 'zh-CN' ? 'en-US' : 'zh-CN')}
