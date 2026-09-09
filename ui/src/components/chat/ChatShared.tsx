@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Package, ChevronDown, ChevronUp, Wrench, Brain, Pause, Loader2 } from 'lucide-react';
 import { EventItem, Message } from './ChatTypes';
+import { useTranslation } from '../../i18n';
 
 export const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 export const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
@@ -231,6 +232,7 @@ const writeThinkingExpandedPref = (v: boolean) => {
 };
 
 export const ReasoningBubble = ({ text, live = false, phase = 'thinking', onPause }: { text: string; live?: boolean; phase?: 'thinking' | 'processing' | 'aborting'; onPause?: () => void }) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(live ? readThinkingExpandedPref() : false);
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -259,12 +261,12 @@ export const ReasoningBubble = ({ text, live = false, phase = 'thinking', onPaus
         <TitleIcon size={20} strokeWidth={3} className={`text-ink shrink-0 ${titleIconSpin}`} />
         <span className="font-black text-sm tracking-widest uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{title}</span>
         {onPause && phase !== 'aborting' && (
-          <button onClick={onPause} className="p-0.5 text-terracotta hover:text-ink transition-colors shrink-0" title="暂停：物理掐断正在执行的工具（长时请求/死循环命令）">
+          <button onClick={onPause} className="p-0.5 text-terracotta hover:text-ink transition-colors shrink-0" title={t('chat.pauseHint')}>
             <Pause size={18} strokeWidth={3} />
           </button>
         )}
         {text && (
-          <button onClick={() => setLiveExpanded(true)} className="p-0.5 text-ink/60 hover:text-ink transition-colors shrink-0" title="展开思考过程">
+          <button onClick={() => setLiveExpanded(true)} className="p-0.5 text-ink/60 hover:text-ink transition-colors shrink-0" title={t('chat.expandThinking')}>
             <ChevronDown size={18} strokeWidth={3} />
           </button>
         )}
@@ -294,12 +296,12 @@ export const ReasoningBubble = ({ text, live = false, phase = 'thinking', onPaus
           {title}
         </span>
         {live && onPause && phase !== 'aborting' && (
-          <button onClick={onPause} className="p-0.5 text-terracotta hover:text-ink transition-colors shrink-0" title="暂停：物理掐断正在执行的工具（长时请求/死循环命令）">
+          <button onClick={onPause} className="p-0.5 text-terracotta hover:text-ink transition-colors shrink-0" title={t('chat.pauseHint')}>
             <Pause size={16} strokeWidth={3} />
           </button>
         )}
         {live && (
-          <button onClick={() => setLiveExpanded(false)} className="ml-auto p-0.5 text-ink/60 hover:text-ink transition-colors" title="折叠：隐藏思考过程">
+          <button onClick={() => setLiveExpanded(false)} className="ml-auto p-0.5 text-ink/60 hover:text-ink transition-colors" title={t('chat.collapseThinking')}>
             <ChevronUp size={16} strokeWidth={3} />
           </button>
         )}

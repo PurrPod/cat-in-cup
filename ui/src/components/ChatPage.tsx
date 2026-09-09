@@ -211,11 +211,11 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
   // 🌟 保存心跳配置（开启时必须提交非空 GOAL.md 内容）
   const saveHeartbeat = async () => {
     if (heartbeatConfig.active && !heartbeatConfig.goal.trim()) {
-      toast.error("GOAL.md 内容为空，无法开启心跳！");
+      toast.error(t('chat.goalEmpty'));
       return;
     }
     if (heartbeatConfig.interval < 60) {
-      toast.error("心跳间隔最短为 60 秒！");
+      toast.error(t('chat.heartbeatMinInterval'));
       return;
     }
     try {
@@ -229,13 +229,13 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
         })
       });
       if (res.ok) {
-        toast.success("Agent 潜意识心跳已更新！");
+        toast.success(t('chat.heartbeatUpdated'));
         setShowHeartbeatModal(false);
       } else {
         const data = await res.json().catch(() => ({}));
-        toast.error(data.detail || "心跳更新失败");
+        toast.error(data.detail || t('chat.heartbeatUpdateFailed'));
       }
-    } catch { toast.error("心跳更新失败"); }
+    } catch { toast.error(t('chat.heartbeatUpdateFailed')); }
   };
 
   const [showMdModal, setShowMdModal] = useState(false);
@@ -481,7 +481,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
   useEffect(() => { if (fileChanges.length > 0 && (!activeDiffPath || !fileChanges.some(c => c.path === activeDiffPath))) setActiveDiffPath(fileChanges[0].path); }, [fileChanges, activeDiffPath]);
 
   const handleAck = async (path: string, newestBackupId: string) => {
-    try { const res = await fetch(`/api/filesystem/ack`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, backup_id: newestBackupId }) }); if (res.ok) { toast.success("已确认更改"); fetchGlobalDiffs(); } } catch { /* noop */ }
+    try { const res = await fetch(`/api/filesystem/ack`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, backup_id: newestBackupId }) }); if (res.ok) { toast.success(t('chat.changeConfirmed')); fetchGlobalDiffs(); } } catch { /* noop */ }
   };
   // 🌟 一键接受全部更改（FileChangesPanel / 切换会话拦截弹窗共用）
   const handleAckAll = async (): Promise<boolean> => {
@@ -489,16 +489,16 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
       const res = await fetch('/api/filesystem/ack_all', { method: 'POST' });
       if (res.ok) {
         const data = await res.json().catch(() => ({}));
-        toast.success(`已接受全部更改（${data.total ?? 0} 个文件）`);
+        toast.success(`${t('chat.ackAllDonePrefix')}${data.total ?? 0}${t('chat.ackAllDoneSuffix')}`);
         fetchGlobalDiffs();
         return true;
       }
-      toast.error('接受全部更改失败');
+      toast.error(t('chat.ackAllFailed'));
       return false;
-    } catch { toast.error('接受全部更改失败'); return false; }
+    } catch { toast.error(t('chat.ackAllFailed')); return false; }
   };
   const handleRollback = async (path: string, oldestBackupId: string) => {
-    try { const res = await fetch(`/api/filesystem/undo`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, backup_id: oldestBackupId }) }); if (res.ok) { toast.success("文件已恢复"); fetchGlobalDiffs(); } } catch { /* noop */ }
+    try { const res = await fetch(`/api/filesystem/undo`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, backup_id: oldestBackupId }) }); if (res.ok) { toast.success(t('chat.fileRestored')); fetchGlobalDiffs(); } } catch { /* noop */ }
   };
 
   useEffect(() => {
@@ -566,8 +566,8 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: currentSessionId, events: eventsToPush })
       });
-    } catch { toast.error("发送浏览器指令失败"); }
-  }, [currentSessionId]);
+    } catch { toast.error(t('chat.browserCmdFailed')); }
+  }, [currentSessionId, t]);
 
   // 监听独立窗口拾取的 comment（用户在独立浏览器窗口选取元素后转发到聊天）
   // 依赖 currentSessionId 以保证 comment 发到正确的会话
@@ -581,12 +581,12 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
 
   const handleResolveReq = async (reqId: string, approved: boolean, ignore: boolean, duration: number = 5) => {
     const feedback = feedbackInputs[reqId] || '';
-    try { const res = await fetch(`/api/requests/${reqId}/resolve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approved, feedback, ignore, duration }) }); if (res.ok) { toast.success("请求处理完成"); setFeedbackInputs(p => { const n = {...p}; delete n[reqId]; return n; }); fetchRequests(); } } catch { /* noop */ }
+    try { const res = await fetch(`/api/requests/${reqId}/resolve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approved, feedback, ignore, duration }) }); if (res.ok) { toast.success(t('chat.requestResolved')); setFeedbackInputs(p => { const n = {...p}; delete n[reqId]; return n; }); fetchRequests(); } } catch { /* noop */ }
   };
 
   const handleRename = async (id: string) => {
     if (!editingAlias.trim()) { setEditingSessionId(null); return; }
-    try { const res = await fetch(`/api/sessions/${id}/rename`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ alias: editingAlias.trim() }) }); if (res.ok) { toast.success("会话已重命名！"); loadSessions(); } } catch { /* noop */ }
+    try { const res = await fetch(`/api/sessions/${id}/rename`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ alias: editingAlias.trim() }) }); if (res.ok) { toast.success(t('chat.sessionRenamed')); loadSessions(); } } catch { /* noop */ }
     setEditingSessionId(null);
   };
 
@@ -594,7 +594,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
     // 桌面端通过 Electron webUtils.getPathForFile 拿拖拽/粘贴文件的真实绝对路径
     const purrcat = (window as any).purrcat;
     if (!purrcat?.getPathForFile) {
-      toast.error('当前环境不支持拖拽上传（需在 PurrCat 桌面端运行）');
+      toast.error(t('chat.dragUnsupported'));
       return;
     }
 
@@ -621,7 +621,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
       // 3. 大小拦截
       if (file.size > MAX_SIZE) {
         console.warn('文件过大，已拦截:', file.name);
-        toast.error(`文件过大，已拦截: ${file.name} (最大 50MB)`);
+        toast.error(`${t('chat.fileTooLargePrefix')}${file.name}${t('chat.fileTooLargeSuffix')}`);
         continue;
       }
 
@@ -632,7 +632,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
     // 更新标签
     if (newPaths.length > 0) {
       setRefPaths((prev: string[]) => [...new Set([...prev, ...newPaths])]);
-      toast.success(`已添加 ${newPaths.length} 个文件`);
+      toast.success(`${t('chat.filesAddedPrefix')}${newPaths.length}${t('chat.filesAddedSuffix')}`);
     }
   };
   const handlePaste = (e: React.ClipboardEvent) => { if (e.clipboardData.files && e.clipboardData.files.length > 0) { e.preventDefault(); handleFileUpload(e.clipboardData.files); } };
@@ -648,9 +648,9 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
     try {
       const res = await fetch('/api/config/sensor/reload', { method: 'POST' });
       const data = await res.json().catch(() => null);
-      if (res.ok) toast.success(data?.message || "Sensors 已热重启");
-      else toast.error(data?.detail || 'Sensors 热重启失败');
-    } catch { toast.error('Sensors 热重启失败'); } finally { setIsReloadingSensors(false); }
+      if (res.ok) toast.success(data?.message || t('chat.sensorsRestarted'));
+      else toast.error(data?.detail || t('chat.sensorsRestartFailed'));
+    } catch { toast.error(t('chat.sensorsRestartFailed')); } finally { setIsReloadingSensors(false); }
   };
   const toggleSensorStatus = async (sensorName: string) => { try { const newSensorData = JSON.parse(JSON.stringify(sensorData)); newSensorData[sensorName].enabled = !newSensorData[sensorName].enabled; setSensorData(newSensorData); const resSave = await fetch('/api/config/sensor', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(newSensorData) }); if (resSave.ok) await reloadSensors(); } catch { /* noop */ } };
   const handleInstallSensor = async () => { setIsInstallingSensor(true); try { const parsed = JSON.parse(sensorInstallJson); const newSensors = parsed.sensors ? parsed.sensors : parsed; const currentData = JSON.parse(JSON.stringify(sensorData)); Object.assign(currentData, newSensors); const resSave = await fetch('/api/config/sensor', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(currentData) }); if (resSave.ok) { await reloadSensors(); setShowInstallSensorModal(false); fetchSensorData(); } } catch { /* noop */ } finally { setIsInstallingSensor(false); } };
@@ -662,9 +662,9 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
     try {
       const res = await fetch('/api/tools/mcp/refresh', { method: 'POST' });
       const data = await res.json().catch(() => null);
-      if (res.ok) { toast.success(data?.message || 'MCP 已刷新'); fetchMcp(); }
-      else toast.error(data?.detail || '刷新 MCP 失败');
-    } catch { toast.error('刷新 MCP 失败'); } finally { setIsRefreshingMcp(false); }
+      if (res.ok) { toast.success(data?.message || t('chat.mcpRefreshed')); fetchMcp(); }
+      else toast.error(data?.detail || t('chat.mcpRefreshFailed'));
+    } catch { toast.error(t('chat.mcpRefreshFailed')); } finally { setIsRefreshingMcp(false); }
   };
   const handleInstallMcp = async () => { setIsInstallingMcp(true); try { const res = await fetch('/api/tools/mcp/install', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ config_json: mcpInstallJson.trim() }) }); if (res.ok) { setShowInstallMcpModal(false); fetchMcp(); } } catch { /* noop */ } finally { setIsInstallingMcp(false); } };
 
@@ -675,9 +675,9 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
     try {
       const res = await fetch('/api/tools/skills/refresh', { method: 'POST' });
       const data = await res.json().catch(() => null);
-      if (res.ok) { toast.success(data?.message || 'Skill 已刷新'); fetchSkill(); }
-      else toast.error(data?.detail || '刷新 Skill 失败');
-    } catch { toast.error('刷新 Skill 失败'); } finally { setIsRefreshingSkill(false); }
+      if (res.ok) { toast.success(data?.message || t('chat.skillRefreshed')); fetchSkill(); }
+      else toast.error(data?.detail || t('chat.skillRefreshFailed'));
+    } catch { toast.error(t('chat.skillRefreshFailed')); } finally { setIsRefreshingSkill(false); }
   };
   const handleInstallSkill = async () => { setIsInstallingSkill(true); try { const res = await fetch('/api/tools/skills/install', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: skillInstallUrl.trim() }) }); if (res.ok) { setShowInstallSkillModal(false); fetchSkill(); } } catch { /* noop */ } finally { setIsInstallingSkill(false); } };
 
@@ -691,7 +691,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
           const schema = data.global_schema || {};
           const template: Record<string, string> = {};
           Object.keys(schema).forEach(key => {
-            template[key] = schema[key].description || `请输入值`;
+            template[key] = schema[key].description || t('chat.inputValuePh');
           });
           setNewCron(prev => ({ ...prev, task_inputs_str: JSON.stringify(template, null, 2) }));
         })
@@ -699,7 +699,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
     } else {
       setNewCron(prev => ({ ...prev, task_inputs_str: '{\n}' }));
     }
-  }, [newCron.task_hook, showAddCronModal]);
+  }, [newCron.task_hook, showAddCronModal, t]);
 
   const fetchCron = async () => { try { const res = await fetch('/api/tools/cron'); if (res.ok) setCronData(await res.json()); } catch { /* noop */ } };
   const addCron = async () => { 
@@ -708,7 +708,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
       try {
         parsedInputs = JSON.parse(newCron.task_inputs_str);
       } catch {
-        toast.error("工作流配置参数不符合合法标准的 JSON 格式！");
+        toast.error(t('chat.workflowJsonInvalid'));
         return;
       }
     }
@@ -745,11 +745,11 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
     try {
       const res = await fetch('/api/chat/interrupt', { method: 'POST' });
       if (res.ok) {
-        toast.success('已强制打断 Agent，等待收尾...');
+        toast.success(t('chat.agentInterrupted'));
       } else {
-        toast.error('打断请求失败');
+        toast.error(t('chat.interruptFailed'));
       }
-    } catch { toast.error('打断请求失败'); }
+    } catch { toast.error(t('chat.interruptFailed')); }
   };
 
   // 🌟 记忆压缩：触发 Agent 的全局大总结并截断历史上下文（后台异步执行）
@@ -757,7 +757,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
   const handleCompressMemory = async () => {
     if (isCompressingMemory) return;
     setIsCompressingMemory(true);
-    toast('记忆压缩已开始，Agent 正在总结...', { icon: '🧠' });
+    toast(t('chat.memCompressStarted'), { icon: '🧠' });
     try {
       const res = await fetch('/api/chat/compress-memory', { method: 'POST' });
       if (res.ok) {
@@ -770,7 +770,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
               if (sd.compressing === false) {
                 clearInterval(checkDone);
                 setIsCompressingMemory(false);
-                toast.success('记忆压缩完成');
+                toast.success(t('chat.memCompressDone'));
               }
             }
           } catch { /* noop */ }
@@ -779,11 +779,11 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
         setTimeout(() => { clearInterval(checkDone); setIsCompressingMemory(false); }, 600000);
       } else {
         setIsCompressingMemory(false);
-        toast.error('记忆压缩请求失败');
+        toast.error(t('chat.memCompressFailed'));
       }
     } catch {
       setIsCompressingMemory(false);
-      toast.error('记忆压缩请求失败');
+      toast.error(t('chat.memCompressFailed'));
     }
   };
   
@@ -889,11 +889,11 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
       });
       if (!res.ok) {
         const errBody = await res.json().catch(() => null);
-        throw new Error((errBody && errBody.detail) || '切换失败');
+        throw new Error((errBody && errBody.detail) || t('chat.switchFailed'));
       }
-      toast.success(name ? `已切换 Agent Loop：${name}` : '已恢复默认 PARADIGM.yaml');
+      toast.success(name ? `${t('chat.loopSwitchedPrefix')}${name}` : t('chat.defaultLoopRestored'));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : '切换失败');
+      toast.error(e instanceof Error ? e.message : t('chat.switchFailed'));
     }
   };
   const confirmBranchSession = async () => { setShowBranchModal(false); setIsCheckingOut(true); try { const res = await fetch(`/api/sessions/${currentSessionId}/branch`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ alias: branchAlias.trim() }) }); if (res.ok) { const data = await res.json(); await loadSessions(); await handleSelectSession(data.id); } } catch { /* noop */ } finally { setIsCheckingOut(false); } };
@@ -981,7 +981,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
       const data = await res.json();
       if (!data.real_path) { fallback(); return; }
       openInBrowser(toFileUrl(data.real_path), fileName);
-      toast.success('已在内置浏览器打开，可切换 pick 模式选取元素并评论', { icon: '🌐' });
+      toast.success(t('chat.browserOpened'), { icon: '🌐' });
     } catch {
       fallback();
     }
@@ -1000,7 +1000,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
       const data = await res.json();
       setPreviewMdContent(data.content ?? '');
     } catch {
-      setPreviewMdContent(`# 读取失败\n\n无法加载文件内容：\n\n\`${localPath}\``);
+      setPreviewMdContent(`# ${t('chat.mdLoadFailedTitle')}\n\n${t('chat.mdLoadFailedBody')}\n\n\`${localPath}\``);
     }
   };
 
@@ -1035,11 +1035,11 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
 
   const confirmTraceToSkill = async () => {
     if (!currentSessionId) return;
-    if (!traceSkillName.trim()) return toast.error("请指定技能名称！");
-    if (!traceExpectation.trim()) return toast.error("请填写技能期望！");
+    if (!traceSkillName.trim()) return toast.error(t('chat.skillNameRequired'));
+    if (!traceExpectation.trim()) return toast.error(t('chat.skillExpectRequired'));
 
     setIsTracing(true);
-    const tid = toast.loading("正在为你分配技能进化工厂...");
+    const tid = toast.loading(t('chat.allocatingFactory'));
     try {
       const res = await fetch('/api/evolve/init', {
         method: 'POST',
@@ -1052,7 +1052,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
         })
       });
 
-      if (!res.ok) throw new Error("分配沙盒失败");
+      if (!res.ok) throw new Error(t('chat.sandboxAllocFailed'));
       const data = await res.json();
       const wp_id = data.workplace_id;
       const factoryPath = `/agent_vm/skill_workplace/${wp_id}/${traceSkillName.trim()}`;
@@ -1067,13 +1067,13 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
         body: JSON.stringify({ session_id: currentSessionId, events: eventsToPush })
       });
 
-      toast.success("已将经验沉淀任务派发给 Agent！", { id: tid });
+      toast.success(t('chat.skillTaskDispatched'), { id: tid });
       setShowTraceModal(false);
       setTraceSkillName('');
       setTraceExpectation('');
     } catch (error) {
       console.error("工厂分配失败:", error);
-      toast.error("工厂分配失败，请检查 Agent 状态", { id: tid });
+      toast.error(t('chat.factoryAllocFailed'), { id: tid });
     } finally {
       setIsTracing(false);
     }
@@ -1095,12 +1095,12 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
             setIdeWorkspace(paths[0]);
             setShowBrowser(false); // 关闭浏览器，给 IDE 腾出空间
             setShowIDE(true);
-            toast.success(`已在 IDE 中打开工作区: ${paths[0]}`);
+            toast.success(`${t('chat.workspaceOpenedPrefix')}${paths[0]}`);
           }
 
           setRefPaths((prev: string[]) => [...new Set([...prev, ...paths])]);
           if (mode === 'file') {
-            toast.success(`已添加 ${paths.length} 个本地绝对路径`);
+            toast.success(`${t('chat.pathsAddedPrefix')}${paths.length}${t('chat.pathsAddedSuffix')}`);
           }
         }
       } catch (e) {
@@ -1111,7 +1111,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
 
     // 降级：HTML file input 仅支持文件多选，文件夹模式无降级
     if (mode === 'directory') {
-      toast.error("提示：请在 preload.js/main.js 暴露 purrcat.openDialog() 以启用原生文件夹选择。");
+      toast.error(t('chat.folderDialogHint'));
       return;
     }
     const input = document.createElement('input');
@@ -1123,7 +1123,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
       }
     };
     input.click();
-    toast.error("提示：请在 preload.js/main.js 暴露 purrcat.openDialog() 以启用原生文件选择。");
+    toast.error(t('chat.fileDialogHint'));
   };
 
   // --- Props 组织区 ---
@@ -1172,7 +1172,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
             <div className="flex justify-between items-center rotate-1">
               <h3 className="text-2xl font-black tracking-widest flex items-center gap-2" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
                 <ArrowLeftRight size={22} strokeWidth={2.5} />
-                切换 Agent Loop
+                {t('chat.switchAgentLoop')}
               </h3>
               <button onClick={() => setShowParadigmModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={26} strokeWidth={3}/></button>
             </div>
@@ -1181,7 +1181,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
               <input
                 value={paradigmSearch}
                 onChange={(e) => setParadigmSearch(e.target.value)}
-                placeholder="搜索 Agent Loop 关键词…"
+                placeholder={t('chat.searchLoopPh')}
                 className="flex-1 bg-cream border-2 border-ink px-3 py-2 font-bold text-sm focus:outline-none focus:bg-white shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)] placeholder:text-ink/30"
                 style={sketchyShape3}
               />
@@ -1193,7 +1193,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                   style={sketchyShape3}
                   className="w-full text-left px-4 py-3 border-4 border-ink bg-cream hover:bg-sand font-black text-ink text-lg transition-colors"
                 >
-                  默认范式（PARADIGM.yaml 兜底）
+                  {t('chat.defaultParadigm')}
                 </button>
               )}
               {shownParadigms.map((f) => (
@@ -1208,7 +1208,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
               ))}
               {shownParadigms.length === 0 && (
                 <div className="text-center py-4 font-bold text-ink/40 text-sm" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                  {paradigmQ ? '无匹配的 Agent Loop' : '暂无其它范式文件'}
+                  {paradigmQ ? t('chat.noMatchLoops') : t('chat.noLoopFiles')}
                 </div>
               )}
             </div>
@@ -1260,7 +1260,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                  </div>
                )}
 
-               <button onClick={() => { setTerminalCmd(null); setShowTerminal(!showTerminal); setShowFileView(false); }} className={`relative w-10 h-10 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all flex items-center justify-center ${showTerminal ? 'bg-[#88c0d0] text-paper' : 'bg-cream text-ink'}`} style={sketchyShape2} title="打开终端">
+               <button onClick={() => { setTerminalCmd(null); setShowTerminal(!showTerminal); setShowFileView(false); }} className={`relative w-10 h-10 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all flex items-center justify-center ${showTerminal ? 'bg-[#88c0d0] text-paper' : 'bg-cream text-ink'}`} style={sketchyShape2} title={t('chat.openTerminal')}>
                  <TerminalSquare size={20} strokeWidth={3} />
                </button>
 
@@ -1282,7 +1282,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                  } else {
                    setShowBrowser(!showBrowser);
                  }
-               }} className={`relative w-10 h-10 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all flex items-center justify-center ${showBrowser || browserDetached ? 'bg-[#88c0d0] text-paper' : 'bg-cream text-ink'}`} style={sketchyShape3} title="内置浏览器">
+               }} className={`relative w-10 h-10 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all flex items-center justify-center ${showBrowser || browserDetached ? 'bg-[#88c0d0] text-paper' : 'bg-cream text-ink'}`} style={sketchyShape3} title={t('chat.builtinBrowser')}>
                  <Globe size={20} strokeWidth={3} />
                </button>
             </div>
@@ -1335,9 +1335,9 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                 onClick={loadOlderMessages}
                 style={sketchyShape3}
                 className="px-4 py-1.5 text-xs font-black uppercase tracking-wider border-2 border-ink/40 text-ink/50 bg-paper hover:bg-[#88c0d0]/20 hover:border-ink hover:text-ink transition-all shadow-[2px_2px_0px_0px_rgba(26,26,26,0.15)]"
-                title="加载更早的消息（也可直接滚动到顶部）"
+                title={t('chat.loadEarlier')}
               >
-                ↑ 加载更早的消息（还有 {msgStartIdx} 条）
+                ↑ {t('chat.loadEarlierBtnPrefix')}{msgStartIdx}{t('chat.loadEarlierBtnSuffix')}
               </button>
             </div>
           )}
@@ -1364,7 +1364,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                               }}
                               className="absolute top-2 right-2 p-1.5 bg-paper border-2 border-ink text-ink/60 hover:text-ink hover:bg-[#F9E2AF] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all opacity-0 group-hover/bubble:opacity-100 z-10"
                               style={sketchyShape3}
-                              title="复制内容"
+                              title={t('chat.copyContent')}
                             >
                               <ClipboardCopy size={14} strokeWidth={2.5} />
                             </button>
@@ -1391,7 +1391,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                             }}
                             className="absolute top-2 right-2 p-1.5 bg-paper border-2 border-ink text-ink/60 hover:text-ink hover:bg-[#F9E2AF] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all opacity-0 group-hover/bubble:opacity-100 z-10"
                             style={sketchyShape3}
-                            title="复制内容"
+                            title={t('chat.copyContent')}
                           >
                             <ClipboardCopy size={14} strokeWidth={2.5} />
                           </button>
@@ -1428,7 +1428,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                 }}
                 className="p-2 bg-paper border-2 border-ink hover:bg-[#EBCB8B] hover:text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none"
                 style={sketchyShape2}
-                title="Trace to Skill (经验沉淀为技能)"
+                title={t('chat.traceSkillHint')}
               >
                 <BookOpen size={18} strokeWidth={2.5} />
               </button>
@@ -1437,7 +1437,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                 disabled={isCompressingMemory}
                 className="p-2 bg-paper border-2 border-ink hover:bg-[#b48ead] hover:text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:bg-paper disabled:hover:text-ink disabled:hover:translate-y-0"
                 style={sketchyShape3}
-                title="Memory Compress (手动触发记忆压缩：全局大总结并截断历史上下文)"
+                title={t('chat.memCompressHint')}
               >
                 {isCompressingMemory ? <Loader2 size={18} strokeWidth={2.5} className="animate-spin" /> : <Brain size={18} strokeWidth={2.5} />}
               </button>
@@ -1446,7 +1446,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                 disabled={isCheckingOut}
                 className="p-2 bg-paper border-2 border-ink hover:bg-[#a3be8c] hover:text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:bg-paper disabled:hover:text-ink disabled:hover:translate-y-0"
                 style={sketchyShape1}
-                title="Branch (基于当前会话新建分支并切换过去)"
+                title={t('chat.branchHint')}
               >
                 {isCheckingOut ? <Loader2 size={18} strokeWidth={2.5} className="animate-spin" /> : <GitMerge size={18} strokeWidth={2.5} />}
               </button>
@@ -1455,7 +1455,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                 disabled={isCheckingOut}
                 className="p-2 bg-paper border-2 border-ink hover:bg-[#5e81ac] hover:text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all hover:-translate-y-[1px] active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:bg-paper disabled:hover:text-ink disabled:hover:translate-y-0"
                 style={sketchyShape3}
-                title="切换 Agent Loop（只换循环逻辑，不动系统提示词，保住 KV Cache）"
+                title={t('chat.switchLoopHint')}
               >
                 <ArrowLeftRight size={18} strokeWidth={2.5} />
               </button>
@@ -1511,11 +1511,11 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
                      </button>
 
                      <button onClick={() => { setShowToolMenu(false); handleAttachmentClick('file'); }} className="flex items-center gap-3 p-3 hover:bg-[#88c0d0] hover:text-paper font-black text-sm text-left transition-all active:translate-y-1" style={sketchyShape1}>
-                       <Paperclip size={18} strokeWidth={3}/> 选择文件
+                       <Paperclip size={18} strokeWidth={3}/> {t('chat.selectFileBtn')}
                      </button>
 
                      <button onClick={() => { setShowToolMenu(false); handleAttachmentClick('directory'); }} className="flex items-center gap-3 p-3 hover:bg-[#88c0d0] hover:text-paper font-black text-sm text-left transition-all active:translate-y-1" style={sketchyShape1}>
-                       <FolderOpen size={18} strokeWidth={3}/> 选择文件夹
+                       <FolderOpen size={18} strokeWidth={3}/> {t('chat.selectFolderBtn')}
                      </button>
 
                      <button onClick={() => { setShowToolMenu(false); setUseBrainstorm(!useBrainstorm); }} className={`flex items-center gap-3 p-3 font-black text-sm text-left transition-all active:translate-y-1 ${useBrainstorm ? 'bg-[#b48ead] text-paper' : 'hover:bg-[#b48ead] hover:text-paper'}`} style={sketchyShape2}>
@@ -1603,7 +1603,7 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
             </div>
             
             <div className="rotate-1 flex flex-col gap-4">
-              <p className="text-sm font-bold opacity-70">Agent Subconscious Frequency（最短 60 秒）</p>
+              <p className="text-sm font-bold opacity-70">{t('chat.heartbeatFreqHint')}</p>
 
               {/* 秒数输入与拨键开关合并在一行 */}
               <div className="flex items-center justify-between gap-4 bg-cream border-4 border-ink p-3 shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)]" style={sketchyShape3}>
@@ -1631,18 +1631,18 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
               {/* GOAL.md 内容编辑区：开启心跳时必填，随心跳一并提交 */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-black flex items-center gap-1"><List size={16} strokeWidth={3}/> GOAL.md（开启心跳必填）</p>
+                  <p className="text-sm font-black flex items-center gap-1"><List size={16} strokeWidth={3}/> {t('chat.goalRequired')}</p>
                   <button
                     onClick={() => { setShowHeartbeatModal(false); openMdEditor('GOAL'); }}
                     className="text-xs font-black underline underline-offset-4 hover:text-terracotta"
                   >
-                    大窗口编辑
+                    {t('chat.editInLargeWindow')}
                   </button>
                 </div>
                 <textarea
                   value={heartbeatConfig.goal}
                   onChange={e => setHeartbeatConfig({...heartbeatConfig, goal: e.target.value})}
-                  placeholder="写入当前目标，心跳将按间隔注入给 Agent..."
+                  placeholder={t('chat.goalPh')}
                   className="w-full h-28 bg-[#FDF8F0] border-4 border-ink p-2 text-sm font-bold resize-none focus:outline-none shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)]"
                   style={sketchyShape2}
                 />
@@ -1742,15 +1742,13 @@ export default function ChatPage({ onBack, onSwitchToTask }: { onBack: () => voi
 
             <div className="flex flex-col gap-3">
               <p className="text-ink font-bold text-sm">
-                确认在主机运行以下命令吗？
+                {t('chat.confirmHostRun')}
               </p>
               <div className="flex items-start gap-2 p-4 bg-[#bf616a]/10 border-2 border-[#bf616a] text-ink text-xs font-bold" style={sketchyShape3}>
                 <AlertTriangle size={16} className="text-[#bf616a] shrink-0 mt-0.5" strokeWidth={3} />
-                <span>
-                  <span className="text-[#bf616a] font-black">⚠ 风险提示：</span>
-                  此命令将在你的主机上以子进程方式执行，拥有完整的系统访问权限。
-                  请确认你信任 Agent 的输出，且理解该命令的作用。
-                  执行后可在终端中继续交互输入。
+                <span className="whitespace-pre-line">
+                  <span className="text-[#bf616a] font-black">{t('chat.riskWarningPrefix')}</span>
+                  {t('chat.termCmdRiskBody')}
                 </span>
               </div>
               <div className="p-4 bg-[#1e1e2e] border-4 border-ink font-mono text-sm text-[#cdd6f4] break-all" style={sketchyShape1}>

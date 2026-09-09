@@ -80,7 +80,7 @@ export default function ChatModals(props: any) {
             </div>
             <div className="rotate-1">
               <p className="font-bold text-ink/80 text-base leading-relaxed">
-                喵~ Agent 正在埋头苦干中！为了保护数据安全，请等待当前任务完成后，再切换会话或拉取新分支哦！
+                {t('chat.agentBusyBody')}
               </p>
             </div>
             <button onClick={() => setShowBusyModal(false)} style={sketchyShape3} className="mt-2 bg-[#EBCB8B] text-ink font-black py-3 border-4 border-ink hover:bg-[#d8b877] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 rotate-1">
@@ -101,12 +101,12 @@ export default function ChatModals(props: any) {
             </div>
             <div className="rotate-1">
               <p className="font-bold text-ink/80 text-base leading-relaxed">
-                当前还有 <span className="text-terracotta font-black">{unacceptedChangeCount}</span> 个文件的更改未接受。需要接受全部更改后才可以切换会话，是否接受全部更改？
+                {t('chat.unacceptedPrefix')}<span className="text-terracotta font-black">{unacceptedChangeCount}</span>{t('chat.unacceptedSuffix')}
               </p>
             </div>
             <div className="flex gap-4 rotate-1 mt-2">
-              <button onClick={() => setPendingSwitchId(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">取消</button>
-              <button onClick={confirmAckAllAndSwitch} style={sketchyShape1} className="flex-1 bg-[#a3be8c] text-ink font-black py-3 border-4 border-ink hover:bg-[#8eb072] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 flex items-center justify-center gap-2"><Check size={18} strokeWidth={3}/> 接受全部并切换</button>
+              <button onClick={() => setPendingSwitchId(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">{t('common.cancel')}</button>
+              <button onClick={confirmAckAllAndSwitch} style={sketchyShape1} className="flex-1 bg-[#a3be8c] text-ink font-black py-3 border-4 border-ink hover:bg-[#8eb072] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 flex items-center justify-center gap-2"><Check size={18} strokeWidth={3}/> {t('chat.acceptAllAndSwitch')}</button>
             </div>
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function ChatModals(props: any) {
                 className="w-full border-4 border-ink bg-cream p-4 font-bold text-lg focus:outline-none focus:bg-white shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)] cursor-pointer text-ink/70"
                 style={sketchyShape2}
               >
-                <option value="">默认范式（PARADIGM.yaml 兜底）</option>
+                <option value="">{t('chat.defaultParadigm')}</option>
                 {paradigmFiles && paradigmFiles.filter((f: any) => f.name !== 'PARADIGM').map((f: any) => (
                   <option key={f.name} value={f.name}>{f.name}</option>
                 ))}
@@ -150,7 +150,7 @@ export default function ChatModals(props: any) {
               <button onClick={() => setShowBranchModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="-rotate-1">
-              <p className="font-bold opacity-70 mb-2 text-ink">基于当前时间线创造一个平行宇宙：</p>
+              <p className="font-bold opacity-70 mb-2 text-ink">{t('chat.branchUniverse')}</p>
               <input autoFocus value={branchAlias} onChange={e => setBranchAlias(e.target.value)} onKeyDown={e => e.key === 'Enter' && confirmBranchSession()} placeholder="Give the new branch a name..." className="w-full border-4 border-ink bg-cream p-4 font-bold text-lg focus:outline-none focus:bg-white shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)] placeholder:text-ink/30" style={sketchyShape3} />
             </div>
             <button onClick={confirmBranchSession} style={{ ...sketchyShape1, fontFamily: '"Comic Sans MS", cursive' }} className="bg-[#d08770] text-paper font-black tracking-widest text-xl py-4 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-none transition-all rotate-1">
@@ -167,7 +167,7 @@ export default function ChatModals(props: any) {
               <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.deleteChat')}</h3>
               <button onClick={() => setSessionToDelete(null)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
-            <p className="font-bold text-ink/70 rotate-1">确定要删除这个分支会话吗？该分支上的历史记忆将永久丢失！</p>
+            <p className="font-bold text-ink/70 rotate-1">{t('chat.deleteBranchConfirm')}</p>
             <div className="flex gap-4 rotate-1 mt-2">
               <button onClick={() => setSessionToDelete(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">{t('common.cancel')}</button>
               <button onClick={confirmDeleteSession} style={sketchyShape1} className="flex-1 bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">{t('common.delete')}</button>
@@ -183,7 +183,7 @@ export default function ChatModals(props: any) {
               <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.destroyBranch')}</h3>
               <button onClick={() => setBranchToDelete(null)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
-            <p className="font-bold text-ink/70 rotate-1">确定要彻底销毁支线 [{branchToDelete}] 的全部历史记忆吗？</p>
+            <p className="font-bold text-ink/70 rotate-1">{t('chat.destroyBranchPrefix')}{branchToDelete}{t('chat.destroyBranchSuffix')}</p>
             <div className="flex gap-4 rotate-1 mt-2">
               <button onClick={() => setBranchToDelete(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">{t('common.cancel')}</button>
               <button onClick={async () => {
@@ -211,22 +211,22 @@ export default function ChatModals(props: any) {
             <input placeholder={t('chat.alarmTitle')} value={newCron.title} onChange={e=>setNewCron({...newCron, title:e.target.value})} className="border-4 border-ink p-3 font-bold bg-cream focus:outline-none" style={sketchyShape3} />
             <input placeholder={t('chat.triggerTime')} value={newCron.trigger_time} onChange={e=>setNewCron({...newCron, trigger_time:e.target.value})} className="border-4 border-ink p-3 font-bold bg-cream focus:outline-none" style={sketchyShape1} />
             
-            <p className="text-xs font-black opacity-60 -mb-2 pl-1">🎯 触发动作绑定：</p>
+            <p className="text-xs font-black opacity-60 -mb-2 pl-1">{t('chat.triggerActionBinding')}</p>
             <select 
               value={newCron.task_hook || 'Agent'} 
               onChange={e=>setNewCron({...newCron, task_hook:e.target.value})}
               className="border-4 border-ink p-3 font-bold bg-cream focus:outline-none cursor-pointer text-sm" style={sketchyShape2}
             >
-              <option value="Agent">🤖 唤醒当前对话 Agent</option>
+              <option value="Agent">{t('chat.wakeAgent')}</option>
               {graphData && graphData.map((g: any) => {
                 const nameClean = g.name.replace('.json', '');
-                return <option key={nameClean} value={nameClean}>⚙️ 后台自动化流: {nameClean}</option>
+                return <option key={nameClean} value={nameClean}>{t('chat.backgroundFlowPrefix')}{nameClean}</option>
               })}
             </select>
             
             {newCron.task_hook && newCron.task_hook !== 'Agent' && (
               <div className="flex flex-col gap-1 w-full animate-in fade-in duration-200">
-                <span className="text-[10px] font-black text-terracotta flex justify-between px-1"><span>⚙️ 工作流全局变量定义 (JSON)</span></span>
+                <span className="text-[10px] font-black text-terracotta flex justify-between px-1"><span>{t('chat.workflowVarsJson')}</span></span>
                 <textarea 
                   value={newCron.task_inputs_str || '{\n}'} 
                   onChange={e=>setNewCron({...newCron, task_inputs_str:e.target.value})}
@@ -253,7 +253,7 @@ export default function ChatModals(props: any) {
               <button onClick={() => setShowInstallSkillModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="-rotate-1">
-              <p className="font-bold opacity-70 mb-3 text-ink text-sm">输入第三方 Skill 的 Github Tree 链接以自动安装：</p>
+              <p className="font-bold opacity-70 mb-3 text-ink text-sm">{t('chat.githubTreeHint')}</p>
               <input value={skillInstallUrl} onChange={e => setSkillInstallUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleInstallSkill()} placeholder="https://github.com/..." className="w-full border-4 border-ink bg-[#FDF8F0] p-4 font-bold text-base focus:outline-none shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]" style={sketchyShape3} />
             </div>
             <div className="flex gap-4 -rotate-1 mt-2">
@@ -341,13 +341,13 @@ export default function ChatModals(props: any) {
               <input
                 value={skillSearch}
                 onChange={(e) => setSkillSearch(e.target.value)}
-                placeholder="搜索技能关键词…"
+                placeholder={t('chat.searchSkillPh')}
                 className="flex-1 bg-cream border-2 border-ink px-3 py-2 font-bold text-sm focus:outline-none focus:bg-white shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)] placeholder:text-ink/30"
                 style={sketchyShape3}
               />
             </div>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 -rotate-1 p-1">
-              {filteredSkills.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{skillData.length === 0 ? t('chat.noSkillsLoaded') : '无匹配的技能'}</p> : (
+              {filteredSkills.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{skillData.length === 0 ? t('chat.noSkillsLoaded') : t('chat.noMatchSkills')}</p> : (
                  filteredSkills.map((skill: any, idx: number) => {
                    const isSelected = tempSelectedSkills.includes(skill.name);
                    return (
@@ -389,13 +389,13 @@ export default function ChatModals(props: any) {
               <input
                 value={mcpSearch}
                 onChange={(e) => setMcpSearch(e.target.value)}
-                placeholder="搜索 MCP 服务 / 工具关键词…"
+                placeholder={t('chat.searchMcpPh')}
                 className="flex-1 bg-cream border-2 border-ink px-3 py-2 font-bold text-sm focus:outline-none focus:bg-white shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)] placeholder:text-ink/30"
                 style={sketchyShape3}
               />
             </div>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 -rotate-1 p-1">
-              {filteredMcpEntries.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{Object.keys(mcpData).length === 0 ? t('chat.noMcpLoaded') : '无匹配的 MCP'}</p> : (
+              {filteredMcpEntries.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{Object.keys(mcpData).length === 0 ? t('chat.noMcpLoaded') : t('chat.noMatchMcp')}</p> : (
                  filteredMcpEntries.map(([server, tools]: any, idx) => {
                    const isSelected = tempSelectedMcps.includes(server);
                    return (
@@ -437,7 +437,7 @@ export default function ChatModals(props: any) {
               <button onClick={() => setShowRefModal(false)} className="hover:text-terracotta hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="-rotate-1">
-              <p className="font-bold opacity-70 mb-3 text-ink text-sm">请输入或粘贴本地文件/文件夹的绝对路径：</p>
+              <p className="font-bold opacity-70 mb-3 text-ink text-sm">{t('chat.localPathHint')}</p>
               <input autoFocus value={tempRefPath} onChange={e => setTempRefPath(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && tempRefPath.trim()) { setRefPaths((prev: string[]) => [...new Set([...prev, tempRefPath.trim()])]); setTempRefPath(''); setShowRefModal(false); } }} placeholder="/Users/dev/my_project/file.py" className="w-full border-4 border-ink bg-[#FDF8F0] p-4 font-bold text-base focus:outline-none shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]" style={sketchyShape3} />
             </div>
             <div className="flex gap-4 -rotate-1 mt-2">
@@ -460,13 +460,13 @@ export default function ChatModals(props: any) {
               <input
                 value={graphSearch}
                 onChange={(e) => setGraphSearch(e.target.value)}
-                placeholder="搜索工作流关键词…"
+                placeholder={t('chat.searchGraphPh')}
                 className="flex-1 bg-cream border-2 border-ink px-3 py-2 font-bold text-sm focus:outline-none focus:bg-white shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)] placeholder:text-ink/30"
                 style={sketchyShape3}
               />
             </div>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 -rotate-1 p-1">
-              {filteredGraphs.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{graphData.length === 0 ? t('task.noGraphs') : '无匹配的工作流'}</p> : (
+              {filteredGraphs.length === 0 ? <p className="font-bold text-center mt-6 opacity-50 text-sm">{graphData.length === 0 ? t('task.noGraphs') : t('chat.noMatchGraphs')}</p> : (
                  filteredGraphs.map((graph: any, idx: number) => {
                    const graphName = graph.name.replace('.json', '');
                    const isSelected = tempSelectedGraphs.includes(graphName);
@@ -553,7 +553,7 @@ export default function ChatModals(props: any) {
               </div>
               
               <div className="flex flex-col gap-2">
-                <label className="font-bold opacity-70 text-sm">Target Skill Name (目标技能):</label>
+                <label className="font-bold opacity-70 text-sm">{t('chat.targetSkillLabel')}</label>
                 {traceType === 'upgrade' ? (
                   <select 
                     value={traceSkillName} 
@@ -578,11 +578,11 @@ export default function ChatModals(props: any) {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="font-bold opacity-70 text-sm">Expectations (期望要求与踩坑经验提取):</label>
-                <textarea 
-                  value={traceExpectation} 
-                  onChange={e => setTraceExpectation(e.target.value)} 
-                  placeholder="请描述希望 Agent 从刚才的曲折过程中提取哪些具体的逻辑？有哪些易错点需要在代码里加固？" 
+                <label className="font-bold opacity-70 text-sm">{t('chat.expectationsLabel')}</label>
+                <textarea
+                  value={traceExpectation}
+                  onChange={e => setTraceExpectation(e.target.value)}
+                  placeholder={t('chat.extractPh')} 
                   className="w-full h-32 resize-none bg-[#FDF8F0] border-4 border-ink p-4 font-bold focus:outline-none shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)] text-sm leading-relaxed placeholder:opacity-50" 
                   style={sketchyShape3}
                 />

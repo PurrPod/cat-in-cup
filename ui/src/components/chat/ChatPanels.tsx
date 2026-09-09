@@ -21,7 +21,7 @@ export function FileChangesPanel(props: any) {
             {t('chat.fileChanges')} <span className="ml-2 text-sm opacity-60">({fileChanges.length} {t('chat.filesModified')})</span>
           </h2>
           {fileChanges.length > 0 && (
-            <button onClick={handleAckAll} title="接受全部更改（清理所有备份）" style={sketchyShape3} className="ml-auto px-3 py-1 bg-[#a3be8c] text-ink text-xs font-black border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5 -rotate-1">
+            <button onClick={handleAckAll} title={t('chat.ackAllCleanHint')} style={sketchyShape3} className="ml-auto px-3 py-1 bg-[#a3be8c] text-ink text-xs font-black border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5 -rotate-1">
               <CheckCircle size={14} strokeWidth={3} /> {t('chat.acknowledgeAll')}
             </button>
           )}
@@ -134,8 +134,8 @@ export function RequestQueuePanel(props: any) {
                 )}
                 {isDepCheck ? (
                   <div className="flex gap-2 mt-1">
-                    <button onClick={() => { if (req.guide_url) openExternal(req.guide_url); handleResolveReq(req.id, true, false); }} className="flex-1 bg-[#EBCB8B] text-ink font-black text-xs py-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#d8b877] active:translate-y-1 active:shadow-none transition-all flex justify-center items-center gap-1.5" style={sketchyShape1}><ExternalLink size={12} strokeWidth={3} />查看部署指南</button>
-                    <button onClick={() => handleResolveReq(req.id, false, false)} className="flex-1 bg-cream text-ink font-black text-xs py-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-sand active:translate-y-1 active:shadow-none transition-all" style={sketchyShape2}>知道了</button>
+                    <button onClick={() => { if (req.guide_url) openExternal(req.guide_url); handleResolveReq(req.id, true, false); }} className="flex-1 bg-[#EBCB8B] text-ink font-black text-xs py-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#d8b877] active:translate-y-1 active:shadow-none transition-all flex justify-center items-center gap-1.5" style={sketchyShape1}><ExternalLink size={12} strokeWidth={3} />{t('chat.viewDeployGuide')}</button>
+                    <button onClick={() => handleResolveReq(req.id, false, false)} className="flex-1 bg-cream text-ink font-black text-xs py-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-sand active:translate-y-1 active:shadow-none transition-all" style={sketchyShape2}>{t('chat.gotIt')}</button>
                   </div>
                 ) : (
                   <div className="flex gap-2 mt-1">
@@ -171,6 +171,7 @@ type TabState = {
 
 export function TerminalPanel(props: any) {
   const { showTerminal, setShowTerminal, command: commandProp } = props;
+  const { t } = useTranslation();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const tabCounterRef = useRef(1);
 
@@ -180,10 +181,10 @@ export function TerminalPanel(props: any) {
 
   // 每次折叠/展开都要重 fit 一下
   const fitById = useCallback((id: string) => {
-    setTabs(prev => prev.map(t => {
-      if (t.id !== id || !t.fitAddon) return t;
-      try { t.fitAddon.fit(); } catch { /* noop */ }
-      return t;
+    setTabs(prev => prev.map(tb => {
+      if (tb.id !== id || !tb.fitAddon) return tb;
+      try { tb.fitAddon.fit(); } catch { /* noop */ }
+      return tb;
     }));
   }, []);
 
@@ -393,7 +394,7 @@ export function TerminalPanel(props: any) {
                 onClick={() => {
                   if (tab.isCollapsed) {
                     // 重新展开：切换激活后，display=block 会在下一个 effect 里处理
-                    setTabs(prev => prev.map(t => t.id === tab.id ? { ...t, isCollapsed: false } : t));
+                    setTabs(prev => prev.map(tb => tb.id === tab.id ? { ...tb, isCollapsed: false } : tb));
                   }
                   setActiveId(tab.id);
                   fitById(tab.id);
@@ -421,7 +422,7 @@ export function TerminalPanel(props: any) {
               onClick={() => createTab(null)}
               className="ml-1 p-1.5 border-2 border-ink bg-cream hover:bg-[#a3be8c] hover:text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all"
               style={sketchyShape2}
-              title="新建终端"
+              title={t('chat.newTerminal')}
             >
               <Plus size={14} strokeWidth={3} />
             </button>
@@ -432,12 +433,12 @@ export function TerminalPanel(props: any) {
             onClick={() => {
               setShowTerminal(false);
               if (activeTab) {
-                setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, isCollapsed: true } : t));
+                setTabs(prev => prev.map(tb => tb.id === activeTab.id ? { ...tb, isCollapsed: true } : tb));
               }
             }}
             className="ml-auto p-1.5 border-2 border-ink bg-cream hover:bg-[#d08770] hover:text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-[1px]"
             style={sketchyShape2}
-            title="最小化（保留后台运行）"
+            title={t('chat.minimizeKeepRunning')}
           >
             <Minus size={20} strokeWidth={3} />
           </button>

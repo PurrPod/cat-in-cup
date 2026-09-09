@@ -84,7 +84,7 @@ export default function ChatSidebar(props: any) {
                    <span className="font-black tracking-widest text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>MCP SERVERS</span>
                    <div className="flex items-center gap-2">
                       <button onClick={() => setShowInstallMcpModal(true)} className="p-1 bg-[#88c0d0] text-paper border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:scale-110 transition-all"><Plus size={18} strokeWidth={3}/></button>
-                      <button onClick={refreshMcp} disabled={isRefreshingMcp} title={isRefreshingMcp ? '正在刷新 MCP…' : '刷新 MCP'} className="p-1 bg-[#F9E2AF] border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:rotate-180 transition-all disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed"><RefreshCw size={18} strokeWidth={3} className={isRefreshingMcp ? 'animate-spin' : ''}/></button>
+                      <button onClick={refreshMcp} disabled={isRefreshingMcp} title={isRefreshingMcp ? t('chat.refreshingMcp') : t('chat.refreshMcp')} className="p-1 bg-[#F9E2AF] border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:rotate-180 transition-all disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed"><RefreshCw size={18} strokeWidth={3} className={isRefreshingMcp ? 'animate-spin' : ''}/></button>
                    </div>
                </div>
                <div className="flex-1 overflow-y-auto flex flex-col gap-4 p-2 mb-2">
@@ -118,7 +118,7 @@ export default function ChatSidebar(props: any) {
                    <span className="font-black tracking-widest text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SKILLS</span>
                    <div className="flex items-center gap-2">
                       <button onClick={() => setShowInstallSkillModal(true)} className="p-1 bg-terracotta text-paper border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:scale-110 transition-all"><Plus size={18} strokeWidth={3}/></button>
-                      <button onClick={refreshSkill} disabled={isRefreshingSkill} title={isRefreshingSkill ? '正在刷新 Skill…' : '刷新 Skill'} className="p-1 bg-[#FCD5CE] border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:rotate-180 transition-all disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed"><RefreshCw size={18} strokeWidth={3} className={isRefreshingSkill ? 'animate-spin' : ''}/></button>
+                      <button onClick={refreshSkill} disabled={isRefreshingSkill} title={isRefreshingSkill ? t('chat.refreshingSkill') : t('chat.refreshSkill')} className="p-1 bg-[#FCD5CE] border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:rotate-180 transition-all disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed"><RefreshCw size={18} strokeWidth={3} className={isRefreshingSkill ? 'animate-spin' : ''}/></button>
                    </div>
                </div>
                <div className="flex-1 overflow-y-auto flex flex-col gap-4 p-2 mb-2">
@@ -166,7 +166,7 @@ export default function ChatSidebar(props: any) {
                     <span className="font-black tracking-widest text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.sensors')}</span>
                    <div className="flex items-center gap-2">
                       <button onClick={() => setShowInstallSensorModal(true)} title="Add Sensor via JSON" className="p-1 bg-[#a3be8c] text-ink border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:scale-110 transition-all"><Plus size={18} strokeWidth={3}/></button>
-                      <button onClick={reloadSensors} disabled={isReloadingSensors} title={isReloadingSensors ? '正在热重启 Sensors…' : '强制热重启'} className="p-1 bg-[#EBCB8B] text-ink border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:rotate-180 transition-all disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed"><RefreshCw size={18} strokeWidth={3} className={isReloadingSensors ? 'animate-spin' : ''}/></button>
+                      <button onClick={reloadSensors} disabled={isReloadingSensors} title={isReloadingSensors ? t('chat.reloadingSensors') : t('chat.forceRestart')} className="p-1 bg-[#EBCB8B] text-ink border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:rotate-180 transition-all disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed"><RefreshCw size={18} strokeWidth={3} className={isReloadingSensors ? 'animate-spin' : ''}/></button>
                    </div>
                </div>
                <div className="flex-1 overflow-y-auto flex flex-col gap-4 p-2 mb-2">

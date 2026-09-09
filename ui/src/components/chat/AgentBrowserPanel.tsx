@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MousePointer2, Frame, Globe, Send, X, Code2, ExternalLink, PictureInPicture2, Palette } from 'lucide-react';
 import { sketchyShape1, sketchyShape2, sketchyShape3 } from './ChatShared';
 import type { BrowserTab } from '../ChatPage';
+import { useTranslation } from '../../i18n';
 
 interface AgentBrowserPanelProps {
   tabs: BrowserTab[];
@@ -18,6 +19,7 @@ export default function AgentBrowserPanel({
   tabs, setTabs, activeTabId, setActiveTabId,
   mode, setMode, onComment, onDetach
 }: AgentBrowserPanelProps) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const logicalOverlayRef = useRef<HTMLDivElement>(null); // 新增：逻辑坐标系容器
   const lastHoverRef = useRef(0);
@@ -453,13 +455,13 @@ export default function AgentBrowserPanel({
 
       <div className="flex items-center gap-3 p-3 border-b-4 border-ink bg-cream shrink-0 relative z-10">
         <div className="flex gap-2">
-          <button onClick={() => setMode('browse')} className={`p-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-colors ${mode === 'browse' ? 'bg-[#88c0d0] text-paper' : 'bg-white hover:bg-sand'}`} style={sketchyShape1} title="正常浏览"><Globe size={18} strokeWidth={3} /></button>
-          <button onClick={() => { setMode('pick'); setShowCommentBox(false); setCurrentRect(null); setPickedElement(null); setHoverRect(null); }} className={`p-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-colors ${mode === 'pick' ? 'bg-[#EBCB8B] text-ink' : 'bg-white hover:bg-sand'}`} style={sketchyShape3} title="元素选取"><MousePointer2 size={18} strokeWidth={3} /></button>
-          <button onClick={() => { setMode('draw'); setShowCommentBox(false); setCurrentRect(null); setPickedElement(null); setHoverRect(null); }} className={`p-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-colors ${mode === 'draw' ? 'bg-[#bf616a] text-paper' : 'bg-white hover:bg-sand'}`} style={sketchyShape2} title="自由画框"><Frame size={18} strokeWidth={3} /></button>
+          <button onClick={() => setMode('browse')} className={`p-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-colors ${mode === 'browse' ? 'bg-[#88c0d0] text-paper' : 'bg-white hover:bg-sand'}`} style={sketchyShape1} title={t('chat.browseMode')}><Globe size={18} strokeWidth={3} /></button>
+          <button onClick={() => { setMode('pick'); setShowCommentBox(false); setCurrentRect(null); setPickedElement(null); setHoverRect(null); }} className={`p-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-colors ${mode === 'pick' ? 'bg-[#EBCB8B] text-ink' : 'bg-white hover:bg-sand'}`} style={sketchyShape3} title={t('chat.pickMode')}><MousePointer2 size={18} strokeWidth={3} /></button>
+          <button onClick={() => { setMode('draw'); setShowCommentBox(false); setCurrentRect(null); setPickedElement(null); setHoverRect(null); }} className={`p-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-colors ${mode === 'draw' ? 'bg-[#bf616a] text-paper' : 'bg-white hover:bg-sand'}`} style={sketchyShape2} title={t('chat.drawMode')}><Frame size={18} strokeWidth={3} /></button>
         </div>
-        <input value={addressInput} onChange={e => setAddressInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddressSubmit()} className="flex-1 border-4 border-ink bg-white px-3 py-1.5 font-bold focus:outline-none text-sm" style={sketchyShape3} placeholder="输入网址，回车访问..." />
-        <button onClick={() => { const url = activeTab?.url || addressInput; if (!url) return; const finalUrl = url.startsWith('http') || url.startsWith('blob') || url.startsWith('data') || url.startsWith('file') ? url : 'http://' + url; if (purrcat?.openExternal) purrcat.openExternal(finalUrl); else window.open(finalUrl, '_blank'); }} disabled={!activeTabId} className="p-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-colors bg-white hover:bg-sand disabled:opacity-40 disabled:cursor-not-allowed" style={sketchyShape3} title="在外部浏览器中打开"><ExternalLink size={16} strokeWidth={3} /></button>
-        {hasElectron && <button onClick={onDetach} disabled={!activeTabId} className="p-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-colors bg-[#88c0d0] text-paper hover:bg-[#5e81ac] disabled:opacity-40 disabled:cursor-not-allowed" style={sketchyShape3} title="独立窗口"><PictureInPicture2 size={16} strokeWidth={3} /></button>}
+        <input value={addressInput} onChange={e => setAddressInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddressSubmit()} className="flex-1 border-4 border-ink bg-white px-3 py-1.5 font-bold focus:outline-none text-sm" style={sketchyShape3} placeholder={t('chat.addressPh')} />
+        <button onClick={() => { const url = activeTab?.url || addressInput; if (!url) return; const finalUrl = url.startsWith('http') || url.startsWith('blob') || url.startsWith('data') || url.startsWith('file') ? url : 'http://' + url; if (purrcat?.openExternal) purrcat.openExternal(finalUrl); else window.open(finalUrl, '_blank'); }} disabled={!activeTabId} className="p-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-colors bg-white hover:bg-sand disabled:opacity-40 disabled:cursor-not-allowed" style={sketchyShape3} title={t('chat.openInExternal')}><ExternalLink size={16} strokeWidth={3} /></button>
+        {hasElectron && <button onClick={onDetach} disabled={!activeTabId} className="p-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-colors bg-[#88c0d0] text-paper hover:bg-[#5e81ac] disabled:opacity-40 disabled:cursor-not-allowed" style={sketchyShape3} title={t('chat.detachWindow')}><PictureInPicture2 size={16} strokeWidth={3} /></button>}
       </div>
 
       <div ref={containerRef} className="flex-1 relative overflow-hidden bg-[#e5e9f0]">
@@ -467,12 +469,12 @@ export default function AgentBrowserPanel({
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#e5e9f0] z-50 text-ink/40">
             <Globe size={48} strokeWidth={2} className="mb-4" />
             <h2 className="text-xl font-black tracking-wider" style={{ fontFamily: '"Comic Sans MS", cursive' }}>PurrCat Browser</h2>
-            <p className="text-xs font-bold mt-1">Waiting for connection...</p>
+            <p className="text-xs font-bold mt-1">{t('chat.waitingConnection')}</p>
           </div>
         ) : !hasElectron ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#e5e9f0] z-50 text-ink/40 p-8 text-center">
             <Globe size={48} strokeWidth={2} className="mb-4" />
-            <p className="text-sm font-bold">内置浏览器仅在 PurrCat 桌面端可用</p>
+            <p className="text-sm font-bold">{t('chat.desktopOnly')}</p>
           </div>
         ) : (
           <>
@@ -545,14 +547,14 @@ export default function AgentBrowserPanel({
                       <span className="font-black text-sm text-terracotta tracking-wider">COMMAND</span>
                       <button onClick={() => { setShowCommentBox(false); setCurrentRect(null); setPickedElement(null); setHoverRect(null); setMode('browse'); }} className="hover:text-terracotta"><X size={16} strokeWidth={3} /></button>
                     </div>
-                    <textarea ref={commentTextareaRef} autoFocus value={commentText} onChange={e => setCommentText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(); } }} placeholder={pickedElement ? `修改 <${pickedElement.tag}> 元素...` : "要求 Agent 修改此处的..."} className="w-full bg-[#FDF8F0] border-2 border-ink p-2 text-sm font-bold resize-none h-20 focus:outline-none mb-2" style={sketchyShape3} />
+                    <textarea ref={commentTextareaRef} autoFocus value={commentText} onChange={e => setCommentText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(); } }} placeholder={pickedElement ? `${t('chat.commentPhPickPrefix')}${pickedElement.tag}${t('chat.commentPhPickSuffix')}` : t('chat.commentPhDraw')} className="w-full bg-[#FDF8F0] border-2 border-ink p-2 text-sm font-bold resize-none h-20 focus:outline-none mb-2" style={sketchyShape3} />
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-[10px] font-black text-ink/50 tracking-wider">COLOR:</span>
                       {/* 颜色选择框：仅更新 selectedColor，不插入 */}
                       <label
                         className="w-[26px] h-[26px] border-2 border-ink cursor-pointer relative overflow-hidden"
                         style={{ borderRadius: '4px 6px 3px 5px/5px 3px 6px 4px', background: selectedColor }}
-                        title="选择颜色"
+                        title={t('chat.pickColor')}
                       >
                         <input
                           type="color"
@@ -567,7 +569,7 @@ export default function AgentBrowserPanel({
                         onClick={() => insertColor(selectedColor)}
                         className="flex items-center justify-center w-[26px] h-[26px] border-2 border-ink hover:bg-sand transition-transform hover:scale-110"
                         style={{ borderRadius: '4px 6px 3px 5px/5px 3px 6px 4px' }}
-                        title="插入颜色"
+                        title={t('chat.insertColor')}
                       >
                         <Palette size={14} strokeWidth={3} className="text-ink" />
                       </button>

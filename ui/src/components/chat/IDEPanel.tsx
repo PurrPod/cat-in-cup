@@ -163,6 +163,7 @@ type TermTab = {
 };
 
 function IDETerminal({ visible }: { visible: boolean }) {
+  const { t } = useTranslation();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const tabCounterRef = useRef(1);
   const [tabs, setTabs] = useState<TermTab[]>([]);
@@ -318,7 +319,7 @@ function IDETerminal({ visible }: { visible: boolean }) {
           onClick={() => createTab(null)}
           style={sketchyShape2}
           className="p-1 text-[#4c566a] hover:text-[#88c0d0] border-2 border-[#4c566a] hover:border-[#88c0d0] transition-colors"
-          title="新建终端"
+          title={t('chat.newTerminal')}
         >
           <Plus size={12} strokeWidth={3} />
         </button>
@@ -475,20 +476,20 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
       if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'u') return;
       if (!activeFile && !activeChange) return;
       e.preventDefault(); // 拦截浏览器「查看源代码」默认行为
-      if (!selectedLines) { toast('先选中行：点击行号或拖选文本', { icon: '📌' }); return; }
+      if (!selectedLines) { toast(t('chat.selectLinesFirst'), { icon: '📌' }); return; }
       const target = activeChange
-        ? (openTabs.find(t => isSameFilePath(t, activeChange.path, workspacePath)) || activeChange.path)
+        ? (openTabs.find(tab => isSameFilePath(tab, activeChange.path, workspacePath)) || activeChange.path)
         : (activeFile as string);
       const rangeTxt = selectedLines.start === selectedLines.end
         ? `L${selectedLines.start}`
         : `L${selectedLines.start}-L${selectedLines.end}`;
       const text = `${target.replace(/\\/g, '/')} ${rangeTxt}`;
       ideChannelRef.current?.postMessage({ type: 'insert-input', text });
-      toast.success(`已插入引用 ${rangeTxt} 到输入框`);
+      toast.success(`${t('chat.insertedRefPrefix')}${rangeTxt}${t('chat.insertedRefSuffix')}`);
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [activeFile, activeChange, selectedLines, openTabs, workspacePath]);
+  }, [activeFile, activeChange, selectedLines, openTabs, workspacePath, t]);
 
   // 🌟 实时性：为 effects 提供最新值的 ref（避免闭包过期）
   const liveRef = useRef({ activeFile: null as string | null, dirty: new Set<string>(), changes: [] as FileChangeItem[], ws: '' });
@@ -715,7 +716,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
 
   // 变更视图：点击行选中（Shift+点击扩展），行号取当前文件（new 侧）；纯删除行无当前行号
   const handleDiffRowClick = (ln: FullDiffLine, shift: boolean) => {
-    if (ln.newNo == null) { toast('删除行在当前文件中不存在，无法引用', { icon: '⚠️' }); return; }
+    if (ln.newNo == null) { toast(t('chat.lineNotFound'), { icon: '⚠️' }); return; }
     const n = ln.newNo;
     setSelectedLines(shift && selectedLines
       ? { start: Math.min(selectedLines.start, n), end: Math.max(selectedLines.end, n) }
@@ -891,7 +892,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                   ? 'bg-[#88c0d0] text-paper hover:bg-[#5e81ac]'
                   : 'bg-paper text-ink hover:bg-[#88c0d0] hover:text-paper'
               }`}
-              title={isMdPreview ? '切换到编辑' : '切换到预览'}
+              title={isMdPreview ? t('chat.switchToEdit') : t('chat.switchToPreview')}
             >
               {isMdPreview ? <Code2 size={14} strokeWidth={3} /> : <Eye size={14} strokeWidth={3} />}
               {isMdPreview ? 'Edit' : 'Preview'}
@@ -906,22 +907,22 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                 ? 'bg-[#a3be8c] text-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-[1px] active:shadow-none'
                 : 'bg-paper/60 text-ink/30 cursor-not-allowed'
             }`}
-            title="保存 (Ctrl+S)"
+            title={t('chat.saveHint')}
           >
             <Save size={14} strokeWidth={3} /> Save
           </button>
           {/* 独立窗口 */}
           {hasElectron && !detached && (
-            <button onClick={handleDetach} style={sketchyShape2} className="p-1.5 text-ink bg-paper border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#88c0d0] hover:text-paper transition-all active:translate-y-[1px] active:shadow-none" title="独立窗口">
+            <button onClick={handleDetach} style={sketchyShape2} className="p-1.5 text-ink bg-paper border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#88c0d0] hover:text-paper transition-all active:translate-y-[1px] active:shadow-none" title={t('chat.detachWindow')}>
               <PictureInPicture2 size={13} strokeWidth={3} />
             </button>
           )}
           {detached && (
-            <button onClick={handleReattach} style={sketchyShape2} className="p-1.5 text-paper bg-[#88c0d0] border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#5e81ac] transition-all active:translate-y-[1px] active:shadow-none" title="回归主窗口">
+            <button onClick={handleReattach} style={sketchyShape2} className="p-1.5 text-paper bg-[#88c0d0] border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#5e81ac] transition-all active:translate-y-[1px] active:shadow-none" title={t('chat.backToMainWindow')}>
               <PictureInPicture2 size={13} strokeWidth={3} />
             </button>
           )}
-          <button onClick={handleClose} style={sketchyShape2} className="p-1.5 text-ink bg-paper border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-terracotta hover:text-paper transition-all active:translate-y-[1px] active:shadow-none" title={detached ? '回归主窗口' : '关闭'}>
+          <button onClick={handleClose} style={sketchyShape2} className="p-1.5 text-ink bg-paper border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-terracotta hover:text-paper transition-all active:translate-y-[1px] active:shadow-none" title={detached ? t('chat.backToMainWindow') : t('common.close')}>
             <X size={13} strokeWidth={3} />
           </button>
         </div>
@@ -933,7 +934,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
         <div style={{ width: sidebarWidth }} className="border-r-2 border-ink bg-white flex flex-col shrink-0">
           <div className="px-2 py-1.5 border-b-2 border-ink/15 bg-paper flex items-center justify-between shrink-0">
             <span className="text-[11px] font-black tracking-widest text-ink/60 uppercase pl-1 truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-              {sidebarMode === 'explorer' ? 'Explorer' : `Changes (${displayChanges.length})`}
+              {sidebarMode === 'explorer' ? t('chat.fileTree') : `${t('chat.fileChanges')} (${displayChanges.length})`}
             </span>
             <div className="flex items-center gap-1">
               {sidebarMode === 'changes' && displayChanges.length > 0 && (
@@ -941,16 +942,16 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                   onClick={handleAckAllChanges}
                   style={sketchyShape2}
                   className="px-2 py-0.5 text-[10px] font-black border-2 border-ink shadow-[1px_1px_0px_0px_rgba(26,26,26,1)] bg-[#a3be8c] text-ink hover:bg-[#8eb072] transition-all active:translate-y-[1px] active:shadow-none"
-                  title="接收全部更改（清理所有备份）"
+                  title={t('chat.ackAllChangesHint')}
                 >
-                  接收全部
+                  {t('chat.acknowledgeAll')}
                 </button>
               )}
               <button
                 onClick={() => setSidebarMode('explorer')}
                 style={sketchyShape1}
                 className={`p-1 border-2 border-ink shadow-[1px_1px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-[1px] active:shadow-none ${sidebarMode === 'explorer' ? 'bg-[#88c0d0] text-paper' : 'bg-white text-ink/60 hover:bg-[#e5e9f0]'}`}
-                title="文件树"
+                title={t('chat.fileTree')}
               >
                 <FolderTree size={12} strokeWidth={3} />
               </button>
@@ -958,7 +959,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                 onClick={() => setSidebarMode('changes')}
                 style={sketchyShape3}
                 className={`relative p-1 border-2 border-ink shadow-[1px_1px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-[1px] active:shadow-none ${sidebarMode === 'changes' ? 'bg-[#88c0d0] text-paper' : 'bg-white text-ink/60 hover:bg-[#e5e9f0]'}`}
-                title="文件变更"
+                title={t('chat.fileChanges')}
               >
                 <FileDiff size={12} strokeWidth={3} />
                 {displayChanges.length > 0 && (
@@ -1027,7 +1028,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
         <div
           onMouseDown={startSidebarResize}
           className="w-1.5 shrink-0 cursor-col-resize bg-transparent hover:bg-[#88c0d0]/60 active:bg-[#88c0d0] transition-colors -ml-[2px] z-10"
-          title="拖拽调节宽度"
+          title={t('chat.dragResizeWidth')}
         />
 
         {/* 右侧 Editor + Terminal */}
@@ -1035,7 +1036,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
           {/* Editor Tabs — 白底手绘栏，Tab 为手绘小卡 */}
           <div className="flex items-end gap-1.5 px-2 pt-1.5 border-b-2 border-ink bg-paper shrink-0 overflow-x-auto">
             {openTabs.length === 0 && !activeChange && (
-              <div className="px-3 pb-2 text-xs font-black text-ink/30 tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Select a file to open...</div>
+              <div className="px-3 pb-2 text-xs font-black text-ink/30 tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.selectFile')}</div>
             )}
             {activeChange && (() => {
               const name = (activeChange.rel || activeChange.path).split('/').pop() || activeChange.path;
@@ -1089,16 +1090,16 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                 <div style={sketchyShape2} className="w-16 h-16 bg-[#EBCB8B]/30 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-center -rotate-2">
                   <AlertCircle size={28} strokeWidth={2.5} className="text-ink/60" />
                 </div>
-                <p className="font-black text-lg tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>File too large to open</p>
+                <p className="font-black text-lg tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.fileTooLargeTitle')}</p>
                 <p className="text-sm font-mono font-bold truncate max-w-[80%]" title={largeFileNotice.path}>{largeFileNotice.path.split(/[\\/]/).pop()}</p>
-                <p className="text-sm font-bold">{formatSize(largeFileNotice.size)} — exceeds the {formatSize(MAX_TEXT_FILE_SIZE)} text file limit.</p>
-                <p className="text-xs font-bold opacity-60">Use the terminal to inspect this file (e.g. head / tail / less).</p>
+                <p className="text-sm font-bold">{formatSize(largeFileNotice.size)}{t('chat.exceedsLimitPrefix')}{formatSize(MAX_TEXT_FILE_SIZE)}{t('chat.exceedsLimitSuffix')}</p>
+                <p className="text-xs font-bold opacity-60">{t('chat.useTerminalHint')}</p>
                 <button
                   onClick={() => setLargeFileNotice(null)}
                   style={sketchyShape3}
                   className="mt-1 px-4 py-1.5 text-[13px] font-black border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] bg-paper hover:bg-terracotta hover:text-paper transition-all active:translate-y-[1px] active:shadow-none"
                 >
-                  Dismiss
+                  {t('chat.gotIt')}
                 </button>
               </div>
             ) : activeChange ? (
@@ -1122,17 +1123,17 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                       onClick={() => handleAckChange(activeChange)}
                       style={sketchyShape2}
                       className="flex items-center gap-1 px-3 py-1 text-[13px] font-black border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] bg-[#a3be8c] text-ink hover:bg-[#8eb072] transition-all active:translate-y-[1px] active:shadow-none"
-                      title="接收更改（保留当前内容并清理备份）"
+                      title={t('chat.ackKeepCurrentHint')}
                     >
-                      <Check size={14} strokeWidth={3} /> 接收
+                      <Check size={14} strokeWidth={3} /> {t('chat.acceptChange')}
                     </button>
                     <button
                       onClick={() => handleRollbackChange(activeChange)}
                       style={sketchyShape3}
                       className="flex items-center gap-1 px-3 py-1 text-[13px] font-black border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] bg-[#bf616a] text-paper hover:bg-[#a54e56] transition-all active:translate-y-[1px] active:shadow-none"
-                      title="撤销更改（回滚到变更前）"
+                      title={t('chat.undoChangeHint')}
                     >
-                      <Undo2 size={14} strokeWidth={3} /> 撤销
+                      <Undo2 size={14} strokeWidth={3} /> {t('chat.undoChange')}
                     </button>
                   </div>
                 </div>
@@ -1140,7 +1141,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                   {(() => {
                     // 整文件视图：当前磁盘内容为骨架 + 删除行插回原位（红）/新增行（绿）
                     const lines = buildFullDiffView(activeChange.diff, changeContents[activeChange.path] ?? '');
-                    if (lines.length === 0) return <div className="p-4 text-xs text-[#4c566a] italic">No visual difference detected.</div>;
+                    if (lines.length === 0) return <div className="p-4 text-xs text-[#4c566a] italic">{t('chat.noVisualDiff')}</div>;
                     // 🌟 渲染上限保险：超过 8000 行截断，防止海量 DOM 卡死界面
                     const MAX_RENDER_LINES = 8000;
                     const truncated = lines.length > MAX_RENDER_LINES;
@@ -1148,7 +1149,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                     return (<>
                       {oversizedChanges.has(activeChange.path) && (
                         <div className="sticky top-0 z-10 px-3 py-1 bg-[#EBCB8B]/30 border-b-2 border-[#EBCB8B] text-xs font-bold text-ink/70">
-                          文件过大（超过 {formatSize(MAX_TEXT_FILE_SIZE)}），仅显示变更片段，完整内容请用终端查看
+                          {t('chat.oversizedChangePrefix')}{formatSize(MAX_TEXT_FILE_SIZE)}{t('chat.oversizedChangeSuffix')}
                         </div>
                       )}
                       {shown.map((ln, i) => {
@@ -1159,7 +1160,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                         <div
                           key={i}
                           onClick={(e) => handleDiffRowClick(ln, e.shiftKey)}
-                          title="点击选中行（Shift+点击扩展），Ctrl+U 提取为输入框引用"
+                          title={t('chat.selectLineHint')}
                           className={`flex cursor-pointer transition-colors ${rowBg} ${inSel ? 'outline outline-1 -outline-offset-1 outline-[#5e81ac]' : ''}`}
                         >
                           <span className="w-9 shrink-0 text-right pr-1.5 select-none text-[12px] text-[#bf616a]/70">{ln.oldNo ?? ''}</span>
@@ -1171,7 +1172,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                     })}
                       {truncated && (
                         <div className="sticky bottom-0 px-3 py-1 bg-[#EBCB8B]/30 border-t-2 border-[#EBCB8B] text-xs font-bold text-ink/70">
-                          内容过长，已截断前 {MAX_RENDER_LINES} 行（共 {lines.length} 行）
+                          {t('chat.contentTruncatedPrefix')}{MAX_RENDER_LINES}{t('chat.contentTruncatedMid')}{lines.length}{t('chat.contentTruncatedSuffix')}
                         </div>
                       )}
                     </>);
@@ -1225,7 +1226,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                   <div
                     ref={gutterRef}
                     className="w-14 shrink-0 overflow-hidden bg-[#eceff4] border-r-2 border-ink/10 py-4 select-none"
-                    title="点击行号选中整行（Shift+点击扩展范围），Ctrl+U 提取为输入框引用"
+                    title={t('chat.selectLineNoHint')}
                   >
                     {editorLines.length <= 5000 && editorLines.map((_, i) => {
                       const n = i + 1;
@@ -1275,8 +1276,8 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                 <div style={sketchyShape2} className="w-16 h-16 bg-paper border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-center rotate-2">
                   <BookOpen size={28} strokeWidth={2.5} className="text-ink/40" />
                 </div>
-                <p className="font-black text-lg tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>No file open</p>
-                <p className="text-sm font-bold opacity-60">Select a file from the explorer</p>
+                <p className="font-black text-lg tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.noFileOpen')}</p>
+                <p className="text-sm font-bold opacity-60">{t('chat.selectFileExplorer')}</p>
               </div>
             )}
           </div>
@@ -1286,7 +1287,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
             <div
               onMouseDown={startTerminalResize}
               className="h-1.5 shrink-0 cursor-row-resize bg-paper hover:bg-[#88c0d0]/60 active:bg-[#88c0d0] transition-colors"
-              title="拖拽调节高度"
+              title={t('chat.dragResizeHeight')}
             />
           )}
 
@@ -1295,7 +1296,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
             <div style={{ height: terminalHeight }} className="border-t-4 border-ink flex flex-col bg-[#2e3440] shrink-0">
               <div className="px-3 py-1 bg-[#2e3440] border-b-2 border-ink/60 flex justify-between items-center shrink-0">
                 <span className="text-[11px] font-black tracking-widest uppercase text-[#88c0d0]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Terminal</span>
-                <button onClick={() => setShowTerminal(false)} style={sketchyShape2} className="text-[#d8dee9] hover:text-[#bf616a] border-2 border-[#4c566a] hover:border-ink px-1 transition-colors" title="隐藏终端">
+                <button onClick={() => setShowTerminal(false)} style={sketchyShape2} className="text-[#d8dee9] hover:text-[#bf616a] border-2 border-[#4c566a] hover:border-ink px-1 transition-colors" title={t('chat.hideTerminal')}>
                   <X size={10} strokeWidth={3} />
                 </button>
               </div>
