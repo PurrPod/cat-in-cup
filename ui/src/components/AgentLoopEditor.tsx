@@ -10,47 +10,52 @@ import type { Node as FlowNode, Edge as FlowEdge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { toast } from 'react-hot-toast';
 import { Check, ChevronDown, ChevronUp, Plus, Search, Trash2, ToggleLeft, ToggleRight, X } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 // ============ 领域模型 ============
 
-// 真实 PARADIGM 中支持的 Hook（顺序即流程图展示顺序）
+// 真实 PARADIGM 中支持的 Hook（顺序即流程图展示顺序）；显示名走 i18n：agentLoop.hook_<key>
 const HOOK_META = [
-  { key: 'on_build_system_prompt', label: '构建系统提示词时', color: '#FFD27D' },
-  { key: 'on_loop_start', label: '循环开始时', color: '#7FB8E6' },
-  { key: 'on_loop_epoch', label: '每轮循环迭代时', color: '#8CC98F' },
-  { key: 'on_loop_end', label: '循环结束时', color: '#E8909A' },
-  { key: 'on_tool_calling', label: '工具调用时', color: '#B597E0' },
+  { key: 'on_build_system_prompt', color: '#FFD27D' },
+  { key: 'on_loop_start', color: '#7FB8E6' },
+  { key: 'on_loop_epoch', color: '#8CC98F' },
+  { key: 'on_loop_end', color: '#E8909A' },
+  { key: 'on_tool_calling', color: '#B597E0' },
 ] as const;
 
 type HookKey = (typeof HOOK_META)[number]['key'];
 const HOOK_KEYS: HookKey[] = HOOK_META.map((h) => h.key);
 const HOOK_KEY_SET = new Set<string>(HOOK_KEYS);
 
-// 可选动作类型（与 hook_handler.py 分发一致；command_on 为旧版别名）
+// 可选动作类型（与 hook_handler.py 分发一致；command_on 为旧版别名）；显示名走 i18n：agentLoop.act_<type>
 const ACTION_TYPES = [
-  { key: 'injection', label: '提示注入', desc: '注入一段提示文本' },
-  { key: 'file_operation', label: '文件操作', desc: '读写 / 检查工作区文件' },
-  { key: 'skill_info', label: '技能注入', desc: '注入主库技能的名称与描述' },
-  { key: 'memo_injection', label: '记忆注入', desc: '装载系统共享记忆缓存' },
-  { key: 'tool_use_check', label: '工具使用检查', desc: '校验本轮工具调用记录' },
-  { key: 'command_run', label: '命令执行', desc: '在终端执行一条命令' },
+  'injection',
+  'file_operation',
+  'skill_info',
+  'memo_injection',
+  'tool_use_check',
+  'command_run',
 ] as const;
 
-type ActionTypeKey = (typeof ACTION_TYPES)[number]['key'];
+type ActionTypeKey = (typeof ACTION_TYPES)[number];
+const ACTION_TYPE_SET = new Set<string>(ACTION_TYPES);
+
+// 渲染时解析动作显示名：已知类型走 i18n，未知类型（旧版别名等）显示原名
+const actionLabel = (t: (key: string) => string, type: string) =>
+  ACTION_TYPE_SET.has(type) ? t(`agentLoop.act_${type}`) : type;
 
 interface AgentAction {
   id: string;
   type: string;
-  label: string; // 中文名（已知类型展开 / 未知类型显示原名）
   config: Record<string, unknown>; // YAML action 的参数（可被前端直接编辑）
 }
 
 interface FieldDef {
   key: string;
-  label: string;
+  label: string; // i18n 键（agentLoop.fXxx）
   kind: 'text' | 'number' | 'textarea' | 'bool' | 'select';
   options?: string[];
-  placeholder?: string;
+  placeholder?: string; // i18n 键（agentLoop.fXxxPh）
   // 仅在满足条件时展示（例如 file_operation.content 只在 write_in/add_in 时出现）
   when?: { key: string; in?: unknown[]; value?: unknown };
 }
@@ -58,47 +63,45 @@ interface FieldDef {
 // 各动作类型的“常用字段”定义（用于结构化编辑）；未覆盖的字段走通用 JSON 编辑器兜底
 const FIELD_SCHEMA: Record<string, FieldDef[]> = {
   injection: [
-    { key: 'content', label: '注入内容', kind: 'textarea', placeholder: '注入给 Agent 的提示文本' },
+    { key: 'content', label: 'agentLoop.fContent', kind: 'textarea', placeholder: 'agentLoop.fContentPh' },
     // 注意：delay / interval 不放在这里——它们仅在 on_loop_epoch（每轮循环运行时）以“二选一开关”出现
   ],
   file_operation: [
-    { key: 'action', label: '操作', kind: 'select', options: ['read', 'exist_check', 'write_in', 'add_in', 'delete'] },
-    { key: 'path', label: '路径', kind: 'text', placeholder: '例如 @RULES / @SYS（系统信息）/ agent_vm/xxx.txt' },
+    { key: 'action', label: 'agentLoop.fAction', kind: 'select', options: ['read', 'exist_check', 'write_in', 'add_in', 'delete'] },
+    { key: 'path', label: 'agentLoop.fPath', kind: 'text', placeholder: 'agentLoop.fPathPh' },
     {
       key: 'content',
-      label: '写入内容',
+      label: 'agentLoop.fWriteContent',
       kind: 'textarea',
-      placeholder: 'write_in / add_in 时写入的内容',
+      placeholder: 'agentLoop.fWriteContentPh',
       when: { key: 'action', in: ['write_in', 'add_in'] },
     },
-    { key: 'failed_prompt', label: '失败提示 failed_prompt', kind: 'text' },
+    { key: 'failed_prompt', label: 'agentLoop.fFailedPrompt', kind: 'text' },
   ],
   skill_info: [
     // skills 字段由专门的主库技能勾选弹窗（SkillPicker）管理
-    { key: 'failed_prompt', label: '失败提示 failed_prompt', kind: 'text' },
+    { key: 'failed_prompt', label: 'agentLoop.fFailedPrompt', kind: 'text' },
   ],
   memo_injection: [
-    { key: 'type', label: '记忆类型', kind: 'text', placeholder: 'full / light / 其它键名' },
-    { key: 'count', label: '条数 count', kind: 'number' },
+    { key: 'type', label: 'agentLoop.fMemoType', kind: 'text', placeholder: 'agentLoop.fMemoTypePh' },
+    { key: 'count', label: 'agentLoop.fCount', kind: 'number' },
   ],
   tool_use_check: [
-    { key: 'name', label: '工具名 name', kind: 'text', placeholder: '例如 Memo / ComputerUse' },
-    { key: 'successed_prompt', label: '成功提示 successed_prompt', kind: 'text' },
-    { key: 'failed_prompt', label: '失败提示 failed_prompt', kind: 'text' },
+    { key: 'name', label: 'agentLoop.fToolName', kind: 'text', placeholder: 'agentLoop.fToolNamePh' },
+    { key: 'successed_prompt', label: 'agentLoop.fSuccessPrompt', kind: 'text' },
+    { key: 'failed_prompt', label: 'agentLoop.fFailedPrompt', kind: 'text' },
   ],
   command_run: [
-    { key: 'command', label: '命令', kind: 'text', placeholder: '要执行的 shell 命令' },
-    { key: 'return_log', label: '回传输出 return_log', kind: 'bool' },
-    { key: 'failed_prompt', label: '失败提示 failed_prompt', kind: 'text' },
+    { key: 'command', label: 'agentLoop.fCommand', kind: 'text', placeholder: 'agentLoop.fCommandPh' },
+    { key: 'return_log', label: 'agentLoop.fReturnLog', kind: 'bool' },
+    { key: 'failed_prompt', label: 'agentLoop.fFailedPrompt', kind: 'text' },
   ],
   command_on: [
-    { key: 'command', label: '命令', kind: 'text', placeholder: '要执行的 shell 命令' },
-    { key: 'return_log', label: '回传输出 return_log', kind: 'bool' },
-    { key: 'failed_prompt', label: '失败提示 failed_prompt', kind: 'text' },
+    { key: 'command', label: 'agentLoop.fCommand', kind: 'text', placeholder: 'agentLoop.fCommandPh' },
+    { key: 'return_log', label: 'agentLoop.fReturnLog', kind: 'bool' },
+    { key: 'failed_prompt', label: 'agentLoop.fFailedPrompt', kind: 'text' },
   ],
 };
-
-const labelOfType = (type: string) => ACTION_TYPES.find((a) => a.key === type)?.label ?? type;
 
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
   !!v && typeof v === 'object' && !Array.isArray(v);
@@ -124,7 +127,6 @@ const toActions = (hookKey: HookKey, arr: unknown): AgentAction[] => {
       return {
         id: `${hookKey}-${i}-${type}`,
         type,
-        label: labelOfType(type),
         config: isPlainObject(cfg) ? cfg : {},
       };
     })
@@ -207,6 +209,7 @@ interface StationData {
 
 // Hook 决策站：白底卡片，头部用“小色块”表示 Hook 颜色（与 Workflow 节点风格一致）
 function StationNode({ data }: { data: StationData }) {
+  const { t } = useTranslation();
   const { label, code, color, items } = data;
   return (
     <div className="flex flex-col w-full h-full bg-paper">
@@ -229,14 +232,14 @@ function StationNode({ data }: { data: StationData }) {
             className="text-center text-[11px] font-bold text-ink/35 border-2 border-dashed border-ink/25 py-2"
             style={{ fontFamily: '"Comic Sans MS", cursive' }}
           >
-            未配置动作（点击左侧 + 添加）
+            {t('agentLoop.stationEmpty')}
           </div>
         ) : (
           items.map((it, idx) => (
             <div key={it.id} className="flex items-center gap-2 border-2 border-ink/80 px-2 py-1 bg-cream" style={sketchyShape2}>
               <span className="w-4 shrink-0 text-center text-[11px] font-black text-ink/40 leading-none">{idx + 1}</span>
               <span className="font-black text-ink text-[13px] leading-none truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                {it.label}
+                {actionLabel(t, it.type)}
               </span>
               <span className="ml-auto shrink-0 text-[10px] font-bold text-ink/40 leading-none">{it.type}</span>
             </div>
@@ -317,6 +320,7 @@ const inputCls =
   'w-full bg-cream border-2 border-ink px-2 py-1 text-[13px] font-bold text-ink outline-none focus:bg-paper';
 
 function FieldControl({ kind, value, options = [], placeholder, onCommit }: FieldControlProps) {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState(false);
 
@@ -324,11 +328,11 @@ function FieldControl({ kind, value, options = [], placeholder, onCommit }: Fiel
     const current = value === undefined || value === null ? '' : String(value);
     return (
       <select className={inputCls} value={current} onChange={(e) => onCommit(e.target.value)}>
-        <option value="">（未设置）</option>
+        <option value="">{t('agentLoop.notSet')}</option>
         {kind === 'bool' ? (
           <>
-            <option value="true">是</option>
-            <option value="false">否</option>
+            <option value="true">{t('common.yes')}</option>
+            <option value="false">{t('common.no')}</option>
           </>
         ) : (
           options.map((opt) => (
@@ -350,9 +354,9 @@ function FieldControl({ kind, value, options = [], placeholder, onCommit }: Fiel
         value={current}
         placeholder={placeholder}
         onChange={(e) => {
-          const t = e.target.value;
-          if (t === '') return onCommit('');
-          const n = Number(t);
+          const v = e.target.value;
+          if (v === '') return onCommit('');
+          const n = Number(v);
           if (!Number.isNaN(n)) onCommit(n);
         }}
       />
@@ -367,7 +371,7 @@ function FieldControl({ kind, value, options = [], placeholder, onCommit }: Fiel
           rows={3}
           className={`${inputCls} resize-y font-mono ${error ? '!border-[#bf616a] !bg-[#fdeceb]' : ''}`}
           value={shown}
-          placeholder={placeholder ?? 'JSON 文本（留空则删除该配置）'}
+          placeholder={placeholder ?? t('agentLoop.jsonPh')}
           onChange={(e) => {
             setDraft(e.target.value);
             setError(false);
@@ -390,7 +394,7 @@ function FieldControl({ kind, value, options = [], placeholder, onCommit }: Fiel
           }}
         />
         {error && (
-          <div className="text-[10px] font-bold text-[#bf616a] leading-tight mt-0.5">JSON 格式有误，未保存</div>
+          <div className="text-[10px] font-bold text-[#bf616a] leading-tight mt-0.5">{t('agentLoop.jsonInvalid')}</div>
         )}
       </div>
     );
@@ -427,11 +431,12 @@ function ToggleSwitch({
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <button
       onClick={() => onChange(!checked)}
       className="flex items-center gap-1.5 group"
-      title={checked ? '当前：间隔触发，点击切换为延迟' : '当前：延迟触发，点击切换为间隔'}
+      title={checked ? t('agentLoop.timingIntervalTitle') : t('agentLoop.timingDelayTitle')}
     >
       {checked ? (
         <ToggleRight size={20} strokeWidth={2.5} className="text-terracotta" />
@@ -439,7 +444,7 @@ function ToggleSwitch({
         <ToggleLeft size={20} strokeWidth={2.5} className="text-ink/60 group-hover:text-ink" />
       )}
       <span className="text-[11px] font-black text-ink/70 leading-none" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-        {checked ? '间隔' : '延迟'}
+        {checked ? t('agentLoop.timingInterval') : t('agentLoop.timingDelay')}
       </span>
     </button>
   );
@@ -473,6 +478,7 @@ function ParameterCheckEditor({
   value: unknown;
   onChange: (v: unknown[]) => void;
 }) {
+  const { t } = useTranslation();
   const [pending, setPending] = useState<{ key: string; value: string }[]>([]);
 
   const items: { key: string; value: unknown }[][] = Array.isArray(value)
@@ -518,21 +524,21 @@ function ParameterCheckEditor({
   return (
     <div className="flex flex-col gap-2">
       <div className="text-[10px] font-bold text-ink/45 leading-tight" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-        任一项匹配即算使用该工具；一项内多个条件需同时满足
+        {t('agentLoop.paramCheckHint')}
       </div>
       {totalVisible === 0 && (
         <div className="text-center text-[11px] font-bold text-ink/35 border-2 border-dashed border-ink/25 py-2" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-          无参数约束（点击下方添加）
+          {t('agentLoop.paramCheckEmpty')}
         </div>
       )}
 
       {items.map((pairs, idx) => (
         <div key={idx} className="flex flex-col gap-1.5 border-2 border-ink/70 p-2 bg-cream/60" style={sketchyShape2}>
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black text-ink/70 leading-none">检查项 {idx + 1}</span>
+            <span className="text-[11px] font-black text-ink/70 leading-none">{t('agentLoop.checkItem')} {idx + 1}</span>
             <div className="flex items-center gap-1">
               <button
-                title="在该检查项内新增参数条件"
+                title={t('agentLoop.addParamCond')}
                 onClick={() => setPending([...pending, { key: '', value: '' }])}
                 className="w-6 h-6 flex items-center justify-center bg-cream border-2 border-ink text-ink hover:bg-sand"
                 style={sketchyShape1}
@@ -540,7 +546,7 @@ function ParameterCheckEditor({
                 <Plus size={12} strokeWidth={3} />
               </button>
               <button
-                title="删除该检查项"
+                title={t('agentLoop.deleteCheckItem')}
                 onClick={() => build(items.filter((_, i) => i !== idx))}
                 className="w-6 h-6 flex items-center justify-center text-ink/50 hover:text-paper hover:bg-[#bf616a] border-2 border-ink/40 hover:border-ink"
                 style={sketchyShape2}
@@ -554,7 +560,7 @@ function ParameterCheckEditor({
               <input
                 className="flex-1 min-w-0 bg-paper border-2 border-ink px-2 py-1 text-[12px] font-bold text-ink outline-none"
                 value={pair.key}
-                placeholder="参数名"
+                placeholder={t('agentLoop.paramNamePh')}
                 onChange={(e) => {
                   const next = items.map((p, i) =>
                     i === idx ? p.map((q, j) => (j === pidx ? { ...q, key: e.target.value } : q)) : p
@@ -566,7 +572,7 @@ function ParameterCheckEditor({
               <input
                 className="flex-1 min-w-0 bg-paper border-2 border-ink px-2 py-1 text-[12px] font-bold text-ink outline-none"
                 value={pair.value === undefined || pair.value === null ? '' : String(pair.value)}
-                placeholder="期望值"
+                placeholder={t('agentLoop.expectedValuePh')}
                 onChange={(e) => {
                   const next = items.map((p, i) =>
                     i === idx ? p.map((q, j) => (j === pidx ? { ...q, value: e.target.value } : q)) : p
@@ -575,7 +581,7 @@ function ParameterCheckEditor({
                 }}
               />
               <button
-                title="移除该条件"
+                title={t('agentLoop.removeCond')}
                 onClick={() => {
                   const next = items.map((p, i) =>
                     i === idx ? p.filter((_, j) => j !== pidx) : p
@@ -598,23 +604,23 @@ function ParameterCheckEditor({
           className="flex flex-col gap-1.5 border-2 border-dashed border-terracotta/70 p-2 bg-cream/30"
           style={sketchyShape2}
         >
-          <span className="text-[11px] font-black text-terracotta leading-none">新检查项（待填写）</span>
+          <span className="text-[11px] font-black text-terracotta leading-none">{t('agentLoop.newCheckItem')}</span>
           <div className="flex items-center gap-1.5">
             <input
               className="flex-1 min-w-0 bg-paper border-2 border-ink px-2 py-1 text-[12px] font-bold text-ink outline-none"
               value={row.key}
-              placeholder="参数名（例如 action）"
+              placeholder={t('agentLoop.pendingKeyPh')}
               onChange={(e) => editPending(idx, 'key', e.target.value)}
             />
             <span className="text-ink/50 font-black text-xs">=</span>
             <input
               className="flex-1 min-w-0 bg-paper border-2 border-ink px-2 py-1 text-[12px] font-bold text-ink outline-none"
               value={row.value}
-              placeholder="期望值（例如 add）"
+              placeholder={t('agentLoop.pendingValuePh')}
               onChange={(e) => editPending(idx, 'value', e.target.value)}
             />
             <button
-              title="放弃该检查项"
+              title={t('agentLoop.discardCheckItem')}
               onClick={() => setPending(pending.filter((_, j) => j !== idx))}
               className="w-6 h-6 shrink-0 flex items-center justify-center text-ink/40 hover:text-paper hover:bg-[#bf616a]"
             >
@@ -625,13 +631,13 @@ function ParameterCheckEditor({
       ))}
 
       <button
-        title="新增检查项"
+        title={t('agentLoop.addCheckItem')}
         onClick={() => setPending([...pending, { key: '', value: '' }])}
         className="self-start flex items-center gap-1 px-3 py-1.5 bg-cream border-2 border-ink text-ink font-black hover:bg-sand text-[12px]"
         style={sketchyShape1}
       >
         <Plus size={13} strokeWidth={3} />
-        添加检查项
+        {t('agentLoop.addCheckItem')}
       </button>
     </div>
   );
@@ -640,6 +646,7 @@ function ParameterCheckEditor({
 // skill_info 的技能选择器：与聊天界面的 skill 选择器保持同一套样式
 // （已选技能为黄色 ⚡ 标签，弹窗数据来自 /api/tools/skills）
 function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string[]) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [library, setLibrary] = useState<{ name: string; description: string }[]>([]);
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -658,11 +665,11 @@ function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string
     setLoading(true);
     try {
       const res = await fetch('/api/tools/skills');
-      if (!res.ok) throw new Error('获取技能列表失败');
+      if (!res.ok) throw new Error(t('agentLoop.fetchSkillsFailed'));
       const data = await res.json();
       if (Array.isArray(data)) setLibrary(data);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : '获取技能列表失败');
+      toast.error(e instanceof Error ? e.message : t('agentLoop.fetchSkillsFailed'));
       setOpen(false);
     } finally {
       setLoading(false);
@@ -703,13 +710,13 @@ function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string
       )}
 
       <button
-        title="从主库勾选技能"
+        title={t('agentLoop.pickSkills')}
         onClick={() => void openDialog()}
         className="self-start flex items-center gap-1 px-3 py-1.5 bg-cream border-2 border-ink text-ink font-black hover:bg-sand text-[12px]"
         style={sketchyShape1}
       >
         <Plus size={13} strokeWidth={3} />
-        添加技能
+        {t('agentLoop.addSkill')}
       </button>
 
       {open &&
@@ -732,15 +739,15 @@ function SkillPicker({ value, onChange }: { value: unknown; onChange: (v: string
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="搜索技能关键词…"
+                placeholder={t('agentLoop.searchSkillPh')}
                 className="flex-1 bg-cream border-2 border-ink px-3 py-2 font-bold text-sm focus:outline-none focus:bg-white shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)] placeholder:text-ink/30"
                 style={sketchyShape3}
               />
             </div>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 -rotate-1 p-1">
-              {loading && <p className="font-bold text-center mt-6 opacity-50 text-sm">正在加载技能…</p>}
+              {loading && <p className="font-bold text-center mt-6 opacity-50 text-sm">{t('agentLoop.loadingSkills')}</p>}
               {!loading && filtered.length === 0 && (
-                <p className="font-bold text-center mt-6 opacity-50 text-sm">{library.length === 0 ? '主库暂无技能' : '无匹配的技能'}</p>
+                <p className="font-bold text-center mt-6 opacity-50 text-sm">{library.length === 0 ? t('agentLoop.noLibrarySkills') : t('agentLoop.noMatchSkills')}</p>
               )}
               {!loading &&
                 filtered.map((s, idx) => {
@@ -804,6 +811,7 @@ function ConfigEditor({
   onField: (key: string, val: unknown) => void;
   onReplace: (cfg: Record<string, unknown>) => void;
 }) {
+  const { t, locale } = useTranslation();
   const cfg = action.config;
   const schemaKeys = new Set(schema.map((f) => f.key));
   // allowTiming 时 delay/interval 由“触发时机”开关管理；tool_use_check 的 parameter_check 走结构化编辑器；
@@ -857,7 +865,7 @@ function ConfigEditor({
       }`}
       style={sketchyShape2}
     >
-      {fail ? '期望失败' : '期望成功'}
+      {fail ? t('agentLoop.expectFail') : t('agentLoop.expectSuccess')}
     </button>
   );
 
@@ -866,35 +874,35 @@ function ConfigEditor({
       {allowTiming && (
         <div className="flex flex-col gap-1.5 border-2 border-dashed border-ink/30 p-2 bg-cream/50">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-black text-ink/60 leading-none">触发时机</span>
+            <span className="text-[11px] font-black text-ink/60 leading-none">{t('agentLoop.timingLabel')}</span>
             <ToggleSwitch
               checked={timingOn}
               onChange={(on) => commitTiming(on, cfg.interval ?? cfg.delay)}
             />
           </div>
           <span className="text-[11px] font-black text-ink/60 leading-none">
-            {timingOn ? '间隔轮次 interval' : '延迟轮次 delay'}
+            {timingOn ? t('agentLoop.intervalRounds') : t('agentLoop.delayRounds')}
           </span>
           <FieldControl
             kind="number"
             value={cfg[timingKey]}
-            placeholder={timingOn ? '每隔 N 轮触发一次' : '仅在第 N 轮触发一次'}
+            placeholder={timingOn ? t('agentLoop.intervalPh') : t('agentLoop.delayPh')}
             onCommit={(v) => commitTiming(timingOn, v)}
           />
         </div>
       )}
       {allowExpect && (
         <div className="flex flex-col gap-1.5 border-2 border-dashed border-ink/30 p-2 bg-cream/50">
-          <span className="text-[11px] font-black text-ink/60 leading-none">退出期望（决定能否跳出循环）</span>
+          <span className="text-[11px] font-black text-ink/60 leading-none">{t('agentLoop.expectLabel')}</span>
           <div className="flex gap-2">{expectBtn(false)}{expectBtn(true)}</div>
           <p className="m-0 text-[10px] font-bold text-ink/40 leading-tight" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-            期望“失败”= 该条件未满足才算通过，允许结束本轮
+            {t('agentLoop.expectFailHint')}
           </p>
         </div>
       )}
       {schema.length === 0 && (
         <div className="text-[11px] font-bold text-ink/45" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-          该动作类型暂无结构化解（{action.type}），直接编辑完整配置：
+          {t('agentLoop.noSchemaPrefix')}{action.type}{t('agentLoop.noSchemaSuffix')}
         </div>
       )}
       {schema.filter((f) => isFieldVisible(f, cfg)).map((f) => (
@@ -911,7 +919,7 @@ function ConfigEditor({
       ))}
       {action.type === 'tool_use_check' && (
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-black text-ink/60 leading-none">参数约束 parameter_check</span>
+          <span className="text-[11px] font-black text-ink/60 leading-none">{t('agentLoop.paramCheckLabel')}</span>
           <ParameterCheckEditor
             value={cfg.parameter_check}
             onChange={(v) => {
@@ -925,7 +933,7 @@ function ConfigEditor({
       )}
       {action.type === 'skill_info' && (
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-black text-ink/60 leading-none">技能选择 skills</span>
+          <span className="text-[11px] font-black text-ink/60 leading-none">{t('agentLoop.skillsLabel')}</span>
           <SkillPicker
             value={cfg.skills}
             onChange={(v) => {
@@ -940,7 +948,7 @@ function ConfigEditor({
       {schema.length > 0 && extraKeys.length > 0 && (
         <div className="flex flex-col gap-1">
           <span className="text-[11px] font-black text-ink/60 leading-none">
-            其他字段（{extraKeys.join('、')}）
+            {t('agentLoop.otherFieldsPrefix')}{extraKeys.join(locale === 'en-US' ? ', ' : '、')}{t('agentLoop.otherFieldsSuffix')}
           </span>
           <FieldControl
             kind="json"
@@ -976,6 +984,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
   { onActiveChange, onDirtyChange },
   ref
 ) {
+  const { t } = useTranslation();
   const [paradigmState, setParadigmState] = useState<Record<HookKey, AgentAction[]>>(makeEmptyHooks);
   const [openHooks, setOpenHooks] = useState<HookKey[]>(HOOK_KEYS);
   const [openActions, setOpenActions] = useState<Set<string>>(new Set());
@@ -1051,7 +1060,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
 
   const refreshFiles = async (): Promise<string> => {
     const res = await fetch('/api/paradigms');
-    if (!res.ok) throw new Error('获取 paradigm 列表失败');
+    if (!res.ok) throw new Error(t('agentLoop.fetchListFailed'));
     const data = await res.json();
     return data.default as string;
   };
@@ -1060,11 +1069,11 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     setLoading(true);
     try {
       const res = await fetch(`/api/paradigms/${encodeURIComponent(name)}`);
-      if (!res.ok) throw new Error(`paradigm 不存在: ${name}`);
+      if (!res.ok) throw new Error(`${t('agentLoop.notFoundPrefix')}${name}`);
       const body = await res.json();
       applyDoc(name, body.data ?? {});
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : '加载失败');
+      toast.error(e instanceof Error ? e.message : t('agentLoop.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -1080,7 +1089,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
             applyDraft(lastDraft);
             if (Date.now() - lastRestoredToastAt > 500) {
               lastRestoredToastAt = Date.now();
-              toast.success(`已恢复 ${lastDraft.activeFile} 的未保存草稿`);
+              toast.success(`${t('agentLoop.draftRestored')} ${lastDraft.activeFile}`);
             }
           }
           // 不清 lastDraft：StrictMode 开发模式挂载 effect 会执行两轮
@@ -1094,7 +1103,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
         const defaultName = await refreshFiles();
         if (!cancelled && defaultName) await loadFile(defaultName);
       } catch (e) {
-        if (!cancelled) toast.error(e instanceof Error ? e.message : '无法连接后端');
+        if (!cancelled) toast.error(e instanceof Error ? e.message : t('agentLoop.backendUnreachable'));
       }
     })();
     return () => {
@@ -1121,7 +1130,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
       ...prev,
       [hookKey]: [
         ...prev[hookKey],
-        { id: makeActionId(hookKey), type, label: labelOfType(type), config: {} },
+        { id: makeActionId(hookKey), type, config: {} },
       ],
     }));
     setMenuFor(null);
@@ -1225,13 +1234,13 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
       });
       if (!res.ok) {
         const errBody = await res.json().catch(() => null);
-        throw new Error((errBody && errBody.detail) || '保存失败');
+        throw new Error((errBody && errBody.detail) || t('agentLoop.saveFailed'));
       }
       setBaselineKey(JSON.stringify(doc));
       lastDraft = null; // 已保存：草稿内容已落盘，无需再恢复
-      toast.success(`已保存 ${activeFile}.yaml`);
+      toast.success(`${t('agentLoop.savedToast')} ${activeFile}.yaml`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : '保存失败');
+      toast.error(e instanceof Error ? e.message : t('agentLoop.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -1243,27 +1252,27 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
       const res = await fetch(`/api/paradigms/${encodeURIComponent(name)}`, { method: 'DELETE' });
       if (!res.ok) {
         const errBody = await res.json().catch(() => null);
-        throw new Error((errBody && errBody.detail) || '删除失败');
+        throw new Error((errBody && errBody.detail) || t('agentLoop.deleteFailed'));
       }
-      toast.success(`已删除 ${name}.yaml`);
+      toast.success(`${t('agentLoop.deletedToast')} ${name}.yaml`);
       const defaultName = await refreshFiles();
       if (name === activeFile) await loadFile(defaultName);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : '删除失败');
+      toast.error(e instanceof Error ? e.message : t('agentLoop.deleteFailed'));
     }
   };
 
   const handleCreate = async () => {
     const name = newName.trim();
     if (!name) {
-      toast.error('请输入文件名');
+      toast.error(t('agentLoop.fileNameRequired'));
       return;
     }
     setSaving(true);
     try {
       const skeleton: Record<string, unknown> = {
         name,
-        description: '新的 Agent Loop',
+        description: t('agentLoop.newLoopDesc'),
         path: 'agent_vm',
         hooks: HOOK_KEYS.reduce<Record<string, unknown[]>>((acc, k) => {
           acc[k] = [];
@@ -1277,14 +1286,14 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
       });
       if (!res.ok) {
         const errBody = await res.json().catch(() => null);
-        throw new Error((errBody && errBody.detail) || '新建失败');
+        throw new Error((errBody && errBody.detail) || t('agentLoop.createFailed'));
       }
       setCreating(false);
       setNewName('');
       await loadFile(name);
-      toast.success(`已新建 ${name}.yaml`);
+      toast.success(`${t('agentLoop.createdToast')} ${name}.yaml`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : '新建失败');
+      toast.error(e instanceof Error ? e.message : t('agentLoop.createFailed'));
     } finally {
       setSaving(false);
     }
@@ -1349,7 +1358,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
         id: key,
         type: 'station',
         position: { x: 0, y: 0 },
-        data: { label: meta.label, code: key, color: meta.color, items },
+        data: { label: t(`agentLoop.hook_${key}`), code: key, color: meta.color, items },
         style: { width: STATION_WIDTH },
       };
     };
@@ -1377,7 +1386,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
 
     // 用户输入（固定节点）——结束后回线的落点
     const userInputTop = cursorY;
-    put(plain('user_input', '用户输入'), X_LEFT, cursorY, PLAIN_H);
+    put(plain('user_input', t('agentLoop.userNode')), X_LEFT, cursorY, PLAIN_H);
 
     const startItems = paradigmState.on_loop_start;
     put(station('on_loop_start', startItems), X_LEFT, cursorY, STATION_H(startItems.length));
@@ -1401,7 +1410,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     addNode(endCheckNode);
 
     const endY = rowBottom + GAP_V + STATION_H(endCheckItems.length) + GAP_V;
-    const endNode = plain('end', '结束');
+    const endNode = plain('end', t('agentLoop.endNode'));
     endNode.position = { x: X_LEFT, y: endY };
     addNode(endNode);
 
@@ -1456,25 +1465,25 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
     addEdge('on_loop_start', 's_bot', 'on_loop_epoch', 't_top');
     // 分支：有工具调用 → 工具调用检查；无工具调用 → 直达结束检查
     // 正向线走顶部固定锚点：两站顶部对齐，恒为水平线，不受站点高度差影响
-    addEdge('on_loop_epoch', 's_right_top', 'on_tool_calling', 't_left_top', '有工具调用');
-    addEdge('on_loop_epoch', 's_bot', 'on_loop_end', 't_top', '无工具调用');
+    addEdge('on_loop_epoch', 's_right_top', 'on_tool_calling', 't_left_top', t('agentLoop.edgeHasTool'));
+    addEdge('on_loop_epoch', 's_bot', 'on_loop_end', 't_top', t('agentLoop.edgeNoTool'));
     // 工具调用检查通过 → 底部锚点水平回到「每轮循环迭代」
     // （不能走底部中心 s_bot/t_bot：那里有去结束检查的主干竖线，会导致重叠与下方绕行凸起）
     addEdge('on_tool_calling', 's_left_low', 'on_loop_epoch', 't_right_low');
     // 环1：结束检查未通过 → 左侧内轨绕回「每轮循环迭代」
     // （进入轨道点用 t_right：从右侧水平接入，避免 t_left 先过冲 20px 再折返的凸起）
     addEdge('on_loop_end', 's_left', 'loop_pivot_bottom', 't_right', undefined, false);
-    addEdge('loop_pivot_bottom', 's_top', 'loop_pivot_top', 't_bot', '失败 · 下一轮', false);
+    addEdge('loop_pivot_bottom', 's_top', 'loop_pivot_top', 't_bot', t('agentLoop.edgeFailNext'), false);
     addEdge('loop_pivot_top', 's_right', 'on_loop_epoch', 't_left');
     // 结束检查通过 → 结束
-    addEdge('on_loop_end', 's_bot', 'end', 't_top', '成功 · 结束');
+    addEdge('on_loop_end', 's_bot', 'end', 't_top', t('agentLoop.edgeSuccessEnd'));
     // 环2：结束后回到「用户输入」（新一轮任务循环），走最外侧轨道
     addEdge('end', 's_left', 'end_loop_bottom', 't_right', undefined, false);
     addEdge('end_loop_bottom', 's_top', 'end_loop_top', 't_bot', undefined, false);
     addEdge('end_loop_top', 's_right', 'user_input', 't_left');
 
     return { nodes: generatedNodes, edges: generatedEdges };
-  }, [paradigmState]);
+  }, [paradigmState, t]);
 
   return (
     <div className="flex-1 min-h-0 flex gap-10 h-full w-full min-w-0">
@@ -1486,10 +1495,10 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
         <div className="px-4 pt-4 pb-3 border-b-4 border-ink bg-cream flex items-end justify-between gap-2">
           <div>
             <h3 className="text-xl font-black text-ink m-0 tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-              组件
+              {t('agentLoop.componentsTitle')}
             </h3>
             <p className="m-0 mt-1 text-[11px] font-bold text-ink/50" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-              Hook 动作编排{loading ? '（加载中…）' : ''}
+              {t('agentLoop.hookOrchestration')}{loading ? t('agentLoop.loadingParens') : ''}
             </p>
           </div>
         </div>
@@ -1516,13 +1525,13 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
                       />
                       <span className="w-3 h-3 shrink-0 border-2 border-ink inline-block" style={{ background: hook.color }} />
                       <span className="font-black text-ink text-[15px] truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                        {hook.label}
+                        {t(`agentLoop.hook_${hook.key}`)}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <span className="text-xs font-bold text-ink/50">{actions.length}</span>
                       <button
-                        title={`为「${hook.label}」添加动作`}
+                        title={`${t('agentLoop.addAction')} · ${t(`agentLoop.hook_${hook.key}`)}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setMenuFor((cur) => (cur === hook.key ? null : hook.key));
@@ -1544,14 +1553,14 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
                     >
                       {ACTION_TYPES.map((at) => (
                         <button
-                          key={at.key}
-                          onClick={() => handleAddAction(hook.key, at.key)}
+                          key={at}
+                          onClick={() => handleAddAction(hook.key, at)}
                           className="w-full text-left px-3 py-2 hover:bg-cream flex flex-col gap-0.5 group"
                         >
                           <span className="font-black text-ink text-sm leading-tight" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                            {at.label}
+                            {actionLabel(t, at)}
                           </span>
-                          <span className="text-xs font-bold text-ink/40 leading-tight">{at.desc}</span>
+                          <span className="text-xs font-bold text-ink/40 leading-tight">{t(`agentLoop.act_${at}Desc`)}</span>
                         </button>
                       ))}
                     </div>
@@ -1562,7 +1571,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
                     <ul className="divide-y-2 divide-ink/10">
                       {actions.length === 0 && (
                         <li className="px-3 py-3 text-center text-sm font-bold text-ink/40 border-2 border-dashed border-ink/30 m-2" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                          暂无动作，点击上方 + 添加
+                          {t('agentLoop.noActions')}
                         </li>
                       )}
                       {actions.map((action) => {
@@ -1581,7 +1590,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
                                 />
                                 <div className="min-w-0">
                                   <div className="font-black text-ink text-[15px] leading-tight truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                                    {action.label}
+                                    {actionLabel(t, action.type)}
                                   </div>
                                   <div className="text-[11px] font-bold text-ink/40 leading-tight truncate">
                                     {action.type}
@@ -1590,7 +1599,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
                                 </div>
                               </div>
                               <button
-                                title="删除动作"
+                                title={t('agentLoop.deleteAction')}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleRemoveAction(hook.key, action.id);
@@ -1659,7 +1668,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
               WAIT A MINUTE!
             </h3>
             <p className="font-bold mb-6 opacity-80 text-lg">
-              当前文件有未保存的修改。切换到 {pendingFile}.yaml 将丢弃这些修改，确定要继续吗？
+              {t('agentLoop.dirtyPrefix')}{pendingFile}.yaml{t('agentLoop.dirtySuffix')}
             </p>
             <div className="flex gap-4">
               <button
@@ -1674,7 +1683,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
                 style={sketchyShape2}
                 className="flex-1 py-3 bg-[#bf616a] text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500 transition-all"
               >
-                切换
+                {t('agentLoop.switchBtn')}
               </button>
             </div>
           </div>
@@ -1686,10 +1695,10 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4 pointer-events-auto">
           <div style={sketchyShape1} className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-sm p-6 relative rotate-1">
             <h3 className="text-2xl font-black mb-1 tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-              新建 Paradigm
+              {t('agentLoop.newTitle')}
             </h3>
             <p className="font-bold mb-3 text-sm opacity-60" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-              将创建 {`~/.purrcat/paradigms/{名称}.yaml`}，初始只有空的五个 Hook
+              {t('agentLoop.newHint')}
             </p>
             <input
               autoFocus
@@ -1700,7 +1709,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
               }}
               style={sketchyShape2}
               className="w-full bg-cream border-4 border-ink p-3 text-lg font-bold mb-4 focus:outline-none"
-              placeholder="例如 my_agent_loop"
+              placeholder={t('agentLoop.nameExamplePh')}
             />
             <div className="flex gap-3">
               <button
@@ -1708,7 +1717,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
                 style={sketchyShape1}
                 className="flex-1 py-2.5 bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all"
               >
-                取消
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => void handleCreate()}
@@ -1716,7 +1725,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
                 style={sketchyShape2}
                 className="flex-1 py-2.5 bg-ink text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(212,122,90,1)] hover:bg-gray-800 transition-all disabled:opacity-40"
               >
-                创建
+                {t('agentLoop.createBtn')}
               </button>
             </div>
           </div>

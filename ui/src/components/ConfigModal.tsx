@@ -10,20 +10,20 @@ import { toast } from 'react-hot-toast';
 import { sketchyShape1, sketchyShape2, sketchyShape3 } from './chat/ChatShared';
 import { useTranslation } from '../i18n';
 
-// 配置标签配置：key -> 中文名 + 说明（全局 settings 不再提供编辑页，数据根目录走侧栏迁移入口）
+// 配置标签配置：key -> i18n 键 + 说明（全局 settings 不再提供编辑页，数据根目录走侧栏迁移入口）
 const CONFIG_TABS: Array<{ key: string; label: string; tip: string }> = [
-  { key: 'model',    label: '模型配置', tip: 'model.json · 核心模型 / 后台模型 / 视觉顾问' },
-  { key: 'sensor',   label: '传感器',   tip: 'activate_sensor.json · 钩子/定时任务' },
-  { key: 'file',     label: '文件白名单', tip: 'file.json · 文件系统可见范围' },
-  { key: 'mcp',      label: 'MCP 服务', tip: 'mcp_config.json · MCP 服务端注册' },
-  { key: 'app',     label: '应用白名单', tip: 'app_config.json · 系统可见应用' },
+  { key: 'model',    label: 'config.tabModel', tip: 'config.tipModel' },
+  { key: 'sensor',   label: 'config.tabSensor', tip: 'config.tipSensor' },
+  { key: 'file',     label: 'config.tabFile', tip: 'config.tipFile' },
+  { key: 'mcp',      label: 'config.tabMcp', tip: 'config.tipMcp' },
+  { key: 'app',     label: 'config.tabApp', tip: 'config.tipApp' },
 ];
 
 // ── 模型配置页：三个模型角色 ──
 const MODEL_CATEGORIES = [
-  { key: 'main',   label: '核心模型', desc: 'Agent 对话主脑',          icon: Cpu },
-  { key: 'task',   label: '后台模型', desc: '后台任务 / 工作流执行',   icon: Server },
-  { key: 'vision', label: '视觉顾问', desc: '图片 / 视频多模态理解',   icon: Eye },
+  { key: 'main',   desc: 'config.mainModelDesc', icon: Cpu },
+  { key: 'task',   desc: 'config.taskModelDesc', icon: Server },
+  { key: 'vision', desc: 'config.visionModelDesc', icon: Eye },
 ] as const;
 
 // 目前支持的 SDK（key 前缀）
@@ -123,10 +123,10 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
         setMcpEditStr('');
         resetNewKeyForm();
       } else {
-        toast.error(`无法加载 ${tab} 配置`);
+        toast.error(`${t('config.loadFailed')}${tab}`);
       }
     } catch {
-      toast.error("网络错误，无法连接后端");
+      toast.error(t('config.networkError'));
     }
   };
 
@@ -146,7 +146,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
 
   // ── 数据根目录迁移：选目录 → 确认 → 搬迁+重启 ──
   const pickDataRoot = async () => {
-    if (!purrcat?.openDialog) { toast('当前环境不支持选择文件夹', { icon: '🔔' }); return; }
+    if (!purrcat?.openDialog) { toast(t('config.noFolderPicker'), { icon: '🔔' }); return; }
     const dirs = await purrcat.openDialog({ directory: true });
     if (dirs && dirs.length > 0) setPendingRoot(dirs[0]);
   };
@@ -163,17 +163,17 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setPendingRoot(null);
-        toast.success(data?.message || '数据已搬迁，即将重启生效');
+        toast.success(data?.message || t('config.migrateSuccess'));
         // 搬迁落盘完成后重启，data_root 重启后才会真正生效
         setTimeout(() => {
           if (purrcat?.restartApp) purrcat.restartApp();
           else window.location.reload();
         }, 1500);
       } else {
-        toast.error(typeof data?.detail === 'string' ? data.detail : '数据目录迁移失败');
+        toast.error(typeof data?.detail === 'string' ? data.detail : t('config.migrateFailed'));
       }
     } catch {
-      toast.error('网络错误，无法连接后端');
+      toast.error(t('config.networkError'));
     } finally {
       setMigrating(false);
     }
@@ -249,9 +249,9 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
 
   const modelEntrySummary = (cat: string): string => {
     const catCfg = configData?.[cat];
-    if (!catCfg || typeof catCfg !== 'object' || Array.isArray(catCfg)) return '未配置';
+    if (!catCfg || typeof catCfg !== 'object' || Array.isArray(catCfg)) return t('config.unconfigured');
     const entryKey = Object.keys(catCfg)[0];
-    if (!entryKey) return '未配置';
+    if (!entryKey) return t('config.unconfigured');
     return entryKey;
   };
 
@@ -281,9 +281,9 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
       setMcpServers(servers);
       setMcpExpanded(null);
       setMcpEditStr('');
-      toast.success(`[${name}] 已修改，请点击“${t('chat.saveAll')}”保存到磁盘。`);
+      toast.success(`[${name}] ${t('config.modifiedHint')}`);
     } catch {
-      toast.error('JSON 格式不合法，无法保存此服务器');
+      toast.error(t('config.jsonInvalidServer'));
     }
   };
 
@@ -292,25 +292,25 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     delete servers[name];
     setMcpServers(servers);
     if (mcpExpanded === name) { setMcpExpanded(null); setMcpEditStr(''); }
-    toast.success(`[${name}] 已删除，请点击“${t('chat.saveAll')}”保存到磁盘。`);
+    toast.success(`[${name}] ${t('config.deletedHint')}`);
   };
 
   const addMcpServer = () => {
     const name = newServerName.trim();
-    if (!name) { toast.error('请输入服务器名称'); return; }
+    if (!name) { toast.error(t('config.serverNameRequired')); return; }
     const servers = getMcpServers();
-    if (name in servers) { toast.error('该服务器已存在，想修改请展开它'); return; }
+    if (name in servers) { toast.error(t('config.serverExists')); return; }
     let parsed: any;
     try {
       parsed = JSON.parse(newServerJson || '{}');
     } catch {
-      toast.error('服务器配置不是合法 JSON');
+      toast.error(t('config.serverJsonInvalid'));
       return;
     }
     setMcpServers({ ...servers, [name]: parsed });
     setNewServerName('');
     setNewServerJson(MCP_NEW_SERVER_TEMPLATE);
-    toast.success(`已添加 [${name}]，请点击“${t('chat.saveAll')}”保存到磁盘。`);
+    toast.success(`[${name}] ${t('config.addedHint')}`);
   };
 
   // ══════════════ 通用 key-value 逻辑 ══════════════
@@ -332,9 +332,9 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
       setConfigData(newData);
       setRawJsonStr(JSON.stringify(getRawData(newData), null, 2));
       setExpandedKey(null);
-      toast.success(`[${key}] 已修改，请点击“${t('chat.saveAll')}”保存到磁盘。`);
+      toast.success(`[${key}] ${t('config.modifiedHint')}`);
     } catch {
-      toast.error("JSON 格式不合法，无法保存此项");
+      toast.error(t('config.jsonInvalidItem'));
     }
   };
 
@@ -344,12 +344,12 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     setConfigData(newData);
     setRawJsonStr(JSON.stringify(getRawData(newData), null, 2));
     if (expandedKey === key) { setExpandedKey(null); setKeyEditStr(''); }
-    toast.success(`[${key}] 已删除，请点击“${t('chat.saveAll')}”保存到磁盘。`);
+    toast.success(`[${key}] ${t('config.deletedHint')}`);
   };
 
   const handleAddKey = () => {
-    if (!newKey.trim()) { toast.error("请输入 key 名称"); return; }
-    if (newKey in configData) { toast.error("该 key 已存在，想修改请展开它"); return; }
+    if (!newKey.trim()) { toast.error(t('config.keyRequired')); return; }
+    if (newKey in configData) { toast.error(t('config.keyExists')); return; }
 
     let parsed: any;
     try {
@@ -361,7 +361,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
         case 'array':   parsed = JSON.parse(newValue || (newType === 'object' ? '{}' : '[]')); break;
       }
     } catch {
-      toast.error(`值格式不合法（${newType}）`);
+      toast.error(`${t('config.valueTypeInvalid')} (${newType})`);
       return;
     }
 
@@ -369,7 +369,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     setConfigData(newData);
     setRawJsonStr(JSON.stringify(getRawData(newData), null, 2));
     resetNewKeyForm();
-    toast.success(`已添加 [${newKey}]，请点击“${t('chat.saveAll')}”保存到磁盘。`);
+    toast.success(`[${newKey}] ${t('config.addedHint')}`);
   };
 
   // ── 整体保存（可视化模式和 raw 模式统一走这里） ──
@@ -387,13 +387,13 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
         body: JSON.stringify(payload),
       });
       if (res.ok) {
-        toast.success("🎉 配置已成功保存到磁盘！");
+        toast.success(t('config.saveSuccess'));
         fetchConfig(activeTab);
       } else {
-        toast.error("保存失败：后端拒绝请求");
+        toast.error(t('config.saveRejected'));
       }
     } catch {
-      toast.error("保存失败：JSON 格式不合法或网络错误");
+      toast.error(t('config.saveFailed'));
     }
   };
 
@@ -410,11 +410,11 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
       setConfigData(parsed);
       setEditMode('visual');
     } catch {
-      toast.error("原始 JSON 不是对象/数组，无法切回可视化模式");
+      toast.error(t('config.notObjectError'));
     }
   };
 
-  const currentTabMeta = CONFIG_TABS.find(t => t.key === activeTab);
+  const currentTabMeta = CONFIG_TABS.find(tb => tb.key === activeTab);
 
   if (!isOpen) return null;
 
@@ -448,14 +448,14 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
             {/* 路径信息条 */}
             {configMeta && (
               <div style={sketchyShape1} className="bg-[#EBCB8B]/30 border-2 border-ink border-dashed p-3 flex flex-col gap-2 text-xs font-bold">
-                <div className="flex items-center gap-2 text-terracotta"><FolderRoot size={16} /> 配置目录</div>
+                <div className="flex items-center gap-2 text-terracotta"><FolderRoot size={16} /> {t('config.configDir')}</div>
                 <div className="break-all text-ink/80">{configMeta.PURRCAT_DIR}</div>
-                <div className="flex items-center gap-2 text-[#a3be8c] mt-1"><Folder size={16} /> 数据根目录</div>
+                <div className="flex items-center gap-2 text-[#a3be8c] mt-1"><Folder size={16} /> {t('config.dataRoot')}</div>
                 <div className="flex items-start gap-1">
                   <div className="break-all text-ink/80 flex-1">{configMeta.DATA_ROOT}</div>
                   <button
                     onClick={pickDataRoot}
-                    title="更改数据根目录（自动搬迁数据并重启）"
+                    title={t('config.changeDataRoot')}
                     className="shrink-0 p-1 border-2 border-ink bg-paper hover:bg-[#a3be8c] transition-all active:translate-y-0.5"
                     style={sketchyShape3}
                   >
@@ -477,7 +477,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                     style={shape}
                     className={`px-4 py-2 font-black border-4 border-ink uppercase tracking-wider transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] text-left ${isActive ? 'bg-[#EBCB8B] text-ink -translate-x-1' : 'bg-paper text-ink/70 hover:bg-sand'} ${rotation}`}
                   >
-                    <div className="text-base" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{tab.label}</div>
+                    <div className="text-base" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t(tab.label)}</div>
                     <div className="text-[10px] font-bold opacity-60 normal-case tracking-normal mt-0.5">{tab.key}.json</div>
                   </button>
                 )
@@ -491,14 +491,14 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
             <div className="flex flex-wrap items-center justify-between gap-3 pr-16">
               <div>
                 <div className="text-3xl font-black text-ink flex items-center gap-2" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                  {currentTabMeta?.label ?? activeTab}
-                  <button onClick={() => fetchConfig(activeTab)} title="重新从磁盘加载" className="p-2 border-2 border-ink bg-paper hover:bg-sand active:translate-y-1 transition-all" style={sketchyShape3}>
+                  {currentTabMeta ? t(currentTabMeta.label) : activeTab}
+                  <button onClick={() => fetchConfig(activeTab)} title={t('config.reloadFromDisk')} className="p-2 border-2 border-ink bg-paper hover:bg-sand active:translate-y-1 transition-all" style={sketchyShape3}>
                     <RefreshCw size={18} strokeWidth={3} />
                   </button>
                   {(activeTab === 'mcp' || activeTab === 'sensor') && (
                     <button
                       onClick={() => { onClose(); navigate(`/market?tab=${activeTab}`); }}
-                      title={activeTab === 'mcp' ? '前往市场浏览 / 安装 MCP 服务' : '前往市场浏览 / 安装传感器'}
+                      title={activeTab === 'mcp' ? t('config.goToMarketMcp') : t('config.goToMarketSensor')}
                       className="p-2 border-2 border-ink bg-paper hover:bg-[#EBCB8B] active:translate-y-1 transition-all flex items-center gap-1"
                       style={sketchyShape3}
                     >
@@ -506,7 +506,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                     </button>
                   )}
                 </div>
-                <div className="text-sm font-bold text-ink/50 mt-1">{currentTabMeta?.tip}</div>
+                <div className="text-sm font-bold text-ink/50 mt-1">{currentTabMeta ? t(currentTabMeta.tip) : ''}</div>
               </div>
 
               <div className="flex items-center gap-3">
@@ -516,7 +516,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                   className="flex items-center gap-2 px-4 py-2 bg-paper border-4 border-ink font-black shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] hover:-translate-y-1 transition-all"
                 >
                   {editMode === 'visual' ? <ToggleLeft size={20} strokeWidth={3} /> : <ToggleRight size={20} strokeWidth={3} className="text-[#a3be8c]" />}
-                  <span>{editMode === 'visual' ? '可视化编辑' : '原始 JSON 编辑'}</span>
+                  <span>{editMode === 'visual' ? t('config.visualEdit') : t('config.rawEdit')}</span>
                 </button>
 
                 <button
@@ -533,7 +533,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
             {editMode === 'raw' && (
               <div style={sketchyShape3} className="bg-paper border-4 border-ink p-4 flex flex-col gap-3 shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.1)] flex-1">
                 <div className="flex items-center gap-2 text-ink/60 font-bold text-sm bg-terracotta/10 p-2 border-2 border-ink border-dashed" style={sketchyShape1}>
-                  <AlertCircle size={16} strokeWidth={3} /> 直接编辑完整 JSON。保存时整体覆盖写盘。
+                  <AlertCircle size={16} strokeWidth={3} /> {t('config.rawEditHint')}
                 </div>
                 <textarea
                   value={rawJsonStr}
@@ -560,7 +560,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                             <div className="min-w-0">
                                <div className="text-xl font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{cat.key === 'main' ? t('chat.coreModel') : cat.key === 'task' ? t('chat.backgroundModel') : t('chat.visionAdvisor')}</div>
                               <div className={`text-xs font-bold opacity-60 mt-1 truncate ${isEditing ? 'text-paper/60' : 'text-ink/60'}`}>
-                                {cat.desc} · <span className="font-mono">{modelEntrySummary(cat.key)}</span>
+                                {t(cat.desc)} · <span className="font-mono">{modelEntrySummary(cat.key)}</span>
                               </div>
                             </div>
                           </div>
@@ -582,11 +582,11 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                               </select>
                             </div>
                             <div>
-                              <div className={labelCls}>模型名（MODEL NAME）</div>
+                              <div className={labelCls}>{t('config.modelNameLabel')}</div>
                               <input
                                 value={modelForm.modelName}
                                 onChange={(e) => updateModelForm({ modelName: e.target.value })}
-                                placeholder="例：deepseek-v4-flash"
+                                placeholder={t('config.modelNamePh')}
                                 className={inputCls}
                                 spellCheck={false}
                               />
@@ -652,7 +652,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                   if (names.length === 0) {
                     return (
                       <div className="text-center font-bold text-ink/40 mt-10 text-2xl" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                        空配置 — 可以在下方添加
+                        {t('config.emptyConfig')}
                       </div>
                     );
                   }
@@ -681,7 +681,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                             </button>
                             <button
                               onClick={() => deleteMcpServer(name)}
-                              title="删除此服务器"
+                              title={t('config.deleteServerTitle')}
                               className={`shrink-0 px-4 border-l-4 border-ink flex items-center gap-2 font-black transition-colors ${isExpanded ? 'hover:bg-terracotta' : 'hover:bg-terracotta hover:text-paper'}`}
                             >
                               <Trash2 size={18} strokeWidth={3} />
@@ -691,7 +691,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                         {isExpanded && (
                           <div style={sketchyShape3} className="bg-paper border-4 border-ink p-4 flex flex-col gap-3 shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.1)]">
                             <div className="flex items-center gap-2 text-ink/60 font-bold text-sm bg-terracotta/10 p-2 border-2 border-ink border-dashed" style={sketchyShape1}>
-                              <AlertCircle size={16} strokeWidth={3} /> 修改 value（保持合法 JSON，字符串要加引号）
+                              <AlertCircle size={16} strokeWidth={3} /> {t('config.editValueHint')}
                             </div>
                             <textarea
                               value={mcpEditStr}
@@ -705,7 +705,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                                 style={sketchyShape1}
                                 className="px-6 py-2 bg-[#a3be8c] border-4 border-ink text-ink font-black flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-1 active:shadow-none transition-all rotate-1"
                               >
-                                <Save size={18} strokeWidth={3} /> 应用修改（暂存内存）
+                                <Save size={18} strokeWidth={3} /> {t('config.applyStaged')}
                               </button>
                             </div>
                           </div>
@@ -722,8 +722,8 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                       <Plus size={22} strokeWidth={3} />
                     </div>
                     <div>
-                      <div className="text-xl font-black text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>新增 MCP 服务器</div>
-                      <div className="text-sm font-bold text-ink/50">填写完成后点击右侧“添加”，再点击“{t('chat.saveAll')}”保存到磁盘</div>
+                      <div className="text-xl font-black text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('config.addServerTitle')}</div>
+                      <div className="text-sm font-bold text-ink/50">{t('config.fillThenSave')}</div>
                     </div>
                   </div>
 
@@ -731,7 +731,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                     <input
                       value={newServerName}
                       onChange={(e) => setNewServerName(e.target.value)}
-                      placeholder="服务器名称，例：github"
+                      placeholder={t('config.serverNamePh')}
                       className="flex-1 md:flex-[2] bg-paper border-4 border-ink px-4 py-3 font-mono font-bold text-base focus:outline-none focus:bg-white"
                       spellCheck={false}
                     />
@@ -758,7 +758,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
               <div className="flex flex-col gap-5 flex-1">
                 {Object.keys(configData).length === 0 ? (
                   <div className="text-center font-bold text-ink/40 mt-10 text-2xl" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                    空配置 — 可以在下方添加
+                    {t('config.emptyConfig')}
                   </div>
                 ) : (
                   Object.keys(configData).map((key, idx) => {
@@ -790,7 +790,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                             </button>
                             <button
                               onClick={() => handleDeleteKey(key)}
-                              title="删除此项"
+                              title={t('config.deleteItemTitle')}
                               className={`shrink-0 px-4 border-l-4 border-ink flex items-center gap-2 font-black transition-colors ${isExpanded ? 'hover:bg-terracotta' : 'hover:bg-terracotta hover:text-paper'}`}
                             >
                               <Trash2 size={18} strokeWidth={3} />
@@ -800,7 +800,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                         {isExpanded && (
                           <div style={sketchyShape3} className="bg-paper border-4 border-ink p-4 flex flex-col gap-3 shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.1)]">
                             <div className="flex items-center gap-2 text-ink/60 font-bold text-sm bg-terracotta/10 p-2 border-2 border-ink border-dashed" style={sketchyShape1}>
-                              <AlertCircle size={16} strokeWidth={3} /> 修改 value（保持合法 JSON，字符串要加引号）
+                              <AlertCircle size={16} strokeWidth={3} /> {t('config.editValueHint')}
                             </div>
                             <textarea
                               value={keyEditStr}
@@ -814,7 +814,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                                 style={sketchyShape1}
                                 className="px-6 py-2 bg-[#a3be8c] border-4 border-ink text-ink font-black flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-1 active:shadow-none transition-all rotate-1"
                               >
-                                <Save size={18} strokeWidth={3} /> 应用修改（暂存内存）
+                                <Save size={18} strokeWidth={3} /> {t('config.applyStaged')}
                               </button>
                             </div>
                           </div>
@@ -831,8 +831,8 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                       <Plus size={22} strokeWidth={3} />
                     </div>
                     <div>
-                      <div className="text-xl font-black text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>新增配置项</div>
-                      <div className="text-sm font-bold text-ink/50">填写完成后点击右侧“添加”，再点击“{t('chat.saveAll')}”保存到磁盘</div>
+                      <div className="text-xl font-black text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('config.addEntryTitle')}</div>
+                      <div className="text-sm font-bold text-ink/50">{t('config.fillThenSave')}</div>
                     </div>
                   </div>
 
@@ -840,7 +840,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                     <input
                       value={newKey}
                       onChange={(e) => setNewKey(e.target.value)}
-                      placeholder="Key 名称"
+                      placeholder={t('config.keyNamePh')}
                       className="flex-1 md:flex-[2] bg-paper border-4 border-ink px-4 py-3 font-mono font-bold text-base focus:outline-none focus:bg-white"
                     />
                     <select
@@ -857,7 +857,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                     <input
                       value={newValue}
                       onChange={(e) => setNewValue(e.target.value)}
-                      placeholder={newType === 'object' ? '{"a":1}' : newType === 'array' ? '[1,2,3]' : newType === 'boolean' ? 'true/false' : newType === 'number' ? '123' : '字符串值'}
+                      placeholder={newType === 'object' ? '{"a":1}' : newType === 'array' ? '[1,2,3]' : newType === 'boolean' ? 'true/false' : newType === 'number' ? '123' : t('config.stringValuePh')}
                       className="flex-1 md:flex-[3] bg-paper border-4 border-ink px-4 py-3 font-mono font-bold text-base focus:outline-none focus:bg-white"
                     />
                     <button
@@ -881,19 +881,19 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
           <div style={sketchyShape2} className="bg-cream border-4 border-ink shadow-[16px_16px_0px_0px_rgba(26,26,26,1)] w-full max-w-lg flex flex-col relative p-8" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <HardDrive size={36} strokeWidth={2.5} className="text-terracotta" />
-              <h3 className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>更换数据根目录</h3>
+              <h3 className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('config.changeRootTitle')}</h3>
             </div>
 
             <div className="flex flex-col gap-3 mb-6 text-[15px] font-bold text-ink/80 leading-relaxed">
               <div style={sketchyShape1} className="bg-paper border-4 border-ink p-4 flex flex-col gap-2">
-                <div className="text-xs font-black text-ink/50 tracking-widest">当前数据根目录</div>
+                <div className="text-xs font-black text-ink/50 tracking-widest">{t('config.currentRoot')}</div>
                 <div className="font-mono text-[14px] font-bold text-ink break-all">{configMeta?.DATA_ROOT}</div>
-                <div className="text-xs font-black text-ink/50 tracking-widest mt-2">新数据根目录</div>
+                <div className="text-xs font-black text-ink/50 tracking-widest mt-2">{t('config.newRoot')}</div>
                 <div className="font-mono text-[14px] font-bold text-[#a3be8c] break-all">{pendingRoot}</div>
               </div>
               <div className="flex items-start gap-2 text-xs font-bold text-ink/50">
                 <Info size={14} className="shrink-0 mt-0.5" />
-                确认后将把 agent_vm / embedding 等大型数据搬迁到新位置，随后自动重启程序生效。搬迁期间请勿操作。
+                {t('config.migrateHint')}
               </div>
             </div>
 
@@ -905,7 +905,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#a3be8c] border-4 border-ink text-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] hover:-translate-y-0.5 active:translate-y-1 active:shadow-none transition-all disabled:opacity-60 disabled:cursor-wait"
               >
                 {migrating ? <Loader2 size={20} strokeWidth={3} className="animate-spin" /> : null}
-                {migrating ? '搬迁中…' : '确认搬迁并重启'}
+                {migrating ? t('config.migrating') : t('config.confirmMigrate')}
               </button>
               <button
                 onClick={() => setPendingRoot(null)}
@@ -913,7 +913,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                 style={sketchyShape3}
                 className="px-6 py-3 bg-paper border-4 border-ink text-ink/70 font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand hover:text-ink active:translate-y-1 active:shadow-none transition-all disabled:opacity-60"
               >
-                取消
+                {t('common.cancel')}
               </button>
             </div>
           </div>
