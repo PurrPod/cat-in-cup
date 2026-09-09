@@ -23,9 +23,12 @@ hooks:
     - file_operation:
         path: "@MEMORY"
         action: "read"
-    - memo_injection: 
+    - memo_injection:
         type: "full"
         count: 10
+    - file_operation:
+        action: "read"
+        path: "@SYS"
   on_loop_start:
     - injection: 
         content: "如遇复杂任务，请先编排好主线路的执行计划，先规划TODO后执行"
