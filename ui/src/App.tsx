@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { Languages, Minus, Square, X } from 'lucide-react';
+import { Minus, Square, X } from 'lucide-react';
 import { useTranslation } from './i18n';
 
 import HomePage from './components/HomePage';
@@ -42,28 +42,10 @@ function WindowControls() {
   );
 }
 
-function LanguageSwitcher() {
-  const { locale, toggleLocale, t } = useTranslation();
-  return (
-    <button
-      type="button"
-      onClick={toggleLocale}
-      title={`${t('common.language')}: ${locale === 'zh-CN' ? t('common.chinese') : t('common.english')}`}
-      aria-label={t('common.language')}
-      className="no-drag fixed top-2.5 left-2 z-[2147483647] flex items-center gap-1.5 px-2.5 h-7 border-2 border-ink bg-paper text-ink font-black text-xs hover:bg-sand transition-all"
-      style={sketchyBtn}
-    >
-      <Languages size={14} strokeWidth={3} />
-      <span>{locale === 'zh-CN' ? '中' : 'EN'}</span>
-    </button>
-  );
-}
-
 export default function App() {
   return (
     <BrowserRouter>
       <WindowControls />
-      <LanguageSwitcher />
       <DataSetupGate />
       <Routes>
         <Route path="/" element={<HomeRouteWrapper />} />

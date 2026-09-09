@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Settings, X, Save, FileJson, AlertCircle, Plus, Trash2, RefreshCw,
   ToggleLeft, ToggleRight, Folder, FolderRoot, Info, HardDrive, Pencil,
-  Loader2, Server, Cpu, Eye, Store
+  Loader2, Server, Cpu, Eye, Store, Languages
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { sketchyShape1, sketchyShape2, sketchyShape3 } from './chat/ChatShared';
@@ -51,7 +51,7 @@ type ModelForm = {
 const MCP_NEW_SERVER_TEMPLATE = '{\n  "command": "npx",\n  "args": [],\n  "env": {}\n}';
 
 export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { t } = useTranslation();
+  const { locale, setLocale, t } = useTranslation();
   const purrcat = (window as any).purrcat;
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('model');
@@ -433,6 +433,16 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
             <div className="flex items-center gap-3">
               <Settings size={36} strokeWidth={2.5} className="text-terracotta" />
               <h2 className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.config')}</h2>
+              <button
+                onClick={() => setLocale(locale === 'zh-CN' ? 'en-US' : 'zh-CN')}
+                title={t('common.language')}
+                aria-label={t('common.language')}
+                className="ml-auto flex items-center gap-1.5 px-2.5 h-8 border-2 border-ink bg-paper text-ink font-black text-xs hover:bg-sand transition-all active:translate-y-0.5 shrink-0"
+                style={sketchyShape3}
+              >
+                <Languages size={14} strokeWidth={3} />
+                <span>{locale === 'zh-CN' ? '中' : 'EN'}</span>
+              </button>
             </div>
 
             {/* 路径信息条 */}
@@ -630,11 +640,6 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                     </div>
                   );
                 })}
-
-                <div className="text-xs font-bold text-ink/40 flex items-start gap-1">
-                  <Info size={14} className="shrink-0 mt-0.5" />
-                   填写内容实时暂存，折叠 / 切页不会丢失，只要不关掉配置中心就一直在；点右上角 {t('chat.saveAll')} 统一落盘并热重载模型。视觉顾问仅需 SDK / 模型名 / Base URL / API Key。
-                </div>
               </div>
             )}
 

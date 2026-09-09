@@ -180,7 +180,6 @@ function getInitialLocale(): Locale {
 interface I18nContextValue {
   locale: Locale
   setLocale: (locale: Locale) => void
-  toggleLocale: () => void
   t: (key: TranslationKey) => string
 }
 
@@ -214,7 +213,6 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     return {
       locale,
       setLocale,
-      toggleLocale: () => setLocale(locale === 'zh-CN' ? 'en-US' : 'zh-CN'),
       t,
     }
   }, [locale])
