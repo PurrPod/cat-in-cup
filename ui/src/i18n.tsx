@@ -454,7 +454,8 @@ function getInitialLocale(): Locale {
   } catch {
     // localStorage may be unavailable in restricted browser contexts.
   }
-  return navigator.language.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en-US'
+  // 默认英文界面，仅当用户在配置中心显式切换后才使用中文
+  return 'en-US'
 }
 
 interface I18nContextValue {
