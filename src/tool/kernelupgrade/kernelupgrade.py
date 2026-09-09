@@ -22,7 +22,7 @@ def KernelUpgrade(action: str, target: str, **kwargs) -> dict:
     - action="test_mcp": 在后台运行 MCP 并发测试
     - action="create_sensor": 生成全新的 Sensor（外部感知器）骨架
     - action="upgrade_sensor": 拷贝现存的 Sensor 进行修改
-    （注：Skill 盲测权力已收回，须通过 Request 工具的 skill_test 类型获得老板批准后由系统自动运行）
+    （注：Skill 盲测权力已收回，须通过 Request 工具的 skill_test 类型获得用户批准后由系统自动运行）
     """
     try:
         if action == "trace_to_skill":
@@ -45,7 +45,7 @@ def KernelUpgrade(action: str, target: str, **kwargs) -> dict:
             return error_response(
                 "测试权力已收回：你无法直接运行 Skill 测试。\n\n"
                 "请调用 Request 工具（request_type='skill_test', target='工作区uuid/技能名'）发起测试："
-                "Trigger 激发测试将免审直接后台运行；后台盲测需老板批准后由系统自动运行"
+                "Trigger 激发测试将免审直接后台运行；后台盲测需用户批准后由系统自动运行"
                 "（本地无 skill_eval 图时盲测会被自动跳过）。",
                 "❌ 请通过 Request 发起测试",
             )

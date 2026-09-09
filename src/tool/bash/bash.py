@@ -47,14 +47,14 @@ def Bash(command: str, timeout: int = 30, session_id: str = "default", **kwarg) 
     except DockerNotRunningError:
         # 处理 Docker 未启动/连接异常
         return error_response(
-            "Docker未连接，可能是老板没有开启Docker Desktop，请通知老板检查Docker状态",
+            "Docker未连接，可能是用户没有开启Docker Desktop，请通知用户检查Docker状态",
             "❌ 环境异常",
         )
 
     except DockerImageNotFoundError:
         # 处理镜像缺失/构建启动异常
         return error_response(
-            "Docker启动或构建容器异常，请提醒老板进行相关操作", "❌ 环境异常"
+            "Docker启动或构建容器异常，请提醒用户进行相关操作", "❌ 环境异常"
         )
 
     except BashTimeoutError as e:

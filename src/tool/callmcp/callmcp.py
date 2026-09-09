@@ -39,7 +39,7 @@ def CallMCP(server_name: str, tool_name: str, arguments: dict = None, **kwargs) 
         if server_name not in configs:
             mcp_list = list(configs.keys())
             return error_response(
-                f"{server_name}不在配置里，请确保老板已为你配置该MCP，如果是刚刚配置的MCP，请提醒老板需要重启系统才能生效。当前已配置MCP:{mcp_list}\n或者也可用search工具搜索其它满足需求的mcp",
+                f"{server_name}不在配置里，请确保用户已为你配置该MCP，如果是刚刚配置的MCP，请提醒用户需要重启系统才能生效。当前已配置MCP:{mcp_list}\n或者也可用search工具搜索其它满足需求的mcp",
                 "❌ MCP未配置",
             )
 

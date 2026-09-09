@@ -4,7 +4,7 @@ REQUEST_TOOL_SCHEMA = {
     "type": "function",
     "function": {
         "name": "Request",
-        "description": "遇到权限拦截或缺失关键能力时，向人类（老板）发起审批请求。提交后等待老板审批，期间可挂起当前任务。技能工厂流程：skill_test 提交后 Trigger 激发测试立即免审运行，后台盲测部分需老板批准后由系统自动运行（本地无 skill_eval 图时自动跳过盲测），测试通过再申请 skill_merge 合并至主库。Sensor 工厂流程：沙盒手测通过后申请 sensor_merge 合并至正式目录并热重启。",
+        "description": "遇到权限拦截或缺失关键能力时，向人类（用户）发起审批请求。提交后等待用户审批，期间可挂起当前任务。技能工厂流程：skill_test 提交后 Trigger 激发测试立即免审运行，后台盲测部分需用户批准后由系统自动运行（本地无 skill_eval 图时自动跳过盲测），测试通过再申请 skill_merge 合并至主库。Sensor 工厂流程：沙盒手测通过后申请 sensor_merge 合并至正式目录并热重启。",
         "parameters": {
             "type": "object",
             "properties": {
@@ -31,7 +31,7 @@ REQUEST_TOOL_SCHEMA = {
                 },
                 "reason": {
                     "type": "string",
-                    "description": "申请理由，明确告诉老板为什么需要这个权限或操作。若是 skill_merge 请简述你的修改点供人类 Code Review。",
+                    "description": "申请理由，明确告诉用户为什么需要这个权限或操作。若是 skill_merge 请简述你的修改点供人类 Code Review。",
                 },
             },
             "required": ["request_type", "target", "reason"],

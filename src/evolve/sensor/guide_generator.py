@@ -62,13 +62,13 @@ Sensor 首次启动往往需要凭证（App Secret、API Token 等）。**严禁
 
 1. 启动时检测凭证是否为空；
 2. 为空则立即用 **observe 发送文字消息向 Agent 求助**，说清三件事：缺哪些凭证、去哪配置（前端配置中心 → Sensor 设置 → 填写 env 后启用）、凭证到位后自己会做什么；
-3. Agent 会转告老板并协助完成配置（配置保存后系统会热重启 sensor，届时读到新 env 自动恢复）；
+3. Agent 会转告用户并协助完成配置（配置保存后系统会热重启 sensor，届时读到新 env 自动恢复）；
 4. 主进程保持存活待命，不要退出。
 
 示例：
 ```python
 if not os.environ.get("MY_TOKEN"):
-    send_json_to_main("observe", {{"content": "[{sensor_name} 求助] 首次启动需要鉴权凭证 MY_TOKEN（当前为空）。请老板在前端配置中心 → Sensor 设置里为 {sensor_name} 填写 MY_TOKEN 后保存启用，我会在热重启后自动连接并保持待命。"}})
+    send_json_to_main("observe", {{"content": "[{sensor_name} 求助] 首次启动需要鉴权凭证 MY_TOKEN（当前为空）。请用户在前端配置中心 → Sensor 设置里为 {sensor_name} 填写 MY_TOKEN 后保存启用，我会在热重启后自动连接并保持待命。"}})
 ```
 
 ## 4. 单文件骨架
@@ -119,16 +119,16 @@ echo '{{"method":"express","params":{{"message":"hello"}}}}' | uv run {sensor_na
 }}
 ```
 
-* `env`：声明全部所需凭证（留空字符串占位，老板配置后注入）
+* `env`：声明全部所需凭证（留空字符串占位，用户配置后注入）
 * `capabilities`：声明 observe/express 能力，未声明的能力网关不会下发
 * `tool_detail`：true 时 Agent 的工具调用细节（工具名/参数摘要/结果片段）也会推送到本 sensor；false（默认）时只推送 content 正文，不推送工具调用与结果
 
 ## 7. 提交合并
 
 测试通过后调用 `Request(request_type="sensor_merge", target="{sensor_name}")`，
-并在 reason 中简述功能点供老板 Code Review。批准后系统会：
+并在 reason 中简述功能点供用户 Code Review。批准后系统会：
 
 1. 拷贝 `{sensor_name}.py` 至正式目录并写入 activate_sensor.json（enabled=true）
 2. Git 提交版本记录
-3. 热重启 Sensor 线程池——**若凭证未填，你会立刻收到该 sensor 的鉴权求助消息**，请转告老板协助配置。
+3. 热重启 Sensor 线程池——**若凭证未填，你会立刻收到该 sensor 的鉴权求助消息**，请转告用户协助配置。
 """

@@ -39,14 +39,14 @@ def _validate_skill_test(target: str) -> tuple[str, str] | None:
 
 def Request(request_type: str, target: str, reason: str, **kwargs) -> str:
     """
-    向人类（老板）发起审批请求。
+    向人类（用户）发起审批请求。
 
     适用场景：
     - 权限拦截：读写宿主机文件、操作物理电脑
     - 能力缺失：需下载 mcp/skill/sensor/graph
     - 技能盲测：沙盒开发完毕后申请 skill_test，获批后由系统自动运行
 
-    提交后会等待老板的 Yes/No 审批，期间可挂起或执行其他独立任务。
+    提交后会等待用户的 Yes/No 审批，期间可挂起或执行其他独立任务。
     """
     try:
         valid_types = [
@@ -88,10 +88,10 @@ def Request(request_type: str, target: str, reason: str, **kwargs) -> str:
                 if has_graph
                 else "🎯 Trigger 激发测试无需审批，系统即将自动启动，完成后通过系统级通知汇报结果。\n"
                 "⚠️ 注意：本地无 skill test 的图（图库缺少 skill_eval.json），将跳过后台盲测；"
-                "如需完整盲测，请老板先安装 skill_eval 测试图，再重新提交 skill_test 申请。"
+                "如需完整盲测，请用户先安装 skill_eval 测试图，再重新提交 skill_test 申请。"
             )
             blind_note = (
-                "\n✅ 后台盲测申请已提交老板审批，获批后系统将自动在后台运行，期间请挂起等待，禁止轮询。"
+                "\n✅ 后台盲测申请已提交用户审批，获批后系统将自动在后台运行，期间请挂起等待，禁止轮询。"
                 if has_graph
                 else ""
             )
@@ -106,10 +106,10 @@ def Request(request_type: str, target: str, reason: str, **kwargs) -> str:
 
         # 话术设计：告诉大模型请求已经进入审批队列，不要重试，自己安排接下来的时间
         msg = (
-            f"✅ 申请已成功提交给老板审批 (请求ID: {result['id']})。\n"
+            f"✅ 申请已成功提交给用户审批 (请求ID: {result['id']})。\n"
             f"请求类型: {request_type} | 目标: {target}\n\n"
             f"💡 系统指示：\n"
-            f"1. 该操作需要老板进行 Yes/No 审批，请勿反复调用本工具催促。\n"
+            f"1. 该操作需要用户进行 Yes/No 审批，请勿反复调用本工具催促。\n"
             f"2. 强依赖此项权限或能力的工作流请暂时挂起，等待后续系统发送通知（审批通过/拒绝）。\n"
             f"3. 若当前有其他与此请求无强关联的独立任务（如查阅其他文档、整理现有数据），你可以继续执行。"
         )

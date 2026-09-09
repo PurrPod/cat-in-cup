@@ -110,7 +110,7 @@ def skill_improve_init(
         f"【技能工厂分配成功】工作区路径：{sandbox_root}（workplace_id: {short_uuid}）。\n"
         f"{action_msg}。\n"
         f"💡 提示：系统已在沙盒根目录为你生成了官方说明文档 GUIDE.md（覆盖创建/升级/盲测/提交全流程），动手前请先通读！"
-        f"注意：盲测必须通过 Request(skill_test) 获得老板批准后由系统自动运行。"
+        f"注意：盲测必须通过 Request(skill_test) 获得用户批准后由系统自动运行。"
     ), short_uuid
 
 

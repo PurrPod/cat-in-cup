@@ -17,7 +17,7 @@ def _hot_reload_after_merge():
     """合并后在后台线程热刷新 Schema 缓存与搜索索引，让新 MCP 立即可被调用/搜索。
 
     放后台执行是因为 uv run 冷启动可能较慢（建 venv 装依赖），
-    不阻塞老板的审批响应；若失败不影响已完成的代码合并与配置写入。
+    不阻塞用户的审批响应；若失败不影响已完成的代码合并与配置写入。
     """
 
     def _worker():
@@ -374,7 +374,7 @@ def mcp_request_handle(workplace_root: str, mcp_name: str, is_approved: bool) ->
         f"📁 正式路径: {abs_target_dir}\n"
         f"⚙️ 配置已注入全局 `mcp_config.json`（含 {len(env_data)} 个环境变量声明），"
         f"系统正在后台热加载，稍候即可直接调用与搜索。\n"
-        f"💡 若 env 中存在留空的密钥，请老板在 `.purrcat/mcp_config.json` 中补齐并保存，"
+        f"💡 若 env 中存在留空的密钥，请用户在 `.purrcat/mcp_config.json` 中补齐并保存，"
         f"下次调用会自动以新配置重启该 MCP 子进程，无需重启系统。\n"
         f"Git: {commit_msg}"
     )

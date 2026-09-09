@@ -192,7 +192,7 @@ class MCPSessionManager:
                     ctx["last_active"] = time.time()
                     return ctx["session"]
 
-                # 配置已变化（如老板补填了 env / 修改了启动命令）：
+                # 配置已变化（如用户补填了 env / 修改了启动命令）：
                 # env 在子进程 spawn 时固化，必须重启进程才能生效
                 print(
                     f"🔄 [MCP] '{server_name}' 启动配置已变化，正在重启子进程以应用新配置…"

@@ -57,7 +57,7 @@ def check_auth() -> bool:
         send_json_to_main(
             "observe",
             {{"content": "[{sensor_name} 求助] 首次启动需要鉴权凭证 MY_TOKEN（当前为空）。"
-             "请老板在前端配置中心 → Sensor 设置里为 {sensor_name} 填写 MY_TOKEN 后保存启用，"
+             "请用户在前端配置中心 → Sensor 设置里为 {sensor_name} 填写 MY_TOKEN 后保存启用，"
              "我会在热重启后自动连接并保持待命。"}},
         )
         return False
@@ -197,7 +197,7 @@ def sensor_factory_init(
         f"{action_msg}。\n"
         f"💡 提示：系统已在沙盒根目录为你生成了官方说明文档 GUIDE.md"
         f"（覆盖 stdio 协议/鉴权求助/文件收发/提交全流程），动手前请先通读！"
-        f"注意：沙盒内可用 echo 管道手测，合并须通过 Request(sensor_merge) 获得老板批准。"
+        f"注意：沙盒内可用 echo 管道手测，合并须通过 Request(sensor_merge) 获得用户批准。"
     ), short_uuid
 
 
@@ -274,7 +274,7 @@ def sensor_request_handle(
     )
     subprocess.run(["git", "commit", "-m", commit_msg], cwd=SENSOR_EXTENSION_DIR)
 
-    # 4. 注入 activate_sensor.json（enabled=true，env 空值留待老板填写）
+    # 4. 注入 activate_sensor.json（enabled=true，env 空值留待用户填写）
     sensor_config = {}
     if os.path.exists(SENSOR_CONFIG_PATH):
         try:
@@ -298,7 +298,7 @@ def sensor_request_handle(
     empty_keys = [k for k, v in env_data.items() if v in (None, "")]
     auth_hint = (
         f"\n⚠️ 该 sensor 声明了 {len(empty_keys)} 个未填写的凭证（{', '.join(empty_keys)}），"
-        f"热重启后它若发出鉴权求助消息，请转告老板到前端配置中心填写后再启用。"
+        f"热重启后它若发出鉴权求助消息，请转告用户到前端配置中心填写后再启用。"
         if empty_keys
         else ""
     )

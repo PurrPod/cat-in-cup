@@ -209,9 +209,9 @@ def resolve_request(
                             workplace_id, skill_name, main_session_id
                         )
                         feedback = (
-                            f"老板已批准盲测，技能 '{skill_name}' 的后台盲测已自动启动，"
+                            f"用户已批准盲测，技能 '{skill_name}' 的后台盲测已自动启动，"
                             f"完成后将通过系统级通知汇报结果，请挂起等待，禁止轮询。"
-                            f"（Trigger 激发测试此前已免审直接运行）\n(老板批注: {feedback})"
+                            f"（Trigger 激发测试此前已免审直接运行）\n(用户批注: {feedback})"
                         )
                     else:
                         approved = False
@@ -229,7 +229,7 @@ def resolve_request(
                         sys_note = skill_request_handle(
                             workplace_root, target, is_approved=True
                         )
-                        feedback = f"{sys_note}\n(老板批注: {feedback})"
+                        feedback = f"{sys_note}\n(用户批注: {feedback})"
                     else:
                         feedback = f"合并失败：未找到 {target} 对应的工厂沙盒目录。"
                 # ---- MCP 合并逻辑 ----
@@ -245,7 +245,7 @@ def resolve_request(
                         sys_note = mcp_request_handle(
                             workplace_root, target, is_approved=True
                         )
-                        feedback = f"{sys_note}\n(老板批注: {feedback})"
+                        feedback = f"{sys_note}\n(用户批注: {feedback})"
                     else:
                         feedback = (
                             f"合并失败：未找到 {target} 对应的 MCP 工厂沙盒目录。"
@@ -273,22 +273,22 @@ def resolve_request(
                         sys_note = sensor_request_handle(
                             workplace_root, target, is_approved=True
                         )
-                        feedback = f"{sys_note}\n(老板批注: {feedback})"
+                        feedback = f"{sys_note}\n(用户批注: {feedback})"
                     else:
                         feedback = (
                             f"合并失败：未找到 {target} 对应的 Sensor 工厂沙盒文件。"
                         )
             except Exception as e:
                 approved = False
-                feedback = f"老板已同意，但执行失败: {str(e)}。{feedback}"
+                feedback = f"用户已同意，但执行失败: {str(e)}。{feedback}"
 
         # 处理人类的拒绝决策
         elif not approved and not ignore:
             if req_type == "skill_test":
-                feedback = f"老板拒绝了测试申请，请根据以下原因调整沙盒代码或测试用例后再次申请：\n【拒绝理由】: {feedback}"
+                feedback = f"用户拒绝了测试申请，请根据以下原因调整沙盒代码或测试用例后再次申请：\n【拒绝理由】: {feedback}"
             elif req_type in ["skill_merge", "mcp_merge", "sensor_merge"]:
                 # 让Agent收到拒绝的理由并继续改进
-                feedback = f"老板拒绝了代码合并请求，请在沙盒工厂中根据以下原因继续修复：\n【拒绝理由】: {feedback}"
+                feedback = f"用户拒绝了代码合并请求，请在沙盒工厂中根据以下原因继续修复：\n【拒绝理由】: {feedback}"
 
         # 🌟 dependency_check 类型为系统启动检查，与 Agent 任务无关，不需要回调通知 Agent
         if not ignore and req_type != "dependency_check":
