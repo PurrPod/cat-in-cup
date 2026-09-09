@@ -5,8 +5,10 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { sketchyShape1, sketchyShape2, sketchyShape3 } from './ChatShared';
+import { useTranslation } from '../../i18n';
 
 export function FileChangesPanel(props: any) {
+  const { t } = useTranslation();
   const { showFileView, setShowFileView, fileChanges, activeDiffPath, setActiveDiffPath, handleAck, handleRollback, handleAckAll } = props;
   if (!showFileView) return null;
 
@@ -16,18 +18,18 @@ export function FileChangesPanel(props: any) {
         <div className="flex items-center gap-3 mb-5 border-b-4 border-ink/20 pb-3 shrink-0">
           <History size={26} strokeWidth={2.5} className="text-[#d08770]" />
           <h2 className="text-2xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-            FILE CHANGES <span className="ml-2 text-sm opacity-60">({fileChanges.length} files modified)</span>
+            {t('chat.fileChanges')} <span className="ml-2 text-sm opacity-60">({fileChanges.length} {t('chat.filesModified')})</span>
           </h2>
           {fileChanges.length > 0 && (
             <button onClick={handleAckAll} title="接受全部更改（清理所有备份）" style={sketchyShape3} className="ml-auto px-3 py-1 bg-[#a3be8c] text-ink text-xs font-black border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5 -rotate-1">
-              <CheckCircle size={14} strokeWidth={3} /> ACK ALL
+              <CheckCircle size={14} strokeWidth={3} /> {t('chat.acknowledgeAll')}
             </button>
           )}
           <button onClick={() => setShowFileView(false)} className={`${fileChanges.length > 0 ? '' : 'ml-auto '}p-1.5 border-2 border-ink bg-cream hover:bg-[#d08770] hover:text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-[1px]`} style={sketchyShape2}><Minus size={20} strokeWidth={3} /></button>
         </div>
 
         {fileChanges.length === 0 ? (
-          <div className="flex flex-col items-center py-10 opacity-50"><CheckCircle size={48} strokeWidth={1.5} /><p className="font-bold text-sm mt-2">All files clean!</p></div>
+          <div className="flex flex-col items-center py-10 opacity-50"><CheckCircle size={48} strokeWidth={1.5} /><p className="font-bold text-sm mt-2">{t('chat.allFilesClean')}</p></div>
         ) : (
           <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0 items-stretch">
             <div className="w-full md:w-72 shrink-0 overflow-y-auto flex flex-col gap-3 pr-2">
@@ -36,8 +38,8 @@ export function FileChangesPanel(props: any) {
                 const changeType = change.change_type || 'modified';
                 let badge = null;
                 let titleStyle = "font-black text-xs truncate flex-1 transition-all";
-                if (changeType === 'deleted') { badge = <span className="absolute -top-2 -left-2 bg-[#bf616a] text-paper px-1.5 py-0.5 text-[9px] font-black border-2 border-ink shadow-[1px_1px_0px_0px_rgba(26,26,26,1)] z-10" style={sketchyShape1}>DELETED</span>; titleStyle += " line-through opacity-60 decoration-2"; }
-                else if (changeType === 'created') { badge = <span className="absolute -top-2 -left-2 bg-[#a3be8c] text-ink px-1.5 py-0.5 text-[9px] font-black border-2 border-ink shadow-[1px_1px_0px_0px_rgba(26,26,26,1)] z-10" style={sketchyShape1}>NEW</span>; }
+                if (changeType === 'deleted') { badge = <span className="absolute -top-2 -left-2 bg-[#bf616a] text-paper px-1.5 py-0.5 text-[9px] font-black border-2 border-ink shadow-[1px_1px_0px_0px_rgba(26,26,26,1)] z-10" style={sketchyShape1}>{t('chat.deletedLabel')}</span>; titleStyle += " line-through opacity-60 decoration-2"; }
+                else if (changeType === 'created') { badge = <span className="absolute -top-2 -left-2 bg-[#a3be8c] text-ink px-1.5 py-0.5 text-[9px] font-black border-2 border-ink shadow-[1px_1px_0px_0px_rgba(26,26,26,1)] z-10" style={sketchyShape1}>{t('chat.newLabel')}</span>; }
 
                 return (
                   <div key={change.id} onClick={() => setActiveDiffPath(change.path)} style={idx % 2 === 0 ? sketchyShape2 : sketchyShape3} className={`p-3 border-2 border-ink transition-all cursor-pointer flex flex-col gap-1 relative select-none ${idx % 2 === 0 ? 'rotate-0.5' : '-rotate-0.5'} ${isSelected ? 'bg-[#88c0d0] text-paper shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] translate-y-0.5' : 'bg-cream text-ink hover:bg-sand shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:-translate-y-[1px]'}`}>
@@ -51,7 +53,7 @@ export function FileChangesPanel(props: any) {
             <div className="flex-1 flex flex-col min-w-0">
               {(() => {
                 const currentChange = fileChanges.find((c:any) => c.path === activeDiffPath);
-                if (!currentChange) return <div className="flex-1 flex items-center justify-center italic opacity-40 text-sm">Select a file...</div>;
+                if (!currentChange) return <div className="flex-1 flex items-center justify-center italic opacity-40 text-sm">{t('chat.selectFile')}</div>;
                 return (
                   <div className="flex-1 flex flex-col min-h-0">
                     <div className="flex-1 bg-[#FDF8F0] p-4 border-4 border-ink font-mono text-xs overflow-auto shadow-[inset_3px_3px_6px_rgba(0,0,0,0.05)]" style={sketchyShape2}>
@@ -61,11 +63,11 @@ export function FileChangesPanel(props: any) {
                         if (line.startsWith('-')) colorClass = 'text-[#bf616a] font-bold bg-[#bf616a]/10';
                         if (line.startsWith('@')) colorClass = 'text-[#88c0d0]';
                         return <div key={i} className={`${colorClass} leading-relaxed whitespace-pre rounded px-1`}>{line || '\u00A0'}</div>;
-                      }) : <span className="opacity-50 italic p-2 block">No visual difference detected.</span>}
+                      }) : <span className="opacity-50 italic p-2 block">{t('chat.noVisualDiff')}</span>}
                     </div>
                     <div className="flex gap-4 mt-3 shrink-0">
-                      <button onClick={() => handleAck(currentChange.path, currentChange.newest_backup_id)} className="flex-1 bg-[#a3be8c] text-ink font-black py-2.5 border-2 border-ink shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-0.5 active:shadow-none transition-all flex justify-center items-center gap-2" style={sketchyShape2}><CheckCircle size={16} strokeWidth={3}/> ACKNOWLEDGE</button>
-                      <button onClick={() => handleRollback(currentChange.path, currentChange.oldest_backup_id)} className="flex-1 bg-[#bf616a] text-paper font-black py-2.5 border-2 border-ink shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] hover:bg-[#a54e56] active:translate-y-0.5 active:shadow-none transition-all flex justify-center items-center gap-2" style={sketchyShape3}><Undo2 size={16} strokeWidth={3}/> REVERT</button>
+                      <button onClick={() => handleAck(currentChange.path, currentChange.newest_backup_id)} className="flex-1 bg-[#a3be8c] text-ink font-black py-2.5 border-2 border-ink shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-0.5 active:shadow-none transition-all flex justify-center items-center gap-2" style={sketchyShape2}><CheckCircle size={16} strokeWidth={3}/> {t('chat.acknowledge')}</button>
+                      <button onClick={() => handleRollback(currentChange.path, currentChange.oldest_backup_id)} className="flex-1 bg-[#bf616a] text-paper font-black py-2.5 border-2 border-ink shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] hover:bg-[#a54e56] active:translate-y-0.5 active:shadow-none transition-all flex justify-center items-center gap-2" style={sketchyShape3}><Undo2 size={16} strokeWidth={3}/> {t('chat.revert')}</button>
                     </div>
                   </div>
                 );
@@ -79,6 +81,7 @@ export function FileChangesPanel(props: any) {
 }
 
 export function RequestQueuePanel(props: any) {
+  const { t } = useTranslation();
   const { showReqQueue, setShowReqQueue, pendingReqs, handleResolveReq, feedbackInputs, setFeedbackInputs, authDurations, setAuthDurations, expandedReasons, setExpandedReasons } = props;
   if (!showReqQueue) return null;
 
@@ -97,37 +100,37 @@ export function RequestQueuePanel(props: any) {
     <div style={sketchyShape3} className="w-[340px] shrink-0 bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] flex flex-col overflow-hidden relative z-20">
       <div className="flex flex-col shrink-0 p-4 bg-paper">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2"><Bell size={24} strokeWidth={2.5} className="text-[#EBCB8B]" /><h3 className="text-2xl font-black tracking-widest text-ink">PENDING</h3></div>
+          <div className="flex items-center gap-2"><Bell size={24} strokeWidth={2.5} className="text-[#EBCB8B]" /><h3 className="text-2xl font-black tracking-widest text-ink">{t('chat.pending')}</h3></div>
           <button onClick={() => setShowReqQueue(false)} className="hover:text-terracotta hover:rotate-90 transition-all p-1 bg-paper border-2 border-ink" style={sketchyShape1}><X size={20} strokeWidth={3} /></button>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-paper">
         {pendingReqs.length === 0 ? (
-          <div className="flex flex-col items-center opacity-50 mt-10"><Activity size={48} strokeWidth={1.5} /><p className="font-bold text-sm mt-2">No requests.</p></div>
+          <div className="flex flex-col items-center opacity-50 mt-10"><Activity size={48} strokeWidth={1.5} /><p className="font-bold text-sm mt-2">{t('chat.noRequests')}</p></div>
         ) : (
           pendingReqs.map((req: any, idx: number) => {
             const isDepCheck = req.type === 'dependency_check';
             return (
               <div key={req.id} className={`bg-paper border-4 border-ink p-4 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex flex-col gap-3 relative transition-all group ${idx % 2 === 0 ? 'rotate-1' : '-rotate-1'} ${isDepCheck ? 'border-[#d08770]' : ''}`} style={idx % 2 === 0 ? sketchyShape2 : sketchyShape3}>
-                <button onClick={() => handleResolveReq(req.id, false, true)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-ink text-paper border-2 border-ink hover:scale-110 transition-all absolute -top-2 -right-2 z-10" style={sketchyShape2} title="Ignore (Silent)"><X size={12} strokeWidth={3} /></button>
+                <button onClick={() => handleResolveReq(req.id, false, true)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-ink text-paper border-2 border-ink hover:scale-110 transition-all absolute -top-2 -right-2 z-10" style={sketchyShape2} title={t('chat.ignoreSilent')}><X size={12} strokeWidth={3} /></button>
                 <div className="flex justify-between items-start">
                   {isDepCheck ? (
-                    <span className="font-black text-xs uppercase px-2 py-0.5 bg-[#d08770] text-paper border-2 border-ink flex items-center gap-1" style={sketchyShape1}><AlertTriangle size={11} strokeWidth={3} />DEPENDENCY</span>
+                    <span className="font-black text-xs uppercase px-2 py-0.5 bg-[#d08770] text-paper border-2 border-ink flex items-center gap-1" style={sketchyShape1}><AlertTriangle size={11} strokeWidth={3} />{t('chat.dependency')}</span>
                   ) : (
                     <span className="font-black text-xs uppercase px-2 py-0.5 bg-[#EBCB8B] border-2 border-ink" style={sketchyShape1}>{req.type}</span>
                   )}
                 </div>
                 <div>
                   <div className="text-[15px] font-black text-ink break-all leading-tight">{req.target}</div>
-                  <button onClick={() => setExpandedReasons({...expandedReasons, [req.id]: !expandedReasons[req.id]})} className="text-xs font-bold text-ink/50 mt-2 flex items-center gap-1 hover:text-ink transition-colors">{expandedReasons[req.id] ? <ChevronUp size={12} /> : <ChevronDown size={12} />} Reason</button>
+                  <button onClick={() => setExpandedReasons({...expandedReasons, [req.id]: !expandedReasons[req.id]})} className="text-xs font-bold text-ink/50 mt-2 flex items-center gap-1 hover:text-ink transition-colors">{expandedReasons[req.id] ? <ChevronUp size={12} /> : <ChevronDown size={12} />} {t('chat.reason')}</button>
                   {expandedReasons[req.id] && <div className="text-xs font-bold text-ink/70 bg-ink/5 p-2 mt-1 leading-relaxed whitespace-pre-wrap">{req.reason}</div>}
                 </div>
                 {req.type === 'computer_use' && (
-                  <div className="flex items-center justify-between mt-1 mb-1 p-2 border-2 border-ink bg-[#88c0d0]/20" style={sketchyShape3}><span className="text-xs font-black text-ink uppercase">⏳ TIME LIMIT:</span><select value={authDurations[req.id] || 10} onChange={e => setAuthDurations({...authDurations, [req.id]: parseInt(e.target.value)})} className="bg-cream border-2 border-ink text-xs p-1 font-bold" style={sketchyShape2}><option value={10}>10 MINS</option><option value={30}>30 MINS</option><option value={-1}>TODAY UNLIMITED</option></select></div>
+                  <div className="flex items-center justify-between mt-1 mb-1 p-2 border-2 border-ink bg-[#88c0d0]/20" style={sketchyShape3}><span className="text-xs font-black text-ink uppercase">⏳ {t('chat.timeLimit')}</span><select value={authDurations[req.id] || 10} onChange={e => setAuthDurations({...authDurations, [req.id]: parseInt(e.target.value)})} className="bg-cream border-2 border-ink text-xs p-1 font-bold" style={sketchyShape2}><option value={10}>10 {t('chat.mins')}</option><option value={30}>30 {t('chat.mins')}</option><option value={-1}>{t('chat.todayUnlimited')}</option></select></div>
                 )}
                 {/* dependency_check 不需要 feedback 输入 */}
                 {!isDepCheck && (
-                  <input value={feedbackInputs[req.id] || ''} onChange={e => setFeedbackInputs({...feedbackInputs, [req.id]: e.target.value})} placeholder="Feedback (Optional)..." className="w-full text-xs font-bold p-2 border-2 border-ink focus:outline-none bg-[#FDF8F0] shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)] placeholder:text-ink/30" style={sketchyShape2} />
+                  <input value={feedbackInputs[req.id] || ''} onChange={e => setFeedbackInputs({...feedbackInputs, [req.id]: e.target.value})} placeholder={t('chat.feedbackOptional')} className="w-full text-xs font-bold p-2 border-2 border-ink focus:outline-none bg-[#FDF8F0] shadow-[inset_2px_2px_0px_0px_rgba(26,26,26,0.05)] placeholder:text-ink/30" style={sketchyShape2} />
                 )}
                 {isDepCheck ? (
                   <div className="flex gap-2 mt-1">
@@ -136,8 +139,8 @@ export function RequestQueuePanel(props: any) {
                   </div>
                 ) : (
                   <div className="flex gap-2 mt-1">
-                    <button onClick={() => handleResolveReq(req.id, true, false, authDurations[req.id] || 10)} className="flex-1 bg-[#a3be8c] text-ink font-black text-xs py-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-1 active:shadow-none transition-all flex justify-center items-center" style={sketchyShape1}>APPROVE</button>
-                    <button onClick={() => handleResolveReq(req.id, false, false, authDurations[req.id] || 10)} className="flex-1 bg-[#bf616a] text-paper font-black text-xs py-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#a54e56] active:translate-y-1 active:shadow-none transition-all" style={sketchyShape2}>REJECT</button>
+                    <button onClick={() => handleResolveReq(req.id, true, false, authDurations[req.id] || 10)} className="flex-1 bg-[#a3be8c] text-ink font-black text-xs py-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-1 active:shadow-none transition-all flex justify-center items-center" style={sketchyShape1}>{t('chat.approve')}</button>
+                    <button onClick={() => handleResolveReq(req.id, false, false, authDurations[req.id] || 10)} className="flex-1 bg-[#bf616a] text-paper font-black text-xs py-2 border-2 border-ink shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#a54e56] active:translate-y-1 active:shadow-none transition-all" style={sketchyShape2}>{t('chat.reject')}</button>
                   </div>
                 )}
               </div>

@@ -7,6 +7,7 @@ import '@xterm/xterm/css/xterm.css';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { sketchyShape1, sketchyShape2, sketchyShape3, MarkdownComponents, safeDecodeUri } from './ChatShared';
+import { useTranslation } from '../../i18n';
 
 interface IDEPanelProps {
   workspacePath: string;
@@ -330,6 +331,7 @@ function IDETerminal({ visible }: { visible: boolean }) {
 
 // ====== 主 IDE Panel ======
 export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPanelProps) {
+  const { t } = useTranslation();
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
   const [loading, setLoading] = useState(false);
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -969,13 +971,13 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
           {sidebarMode === 'explorer' ? (
             <div className="flex-1 overflow-y-auto py-1">
               {loading ? (
-                <div className="text-xs font-black text-ink/40 p-3 animate-pulse tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Loading...</div>
+                <div className="text-xs font-black text-ink/40 p-3 animate-pulse tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('common.loading')}</div>
               ) : fileTree.length === 0 ? (
                 <div className="flex flex-col items-center py-10 text-ink/30 select-none gap-2">
                   <div style={sketchyShape1} className="w-10 h-10 bg-paper border-2 border-ink/30 flex items-center justify-center -rotate-3">
                     <FolderOpen size={18} strokeWidth={2.5} />
                   </div>
-                  <span className="text-[11px] font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Empty workspace</span>
+                  <span className="text-[11px] font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.noFileOpen')}</span>
                 </div>
               ) : (
                 fileTree.map((node) => renderFileNode(node))
@@ -988,7 +990,7 @@ export default function IDEPanel({ workspacePath, onClose, onOpenLink }: IDEPane
                   <div style={sketchyShape3} className="w-10 h-10 bg-[#a3be8c]/20 border-2 border-ink/30 flex items-center justify-center rotate-3">
                     <Check size={18} strokeWidth={3} />
                   </div>
-                  <span className="text-[11px] font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>All clean!</span>
+                  <span className="text-[11px] font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.allFilesClean')}</span>
                 </div>
               ) : (
                 displayChanges.map((c) => {

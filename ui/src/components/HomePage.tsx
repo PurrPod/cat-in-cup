@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { useFlowStore } from '../store/flowStore'
 import ConfigModal from './ConfigModal'
+import { useTranslation } from '../i18n'
 
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
@@ -26,6 +27,7 @@ export default function HomePage({
   onEnterMemory: () => void
 }) {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const { t } = useTranslation();
 
   const handleNewWorkflow = () => {
     useFlowStore.getState().clearGraph()
@@ -37,6 +39,7 @@ export default function HomePage({
 
       <button
         onClick={() => setIsConfigOpen(true)}
+        title={t('home.settings')}
         style={sketchyShape3}
         className="absolute top-8 right-8 z-50 w-16 h-16 bg-[#EBCB8B] border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] flex items-center justify-center transition-all hover:bg-terracotta hover:text-paper group rotate-6 hover:-rotate-3"
       >
@@ -64,8 +67,8 @@ export default function HomePage({
               <MessageSquare size={28} className="text-paper" strokeWidth={2.5} />
             </div>
             <div className="text-center z-10">
-              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>CHAT</h2>
-              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Talk to Agent</p>
+              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.chat')}</h2>
+              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.chatDescription')}</p>
             </div>
           </button>
 
@@ -78,8 +81,8 @@ export default function HomePage({
               <Terminal size={28} className="text-ink group-hover:text-paper" strokeWidth={2.5} />
             </div>
             <div className="text-center z-10">
-              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>TASK</h2>
-              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Agent Workflows</p>
+              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.task')}</h2>
+              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.taskDescription')}</p>
             </div>
           </button>
 
@@ -92,8 +95,8 @@ export default function HomePage({
               <GitMerge size={28} className="text-paper" strokeWidth={2.5} />
             </div>
             <div className="text-center z-10">
-              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>EDITOR</h2>
-              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DAG Editor</p>
+              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.editor')}</h2>
+              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.editorDescription')}</p>
             </div>
           </button>
 
@@ -116,8 +119,8 @@ export default function HomePage({
               <Store size={28} className="text-paper" strokeWidth={2.5} />
             </div>
             <div className="text-center z-10">
-              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>MARKET</h2>
-              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Skills Explorer</p>
+              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.market')}</h2>
+              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.marketDescription')}</p>
             </div>
           </button>
 
@@ -130,8 +133,8 @@ export default function HomePage({
               <Brain size={28} className="text-paper" strokeWidth={2.5} />
             </div>
             <div className="text-center z-10">
-              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>MEMORY</h2>
-              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Knowledge Graph</p>
+              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.memory')}</h2>
+              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.memoryDescription')}</p>
             </div>
           </button>
 
@@ -144,8 +147,8 @@ export default function HomePage({
               <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-paper"><path d="m2 15 5.29-5.29a2 2 0 0 1 2.83 0L14 13.5a2 2 0 0 0 2.83 0L22 8"/><path d="m2 9 5.29 5.29a2 2 0 0 0 2.83 0L14 10.5a2 2 0 0 1 2.83 0L22 16"/></svg>
             </div>
             <div className="text-center z-10">
-              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>EVOLVE</h2>
-              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Skill Factory</p>
+              <h2 className="text-xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.evolve')}</h2>
+              <p className="text-ink/50 text-[10px] font-bold mt-0.5 tracking-wider uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('home.evolveDescription')}</p>
             </div>
           </button>
 

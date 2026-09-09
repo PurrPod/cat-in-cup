@@ -5,6 +5,7 @@ import { DataSet } from 'vis-data';
 import { toast } from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useTranslation } from '../i18n';
 
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
@@ -21,6 +22,7 @@ type ViewMode = 'events' | 'experiences' | 'graph' | 'search';
 type DeleteTarget = { type: 'event' | 'experience' | 'relation'; id?: string; source?: string; target?: string; text?: string } | null;
 
 export default function MemoryPage({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('graph');
   
   const [events, setEvents] = useState<any[]>([]);
@@ -230,7 +232,7 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] -rotate-1 max-w-sm w-full">
             <div className="flex justify-between items-center rotate-1 border-b-4 border-ink/10 pb-2">
-              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>FORGET THIS?</h3>
+              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('memory.forgetConfirm')}</h3>
               <button onClick={() => setDeleteTarget(null)} className="hover:text-terracotta hover:scale-110 transition-all">
                 <X size={28} strokeWidth={3}/>
               </button>
@@ -242,8 +244,8 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
               </div>
             </div>
             <div className="flex gap-4 rotate-1 mt-2">
-              <button onClick={() => setDeleteTarget(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">KEEP</button>
-              <button onClick={confirmDelete} style={sketchyShape1} className="flex-1 bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">FORGET</button>
+              <button onClick={() => setDeleteTarget(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">{t('memory.keep')}</button>
+              <button onClick={confirmDelete} style={sketchyShape1} className="flex-1 bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">{t('memory.forget')}</button>
             </div>
           </div>
         </div>
@@ -282,11 +284,11 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
             {/* 底部功能组合键 */}
             <div className="shrink-0 flex justify-end gap-4 -rotate-1 pt-2">
               <button onClick={() => setShowMdModal(false)} style={sketchyShape3} className="px-8 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">
-                CANCEL
+                {t('common.close')}
               </button>
               <button onClick={saveMdContent} disabled={isSavingMd} style={sketchyShape1} className="px-10 bg-[#a3be8c] text-ink font-black py-3 border-4 border-ink hover:bg-[#8eb072] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 flex items-center gap-2">
                 {isSavingMd ? <Loader2 className="animate-spin" size={24} strokeWidth={3}/> : <Save size={24} strokeWidth={3}/>} 
-                SAVE TO DISK
+                {t('memory.saveToDisk')}
               </button>
             </div>
 
@@ -302,7 +304,7 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
           </button>
           <div style={sketchyShape1} className="flex-1 h-16 flex items-center justify-center gap-2 bg-[#a3be8c] text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] rotate-2">
             <Brain size={22} strokeWidth={2.5} />
-            <span className="tracking-widest text-lg font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>MEMORY DB</span>
+              <span className="tracking-widest text-lg font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('memory.database')}</span>
           </div>
         </div>
 
@@ -311,32 +313,32 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
             <button onClick={() => setViewMode('search')} style={sketchyShape1} className={`p-4 border-4 border-ink text-left transition-all flex items-center gap-4 ${viewMode === 'search' ? 'bg-[#bf616a] text-paper shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-cream text-ink hover:bg-sand'}`}>
               <Search size={28} strokeWidth={2.5}/>
               <div>
-                <div className="font-black text-xl tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SEARCH</div>
-                <div className="text-xs font-bold opacity-70">Hybrid Retrieval</div>
+                <div className="font-black text-xl tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('memory.search')}</div>
+                <div className="text-xs font-bold opacity-70">{t('memory.hybrid')}</div>
               </div>
             </button>
 
             <button onClick={() => setViewMode('graph')} style={sketchyShape2} className={`p-4 border-4 border-ink text-left transition-all flex items-center gap-4 ${viewMode === 'graph' ? 'bg-[#EBCB8B] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-cream hover:bg-sand'}`}>
               <Network size={28} strokeWidth={2.5}/>
               <div>
-                <div className="font-black text-xl tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>COGNITION</div>
-                <div className="text-xs font-bold opacity-70">Knowledge Graph</div>
+                <div className="font-black text-xl tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('memory.cognition')}</div>
+                <div className="text-xs font-bold opacity-70">{t('memory.knowledgeGraph')}</div>
               </div>
             </button>
 
             <button onClick={() => setViewMode('experiences')} style={sketchyShape3} className={`p-4 border-4 border-ink text-left transition-all flex items-center gap-4 ${viewMode === 'experiences' ? 'bg-[#3498DB]/80 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-cream hover:bg-sand'}`}>
               <Database size={28} strokeWidth={2.5}/>
               <div>
-                <div className="font-black text-xl tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>EXPERIENCES</div>
-                <div className="text-xs font-bold opacity-70">Vector Memory (Top 30)</div>
+                <div className="font-black text-xl tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('memory.experiences')}</div>
+                <div className="text-xs font-bold opacity-70">{t('memory.vector')}</div>
               </div>
             </button>
 
             <button onClick={() => setViewMode('events')} style={sketchyShape1} className={`p-4 border-4 border-ink text-left transition-all flex items-center gap-4 ${viewMode === 'events' ? 'bg-terracotta text-paper shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-cream hover:bg-sand'}`}>
               <List size={28} strokeWidth={2.5}/>
               <div>
-                <div className="font-black text-xl tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>EVENTS</div>
-                <div className="text-xs font-bold opacity-70">Objective Facts (Top 30)</div>
+                <div className="font-black text-xl tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('memory.events')}</div>
+                <div className="text-xs font-bold opacity-70">{t('memory.facts')}</div>
               </div>
             </button>
 
@@ -345,7 +347,7 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
               <FileText size={28} strokeWidth={2.5} className="text-[#8f6a88]"/>
               <div>
                 <div className="font-black text-xl tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>MEMORY.MD</div>
-                <div className="text-xs font-bold opacity-70">Raw Memory Notes</div>
+                <div className="text-xs font-bold opacity-70">{t('memory.rawNotes')}</div>
               </div>
             </button>
           </div>
@@ -363,9 +365,9 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
                viewMode === 'experiences' ? <Database className="text-[#3498DB]" strokeWidth={2.5}/> : <List className="text-terracotta" strokeWidth={2.5}/>}
             </div>
             <h2 className="text-3xl font-black tracking-widest text-ink uppercase" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-              {viewMode === 'search' ? 'HYBRID SEARCH' : 
-               viewMode === 'graph' ? 'KNOWLEDGE GRAPH' : 
-               viewMode === 'experiences' ? 'VECTOR EXPERIENCES' : 'OBJECTIVE EVENTS'}
+              {viewMode === 'search' ? t('memory.hybridTitle') :
+               viewMode === 'graph' ? t('memory.graphTitle') :
+               viewMode === 'experiences' ? t('memory.vectorTitle') : t('memory.eventsTitle')}
             </h2>
           </div>
 
@@ -377,7 +379,7 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
               className="flex items-center gap-2 px-5 py-2.5 bg-[#EBCB8B] text-ink border-4 border-ink font-black text-lg shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all rotate-2 disabled:opacity-50"
             >
               <RefreshCw size={20} strokeWidth={3} className={isGraphLoading ? "animate-spin text-terracotta" : "text-ink"} />
-              <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>REFRESH</span>
+                  <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('memory.refresh')}</span>
             </button>
           )}
         </div>
@@ -389,7 +391,7 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
               <div className="flex gap-4 shrink-0 mb-8">
                 <input
                   style={sketchyShape2} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Ask your memory anything..."
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={t('memory.ask')}
                   className="flex-1 bg-paper border-4 border-ink p-4 text-xl font-bold focus:outline-none focus:bg-white shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]"
                 />
                 <button onClick={handleSearch} disabled={isSearching || !searchQuery.trim()} style={sketchyShape1} className="bg-ink text-paper px-8 font-black flex items-center gap-3 border-4 border-ink hover:bg-terracotta hover:text-ink shadow-[6px_6px_0px_0px_rgba(212,122,90,1)] rotate-2">
@@ -404,7 +406,7 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
                 ) : (
                   <div className="flex flex-col items-center justify-center h-48 opacity-40 gap-4 rotate-2">
                     <Search size={64} strokeWidth={1.5} />
-                    <p className="text-2xl font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Hit Enter to search the void...</p>
+                    <p className="text-2xl font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('memory.searchHint')}</p>
                   </div>
                 )}
               </div>
@@ -414,18 +416,18 @@ export default function MemoryPage({ onBack }: { onBack: () => void }) {
           {viewMode === 'graph' && (
             <>
               <div className="absolute top-4 left-6 z-20 pointer-events-none bg-paper border-2 border-ink/30 px-3 py-1 font-bold text-ink/50 text-sm" style={sketchyShape2}>
-                Tip: Click any edge (line) to forget a relationship.
+                {t('memory.tip')}
               </div>
               {isGraphLoading && (
                 <div className="absolute inset-0 bg-paper/60 backdrop-blur-sm z-50 flex items-center justify-center gap-3">
                   <Loader2 size={32} className="animate-spin text-terracotta" strokeWidth={3} />
-                  <span className="font-black text-xl" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Syncing All Triples...</span>
+                  <span className="font-black text-xl" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('memory.syncing')}</span>
                 </div>
               )}
               {graphData.nodes.length === 0 && !isGraphLoading ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center opacity-40 gap-4">
                   <Network size={64} />
-                  <p className="text-xl font-bold">Graph is empty. Try clicking REFRESH.</p>
+                  <p className="text-xl font-bold">{t('memory.emptyGraph')}</p>
                 </div>
               ) : (
                 <div ref={graphRef} className="absolute inset-0 outline-none"></div>

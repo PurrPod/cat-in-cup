@@ -4,6 +4,7 @@ import { ArrowLeft, Dna, FileEdit, TestTube, GitMerge, FileText, Play, Check, X,
 import { toast } from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useTranslation } from '../i18n';
 
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
@@ -34,6 +35,7 @@ type ProcessStep = 'edit' | 'test' | 'merge' | 'tools';
 type WorkPlace = { workplace_id: string; name: string; status?: string; goal?: string };
 
 export default function EvolvePage({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
   const [activeType, setActiveType] = useState<EvolveType>('skill');
   const [workplaces, setWorkplaces] = useState<WorkPlace[]>([]);
   const [activeWorkplace, setActiveWorkplace] = useState<WorkPlace | null>(null);
@@ -286,7 +288,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
           
           <div style={sketchyShape1} className="flex-1 h-16 flex items-center justify-center gap-2 bg-[#a3be8c] text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] rotate-1">
             <Dna size={24} strokeWidth={2.5} />
-            <span className="tracking-widest text-xl font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>FACTORY</span>
+            <span className="tracking-widest text-xl font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('evolve.factory')}</span>
           </div>
         </div>
 
@@ -301,7 +303,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
 
         <div style={sketchyShape3} className="flex-1 bg-paper border-4 border-ink shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] p-4 flex flex-col gap-3 overflow-hidden -rotate-1 relative">
           <div className="flex justify-between items-center px-2 py-1 border-b-2 border-ink/20 pb-2">
-            <span className="font-black text-ink/40 tracking-widest text-sm uppercase">Processing Lines</span>
+                <span className="font-black text-ink/40 tracking-widest text-sm uppercase">{t('evolve.processing')}</span>
             <button onClick={fetchWorkplaces} className="text-ink/40 hover:text-terracotta transition-colors"><RefreshCw size={16}/></button>
           </div>
           <div className="flex-1 overflow-y-auto flex flex-col gap-3 pr-1">
@@ -325,7 +327,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                 </div>
               </div>
             ))}
-            {workplaces.length === 0 && <div className="text-center opacity-40 font-bold mt-10">No items processing.</div>}
+            {workplaces.length === 0 && <div className="text-center opacity-40 font-bold mt-10">{t('evolve.noItems')}</div>}
           </div>
         </div>
       </div>
@@ -360,7 +362,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                 <div className="mb-4 shrink-0 flex items-start gap-3 bg-[#EBCB8B]/30 border-2 border-ink/30 px-4 py-3" style={sketchyShape2}>
                   <span className="text-lg shrink-0">🎯</span>
                   <div className="min-w-0">
-                    <span className="text-[10px] font-black text-ink/50 tracking-widest uppercase block">Build Goal</span>
+                    <span className="text-[10px] font-black text-ink/50 tracking-widest uppercase block">{t('evolve.buildGoal')}</span>
                     <p className="text-sm font-bold text-ink/80 leading-relaxed whitespace-pre-wrap break-words">{activeWorkplace.goal}</p>
                   </div>
                 </div>
@@ -370,7 +372,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
               {currentStep === 'edit' && activeType === 'skill' && (
                 <div className="flex flex-1 min-h-0 gap-6 w-full max-w-7xl mx-auto">
                   <div className="w-64 shrink-0 flex flex-col gap-3 border-r-4 border-ink/20 pr-4 overflow-y-auto">
-                     <span className="font-black text-ink/40 tracking-widest text-sm mb-1">SANDBOX FILES</span>
+                     <span className="font-black text-ink/40 tracking-widest text-sm mb-1">{t('evolve.sandboxFiles')}</span>
                      {files.filter(f => !f.startsWith('evals')).map((f, idx) => (
                         <button key={f} onClick={() => setActiveFile(f)} style={idx % 2 === 0 ? sketchyShape1 : sketchyShape2} className={`p-3 border-2 border-ink text-left font-bold text-sm break-all ${activeFile === f ? 'bg-[#88c0d0] text-paper shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]' : 'bg-cream text-ink hover:bg-sand'}`}>
                            <FileText size={16} className="inline mb-0.5 mr-1 opacity-70"/>{f}
@@ -379,9 +381,9 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                   </div>
                   <div className="flex-1 flex flex-col min-w-0 gap-4">
                     <div className="flex justify-between items-end">
-                      <h2 className="text-2xl font-black text-ink tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{activeFile || 'No file selected'}</h2>
+                      <h2 className="text-2xl font-black text-ink tracking-widest truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{activeFile || t('evolve.noFileSelected')}</h2>
                       <button onClick={() => handleSaveFile(activeFile, fileContent)} disabled={!activeFile} style={sketchyShape3} className="px-6 py-2 bg-[#a3be8c] border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-1 active:shadow-none flex items-center gap-2 disabled:opacity-50">
-                        <Save size={18} strokeWidth={3}/> SAVE
+                        <Save size={18} strokeWidth={3}/> {t('common.save')}
                       </button>
                     </div>
                     <textarea value={fileContent} onChange={(e) => setFileContent(e.target.value)} disabled={!activeFile} className="flex-1 w-full bg-[#FDF8F0] border-4 border-ink p-6 font-mono text-sm font-bold focus:outline-none resize-none shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)] disabled:opacity-50" style={sketchyShape2} spellCheck={false} />
@@ -397,10 +399,10 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                   <div className="flex justify-between items-end mb-4 px-2 border-b-4 border-ink/20 pb-4 shrink-0">
                      <h2 className="text-3xl font-black tracking-widest flex items-center gap-3 text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
                         <Server size={36} strokeWidth={3} className="text-[#EBCB8B] -rotate-3"/>
-                        MCP TOOLS
+                        {t('evolve.mcpTools')}
                      </h2>
                      <button onClick={loadMcpSchema} style={sketchyShape3} className="px-5 py-2.5 bg-cream border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#EBCB8B] active:translate-y-1 active:shadow-none flex items-center gap-2 transition-all">
-                       <RefreshCw size={20} strokeWidth={3}/> REFRESH
+                       <RefreshCw size={20} strokeWidth={3}/> {t('memory.refresh')}
                      </button>
                   </div>
 
@@ -476,7 +478,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                                             </td>
                                             <td className="p-3 px-4 text-center">
                                               {requiredList.includes(key) ? (
-                                                <span className="bg-[#bf616a] text-paper px-3 py-1 text-xs font-black rounded shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] tracking-wider">YES</span>
+                                                <span className="bg-[#bf616a] text-paper px-3 py-1 text-xs font-black rounded shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] tracking-wider">{t('common.yes')}</span>
                                               ) : (
                                                 <span className="bg-ink/10 text-ink/60 px-3 py-1 text-xs font-black rounded tracking-wider whitespace-nowrap">
                                                   NO {val.default !== undefined ? `(def: ${val.default})` : ''}
@@ -519,7 +521,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                 <div className="flex flex-1 min-h-0 gap-6 w-full max-w-7xl mx-auto">
                   <div className="w-72 shrink-0 flex flex-col gap-3 overflow-y-auto pr-2">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="font-black text-ink/40 tracking-widest text-sm">ARCHIVES</span>
+                      <span className="font-black text-ink/40 tracking-widest text-sm">{t('evolve.archives')}</span>
                       <div className="flex gap-2">
                         {/* 只有 Skill 模式下才展示 evals.json 的直接修改入口 */}
                         {activeType === 'skill' && (
@@ -540,11 +542,11 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                         Iteration {iter}
                       </button>
                     ))}
-                    {iterations.length === 0 && <div className="text-sm font-bold opacity-50 mt-4">No archives yet.</div>}
+                    {iterations.length === 0 && <div className="text-sm font-bold opacity-50 mt-4">{t('evolve.noArchives')}</div>}
                   </div>
                   
                   <div style={sketchyShape1} className="flex-1 bg-[#FDF8F0] border-4 border-ink p-8 shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)] overflow-y-auto font-bold text-ink">
-                    {reportMd ? <ReactMarkdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>{reportMd}</ReactMarkdown> : <span className="opacity-40 italic">Select an iteration to view report...</span>}
+                    {reportMd ? <ReactMarkdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>{reportMd}</ReactMarkdown> : <span className="opacity-40 italic">{t('evolve.selectReport')}</span>}
                   </div>
                 </div>
               )}
@@ -553,22 +555,22 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
               {currentStep === 'merge' && (
                 <div className="flex flex-col flex-1 min-h-0 gap-6 w-full max-w-6xl mx-auto">
                   <div className="flex justify-between items-center shrink-0">
-                    <h2 className="text-3xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DIFF REVIEW</h2>
+                    <h2 className="text-3xl font-black text-ink tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('evolve.diffReview')}</h2>
                     
                     <div className="flex gap-4">
-                      <button onClick={handleLoadDiff} title="Reload Diff" className="w-12 h-12 bg-cream border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand flex items-center justify-center active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all" style={sketchyShape3}>
+                      <button onClick={handleLoadDiff} title={t('evolve.reloadDiff')} className="w-12 h-12 bg-cream border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand flex items-center justify-center active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all" style={sketchyShape3}>
                         <RefreshCw size={22} strokeWidth={3} className={isDiffLoading ? "animate-spin" : ""}/>
                       </button>
-                      <button onClick={handleRollbackClick} title="Revert Main to Previous" className="w-12 h-12 bg-cream text-[#bf616a] border-4 border-[#bf616a] shadow-[4px_4px_0px_0px_#bf616a] hover:bg-[#bf616a]/10 flex items-center justify-center active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all" style={sketchyShape2}>
+                      <button onClick={handleRollbackClick} title={t('evolve.revertMain')} className="w-12 h-12 bg-cream text-[#bf616a] border-4 border-[#bf616a] shadow-[4px_4px_0px_0px_#bf616a] hover:bg-[#bf616a]/10 flex items-center justify-center active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all" style={sketchyShape2}>
                         <Undo2 size={22} strokeWidth={3}/>
                       </button>
                       
                       <div className="w-1 bg-ink/20 mx-1 shrink-0 rounded-full"></div>
 
-                      <button onClick={() => setShowRejectModal(true)} title="Reject & Request Rework" className="w-12 h-12 bg-[#bf616a] text-paper border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#a54e56] flex items-center justify-center active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all" style={sketchyShape1}>
+                      <button onClick={() => setShowRejectModal(true)} title={t('evolve.reject')} className="w-12 h-12 bg-[#bf616a] text-paper border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#a54e56] flex items-center justify-center active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all" style={sketchyShape1}>
                         <X size={26} strokeWidth={4}/>
                       </button>
-                      <button onClick={() => handleMerge(true)} title="Approve & Merge" className="w-12 h-12 bg-[#a3be8c] text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] flex items-center justify-center active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all" style={sketchyShape3}>
+                      <button onClick={() => handleMerge(true)} title={t('evolve.approve')} className="w-12 h-12 bg-[#a3be8c] text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] flex items-center justify-center active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all" style={sketchyShape3}>
                         <Check size={26} strokeWidth={4}/>
                       </button>
                     </div>
@@ -580,7 +582,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
                       if (line.startsWith('+')) bg = 'bg-[#a3be8c]/20 text-[#a3be8c]';
                       if (line.startsWith('-')) bg = 'bg-[#bf616a]/20 text-[#bf616a]';
                       return <div key={i} className={`px-2 py-0.5 rounded ${bg}`}>{line || '\u00A0'}</div>;
-                    }) : <span className="opacity-40">Click Reload Diff to fetch...</span>}
+                    }) : <span className="opacity-40">{t('evolve.reloadDiff')}</span>}
                   </div>
                 </div>
               )}
@@ -589,7 +591,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-6 opacity-40">
             <Dna size={80} strokeWidth={1.5} className="text-ink" />
-            <p className="text-3xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Select a process to start.</p>
+            <p className="text-3xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('evolve.selectProcess')}</p>
           </div>
         )}
       </div>
@@ -598,7 +600,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 w-full max-w-lg">
             <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-2">
-              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>FEEDBACK & REWORK</h3>
+              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('evolve.feedback')}</h3>
               <button onClick={() => setShowRejectModal(false)} className="hover:text-[#bf616a] hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="flex flex-col gap-2 -rotate-1">
@@ -613,10 +615,10 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
             </div>
             <div className="flex gap-4 -rotate-1 mt-2">
               <button onClick={() => setShowRejectModal(false)} style={sketchyShape1} className="flex-1 py-3 bg-cream text-ink border-4 border-ink font-black text-lg tracking-widest shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand active:translate-y-1 active:shadow-none">
-                CANCEL
+                {t('evolve.cancel')}
               </button>
               <button onClick={handleSendReject} style={sketchyShape3} className="flex-[1.5] py-3 bg-[#bf616a] text-paper border-4 border-ink font-black text-lg tracking-widest shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#a54e56] active:translate-y-1 active:shadow-none flex items-center justify-center gap-2">
-                <MessageSquare size={20}/> SEND FEEDBACK
+                <MessageSquare size={20}/> {t('evolve.sendFeedback')}
               </button>
             </div>
           </div>
@@ -632,9 +634,9 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
             </div>
             <textarea value={evalJson} onChange={e => setEvalJson(e.target.value)} className="flex-1 w-full border-4 border-ink bg-[#FDF8F0] p-6 font-mono text-sm font-bold focus:outline-none resize-none rotate-1 shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]" style={sketchyShape2} spellCheck={false} />
             <div className="shrink-0 flex justify-end gap-4 pt-2 rotate-1">
-              <button onClick={() => setShowEvalModal(false)} style={sketchyShape3} className="px-8 bg-cream text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">CANCEL</button>
+              <button onClick={() => setShowEvalModal(false)} style={sketchyShape3} className="px-8 bg-cream text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">{t('evolve.cancel')}</button>
               <button onClick={() => handleSaveFile('evals/evals.json', evalJson)} style={sketchyShape1} className="px-10 bg-[#EBCB8B] text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center gap-2 hover:bg-[#d8b877] transition-all">
-                <Save size={24} strokeWidth={3}/> SAVE
+                <Save size={24} strokeWidth={3}/> {t('common.save')}
               </button>
             </div>
           </div>
@@ -645,7 +647,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] -rotate-1 max-w-md w-full">
             <div className="flex justify-between items-center rotate-1 border-b-4 border-ink/10 pb-2">
-              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DELETE SANDBOX?</h3>
+              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('evolve.deleteSandbox')}</h3>
               <button onClick={() => setWorkplaceToDelete(null)} className="hover:text-[#bf616a] hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="rotate-1 flex flex-col gap-3">
@@ -658,10 +660,10 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
             </div>
             <div className="flex gap-4 rotate-1 mt-2">
               <button onClick={() => setWorkplaceToDelete(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">
-                CANCEL
+                {t('evolve.cancel')}
               </button>
               <button onClick={executeDeleteWorkplace} style={sketchyShape1} className="flex-[1.5] bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 flex items-center justify-center gap-2">
-                <Trash2 size={20} strokeWidth={3}/> DESTROY IT
+                <Trash2 size={20} strokeWidth={3}/> {t('evolve.destroyIt')}
               </button>
             </div>
           </div>
@@ -672,7 +674,7 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div style={sketchyShape1} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-1 max-w-sm w-full">
             <div className="flex justify-between items-center -rotate-1 border-b-4 border-ink/10 pb-2">
-              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>REVERT MAIN?</h3>
+              <h3 className="text-2xl font-black tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('evolve.revertConfirm')}</h3>
               <button onClick={() => setShowRollbackConfirm(false)} className="hover:text-[#bf616a] hover:scale-110 transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <div className="-rotate-1 flex flex-col gap-3">
@@ -685,10 +687,10 @@ export default function EvolvePage({ onBack }: { onBack: () => void }) {
             </div>
             <div className="flex gap-4 -rotate-1 mt-2">
               <button onClick={() => setShowRollbackConfirm(false)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1">
-                CANCEL
+                {t('evolve.cancel')}
               </button>
               <button onClick={executeRollback} style={sketchyShape2} className="flex-[1.5] bg-[#bf616a] text-paper font-black py-3 border-4 border-ink hover:bg-[#a54e56] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 flex items-center justify-center gap-2">
-                <Undo2 size={20} strokeWidth={3}/> DO REVERT
+                <Undo2 size={20} strokeWidth={3}/> {t('evolve.doRevert')}
               </button>
             </div>
           </div>

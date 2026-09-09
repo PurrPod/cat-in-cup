@@ -4,6 +4,7 @@ import { useFlowStore } from '../store/flowStore'
 import { Trash2, CheckCircle, FileJson, Upload, ArrowLeft, FolderOpen, X, Plus } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import type { AgentLoopEditorHandle } from './AgentLoopEditor'
+import { useTranslation } from '../i18n'
 
 interface GraphFile { name: string; path: string }
 interface ParadigmFile { name: string; is_default: boolean }
@@ -26,6 +27,7 @@ interface ToolbarProps {
 }
 
 export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agentLoop }: ToolbarProps) {
+  const { t } = useTranslation()
   const { exportGraph, validateGraph, clearGraph, loadGraph } = useFlowStore()
 
   // Open 菜单状态
@@ -235,14 +237,14 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
                       mode === m ? 'bg-ink text-paper' : 'text-ink hover:bg-sand'
                     }`}
                   >
-                    {m === 'workflow' ? 'WORKFLOW' : 'AGENT LOOP'}
+                    {m === 'workflow' ? t('editor.workflow') : t('editor.agentLoop')}
                   </button>
                 ))}
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-4">
-              <h1 className="text-3xl font-black text-ink tracking-widest mt-1" style={{ fontFamily: '"Comic Sans MS", cursive' }}>WORKFLOW</h1>
+              <h1 className="text-3xl font-black text-ink tracking-widest mt-1" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.workflow')}</h1>
             </div>
           )}
         </div>
@@ -259,15 +261,15 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
           <div className="relative" ref={menuRef}>
             <button onClick={handleToggleMenu} style={sketchyShape1} className="flex items-center gap-3 px-6 py-3 bg-cream border-4 border-ink text-ink font-black hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 -rotate-2 hover:rotate-0">
               <FolderOpen size={22} strokeWidth={2.5} />
-              <span className="text-lg tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>OPEN</span>
+              <span className="text-lg tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.open')}</span>
             </button>
 
             {showFileMenu && (
               <div style={sketchyShape2} className="absolute right-0 top-full mt-6 w-72 bg-paper border-4 border-ink shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] z-50 overflow-hidden rotate-2">
-                <div className="p-4 border-b-4 border-ink bg-terracotta/10 font-black text-ink tracking-widest text-center text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SAVED GRAPHS</div>
+                <div className="p-4 border-b-4 border-ink bg-terracotta/10 font-black text-ink tracking-widest text-center text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.savedGraphs')}</div>
                 <div className="max-h-72 overflow-y-auto p-3 flex flex-col gap-2">
                   {graphFiles.length === 0 ? (
-                    <div className="p-4 text-center font-bold text-ink/50" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Nothing here</div>
+                    <div className="p-4 text-center font-bold text-ink/50" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.nothing')}</div>
                   ) : (
                     graphFiles.map((file, idx) => (
                       <button key={file.name} onClick={() => handleEditExisting(file.name)} style={idx % 2 === 0 ? sketchyShape1 : sketchyShape3} className="w-full flex items-center gap-3 p-4 text-left border-4 border-transparent hover:border-ink hover:bg-cream transition-all group font-bold">
@@ -282,19 +284,19 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
           </div>
 
           {/* 校验按钮 */}
-          <button onClick={handleValidate} style={sketchyShape3} className="flex items-center justify-center p-3 bg-cream border-4 border-ink text-ink font-black hover:bg-[#a3be8c] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 rotate-2" title="Validate">
+          <button onClick={handleValidate} style={sketchyShape3} className="flex items-center justify-center p-3 bg-cream border-4 border-ink text-ink font-black hover:bg-[#a3be8c] transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 rotate-2" title={t('editor.validate')}>
             <CheckCircle size={24} strokeWidth={2.5} />
           </button>
 
           {/* 清空按钮 */}
-          <button onClick={() => setIsClearModalOpen(true)} style={sketchyShape2} className="flex items-center justify-center p-3 bg-cream border-4 border-ink text-ink font-black hover:bg-[#bf616a] hover:text-paper transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 -rotate-3" title="Clear Canvas">
+          <button onClick={() => setIsClearModalOpen(true)} style={sketchyShape2} className="flex items-center justify-center p-3 bg-cream border-4 border-ink text-ink font-black hover:bg-[#bf616a] hover:text-paper transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 -rotate-3" title={t('editor.clearCanvas')}>
             <Trash2 size={24} strokeWidth={2.5} />
           </button>
 
           {/* 部署按钮 (唤起弹窗) */}
           <button onClick={() => setIsDeployModalOpen(true)} style={sketchyShape1} className="flex items-center gap-3 px-8 py-3 bg-ink text-paper border-4 border-ink hover:bg-gray-800 transition-all shadow-[6px_6px_0px_0px_rgba(212,122,90,1)] active:shadow-none active:translate-y-1 rotate-1 ml-4">
             <Upload size={22} strokeWidth={2.5} />
-            <span className="tracking-widest text-lg font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DEPLOY</span>
+            <span className="tracking-widest text-lg font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.deploy')}</span>
           </button>
         </div>
         )}
@@ -309,7 +311,7 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
 
             {/* 当前文件 + 脏标记 */}
             <div className="hidden 2xl:flex flex-col items-start gap-0.5 pr-4 border-r-4 border-ink">
-              <span className="text-[11px] font-black text-ink/40 tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>FILE</span>
+              <span className="text-[11px] font-black text-ink/40 tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.file')}</span>
               <span className="flex items-center gap-2 text-lg font-black text-ink max-w-[220px] truncate" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
                 {agentLoop.active ? `${agentLoop.active}.yaml` : '—'}
                 {agentLoop.dirty && <span className="inline-block w-2.5 h-2.5 shrink-0 rounded-full bg-[#D47A5A] border-2 border-ink" title="有未保存修改" />}
@@ -320,19 +322,19 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
             <div className="relative" ref={menuRef}>
               <button onClick={handleToggleMenu} style={sketchyShape1} className="flex items-center gap-3 px-6 py-3 bg-cream border-4 border-ink text-ink font-black hover:bg-sand transition-all shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 -rotate-2 hover:rotate-0">
                 <FolderOpen size={22} strokeWidth={2.5} />
-                <span className="text-lg tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>OPEN</span>
+                <span className="text-lg tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.open')}</span>
               </button>
 
               {showFileMenu && (
                 <div style={sketchyShape2} className="absolute right-0 top-full mt-6 w-80 bg-paper border-4 border-ink shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] z-50 overflow-hidden rotate-2">
-                  <div className="p-4 border-b-4 border-ink bg-terracotta/10 font-black text-ink tracking-widest text-center text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>PARADIGMS</div>
+                  <div className="p-4 border-b-4 border-ink bg-terracotta/10 font-black text-ink tracking-widest text-center text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.paradigms')}</div>
                   <div className="max-h-80 overflow-y-auto p-3 flex flex-col gap-2">
                     <button onClick={createParadigm} style={sketchyShape3} className="w-full flex items-center gap-3 p-3 text-left border-4 border-ink bg-cream hover:bg-sand transition-all font-black text-ink">
                       <Plus size={18} strokeWidth={3} className="text-terracotta" />
                       <span className="text-lg" style={{ fontFamily: '"Comic Sans MS", cursive' }}>新建 Paradigm…</span>
                     </button>
                     {paradigmFiles.length === 0 ? (
-                      <div className="p-4 text-center font-bold text-ink/50" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Nothing here</div>
+                      <div className="p-4 text-center font-bold text-ink/50" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.nothing')}</div>
                     ) : (
                       paradigmFiles.map((f, idx) => (
                         <div key={f.name} className="flex items-stretch gap-1">
@@ -391,14 +393,14 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
             <button onClick={() => setIsDeployModalOpen(false)} className="absolute top-4 right-4 hover:rotate-90 transition-transform">
               <X size={32} strokeWidth={3} />
             </button>
-            <h3 className="text-3xl font-black mb-6 tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>SAVE WORKFLOW</h3>
-            <p className="font-bold mb-2 opacity-60">Give your cat-powered graph a name:</p>
+            <h3 className="text-3xl font-black mb-6 tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.saveWorkflow')}</h3>
+            <p className="font-bold mb-2 opacity-60">{t('editor.namePrompt')}</p>
             <input 
               value={workflowName} onChange={e => setWorkflowName(e.target.value)}
               style={sketchyShape2} className="w-full bg-cream border-4 border-ink p-4 text-xl font-bold mb-4 focus:outline-none"
               placeholder="e.g. data_pipeline"
             />
-            <p className="font-bold mb-2 opacity-60">Add a description (optional):</p>
+            <p className="font-bold mb-2 opacity-60">{t('editor.descriptionPrompt')}</p>
             <textarea 
               value={workflowDescription} onChange={e => setWorkflowDescription(e.target.value)}
               style={sketchyShape1} className="w-full bg-cream border-4 border-ink p-4 text-lg font-bold mb-8 focus:outline-none resize-none h-24"
@@ -428,7 +430,7 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
                 STAY
               </button>
               <button onClick={() => { setIsExitModalOpen(false); onBack?.(); }} style={sketchyShape2} className="flex-1 py-3 bg-[#bf616a] text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500">
-                LEAVE
+                {t('editor.leave')}
               </button>
             </div>
           </div>
@@ -439,16 +441,16 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
       {isClearModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4 pointer-events-auto">
           <div style={sketchyShape3} className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-sm p-8 relative -rotate-1">
-            <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>CLEAR CANVAS?</h3>
+            <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.clearConfirm')}</h3>
             <p className="font-bold mb-6 opacity-80 text-lg">
               确定要清空画布吗？当前画板上未部署的内容将永远丢失！
             </p>
             <div className="flex gap-4">
               <button onClick={() => setIsClearModalOpen(false)} style={sketchyShape1} className="flex-1 py-3 bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">
-                CANCEL
+                {t('editor.cancel')}
               </button>
               <button onClick={() => { clearGraph(); setIsClearModalOpen(false); }} style={sketchyShape2} className="flex-1 py-3 bg-[#bf616a] text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500 transition-all">
-                CLEAR
+                {t('editor.clear')}
               </button>
             </div>
           </div>
@@ -459,20 +461,20 @@ export default function Toolbar({ onBack, mode = 'workflow', onModeChange, agent
       {paradigmToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4 pointer-events-auto">
           <div style={sketchyShape3} className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-sm p-8 relative -rotate-1">
-            <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DELETE PARADIGM?</h3>
+            <h3 className="text-2xl font-black mb-4 tracking-widest text-[#bf616a]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('editor.deleteParadigm')}</h3>
             <p className="font-bold mb-6 opacity-80 text-lg">
               确定要删除 paradigm「{paradigmToDelete}」？该操作不可恢复！
             </p>
             <div className="flex gap-4">
               <button onClick={() => setParadigmToDelete(null)} style={sketchyShape1} className="flex-1 py-3 bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">
-                CANCEL
+                {t('editor.cancel')}
               </button>
               <button
                 onClick={() => void deleteParadigm(paradigmToDelete)}
                 style={sketchyShape2}
                 className="flex-1 py-3 bg-[#bf616a] text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500 transition-all"
               >
-                DELETE
+                {t('editor.delete')}
               </button>
             </div>
           </div>

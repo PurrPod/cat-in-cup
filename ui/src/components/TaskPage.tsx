@@ -11,6 +11,7 @@ import { toast } from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { extractToolContent } from './chat/ChatShared';
+import { useTranslation } from '../i18n';
 
 const sketchyShape1 = { borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' };
 const sketchyShape2 = { borderRadius: '15px 225px 15px 255px/255px 15px 225px 15px' };
@@ -218,6 +219,7 @@ const TaskMonitorNode = ({ id, data, selected }: TaskMonitorNodeProps) => {
 };
 
 export default function TaskPage({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [currentNodeLogs, setCurrentNodeLogs] = useState<LogEntry[]>([]);
@@ -571,7 +573,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
         <div className="fixed inset-0 bg-cream/70 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-10 flex flex-col items-center justify-center gap-6 shadow-[16px_16px_0px_0px_rgba(26,26,26,1)] -rotate-1 min-w-[320px]">
             <Activity size={64} className="animate-pulse text-terracotta" strokeWidth={2} />
-            <h3 className="text-3xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>LOADING TASK...</h3>
+            <h3 className="text-3xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.loading')}</h3>
           </div>
         </div>
       )}
@@ -605,7 +607,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
                    return messages.length === 0 ? (
                      <div className="flex flex-col items-center justify-center h-full opacity-40 gap-4 text-ink font-sans">
                        <MessageCircle size={64} strokeWidth={1.5} />
-                       <p className="text-xl font-bold">No conversation history yet.</p>
+                       <p className="text-xl font-bold">{t('task.noHistory')}</p>
                      </div>
                    ) : (
                      <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto font-sans">
@@ -630,7 +632,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
                                    <div style={sketchyShape1} className="w-full p-6 border-4 border-ink relative bg-cream text-ink shadow-[6px_6px_0px_0px_rgba(26,26,26,1)]">
                                      <div className="flex items-center gap-2 mb-4">
                                        <Cat size={20} strokeWidth={2.5}/>
-                                       <span className="font-black text-sm uppercase tracking-widest bg-ink text-paper px-2 py-0.5" style={{ ...sketchyShape3, fontFamily: '"Comic Sans MS", cursive' }}>ASSISTANT</span>
+                                       <span className="font-black text-sm uppercase tracking-widest bg-ink text-paper px-2 py-0.5" style={{ ...sketchyShape3, fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.assistant')}</span>
                                      </div>
                                      <div className="text-[17px] font-bold text-ink">
                                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>{msg.content}</ReactMarkdown>
@@ -654,7 +656,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
                  return currentNodeLogs.length === 0 ? (
                    <div className="flex flex-col items-center justify-center h-full opacity-40 gap-4 text-ink font-sans">
                      <Box size={64} strokeWidth={1.5} />
-                     <p className="text-xl font-bold">No execution logs found.</p>
+                     <p className="text-xl font-bold">{t('task.noLogs')}</p>
                    </div>
                  ) : (
                    <div className="flex flex-col gap-2">
@@ -682,7 +684,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
                                  <div className="w-3 h-3 rounded-full bg-[#bf616a] border-2 border-ink"></div>
                                  <div className="w-3 h-3 rounded-full bg-[#EBCB8B] border-2 border-ink"></div>
                                  <div className="w-3 h-3 rounded-full bg-[#a3be8c] border-2 border-ink"></div>
-                                 <span className="text-xs font-bold text-ink/40 ml-2" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Data Dashboard View</span>
+                                 <span className="text-xs font-bold text-ink/40 ml-2" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.dashboard')}</span>
                                </div>
                                <iframe srcDoc={log.content} className="w-full h-[calc(100%-2rem)] mt-8 border-none" sandbox="allow-scripts allow-popups" />
                              </div>
@@ -700,7 +702,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
               <input
                 style={sketchyShape3} value={pushMessage} onChange={(e) => setPushMessage(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleForcePush(); }}
-                placeholder={`Tell [${logModalNode.name}] what to do next...`} 
+                placeholder={`${t('task.launch')} · [${logModalNode.name}]`}
                 className={`flex-1 bg-[#FDF8F0] border-4 border-ink px-6 py-4 font-bold focus:outline-none focus:bg-white transition-all shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)] text-lg
                   ${logModalNode.state === 'waiting' ? 'border-[#d08770] placeholder:text-[#d08770]/60' : 'placeholder:text-ink/30'}`}
               />
@@ -719,9 +721,9 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4 pointer-events-auto">
           <div style={sketchyShape1} className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-lg p-8 relative rotate-1">
             <button onClick={() => { setIsCreateModalOpen(false); setIsDropdownOpen(false); }} className="absolute top-4 right-4 hover:rotate-90 transition-transform"><X size={32} strokeWidth={3} /></button>
-            <h3 className="text-3xl font-black mb-6 tracking-widest text-terracotta" style={{ fontFamily: '"Comic Sans MS", cursive' }}>LAUNCH MISSION</h3>
+            <h3 className="text-3xl font-black mb-6 tracking-widest text-terracotta" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.launch')}</h3>
             
-            <p className="font-bold mb-2 opacity-70 text-sm">1. Select Deployed Graph:</p>
+            <p className="font-bold mb-2 opacity-70 text-sm">{t('task.selectGraph')}</p>
             <div className="relative mb-4">
               <div
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -729,7 +731,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
                 className="w-full bg-cream border-4 border-ink p-3 text-lg font-bold cursor-pointer shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center justify-between hover:-translate-y-[1px] transition-transform select-none"
               >
                 <span className="truncate">
-                  {availableGraphs.length === 0 ? "No deployed graphs" : (launchGraphName || "Select a graph...")}
+                  {availableGraphs.length === 0 ? t('task.noGraphs') : (launchGraphName || t('task.selectGraphPlaceholder'))}
                 </span>
                 <ChevronDown
                   size={20}
@@ -768,7 +770,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
               )}
             </div>
 
-            <p className="font-bold mb-2 opacity-70 text-sm">2. Task Alias:</p>
+            <p className="font-bold mb-2 opacity-70 text-sm">{t('task.taskAlias')}</p>
             <input 
               value={launchTaskName} onChange={e => setLaunchTaskName(e.target.value)}
               style={sketchyShape3} className="w-full bg-cream border-4 border-ink p-3 text-lg font-bold mb-4 focus:outline-none placeholder:text-ink/30"
@@ -776,7 +778,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
             />
 
             <p className="font-bold mb-2 opacity-70 text-sm flex justify-between">
-              <span>3. Configuration inputs (JSON):</span>
+              <span>{t('task.configInputs')}</span>
               <span className="text-[11px] text-[#bf616a] opacity-80 font-normal">须双引号严格键值对</span>
             </p>
             <textarea 
@@ -787,10 +789,10 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
 
             <div className="flex gap-4 mt-2">
               <button onClick={() => { setIsCreateModalOpen(false); setIsDropdownOpen(false); }} style={sketchyShape2} className="flex-1 py-3 bg-cream border-4 border-ink text-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">
-                CANCEL
+                {t('task.cancel')}
               </button>
               <button onClick={handleLaunchTaskSubmit} style={sketchyShape1} className="flex-1 py-3 bg-terracotta border-4 border-ink text-paper font-black text-lg shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:translate-y-0.5 hover:shadow-none transition-all">
-                LAUNCH <Play size={16} className="inline ml-1" strokeWidth={3} fill="currentColor"/>
+                {t('task.launchAction')} <Play size={16} className="inline ml-1" strokeWidth={3} fill="currentColor"/>
               </button>
             </div>
           </div>
@@ -801,13 +803,13 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink p-8 flex flex-col gap-6 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] -rotate-1 max-w-sm w-full">
             <div className="flex justify-between items-center rotate-1">
-              <h3 className="text-2xl font-black text-[#bf616a] tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DESTROY RECORD?</h3>
+              <h3 className="text-2xl font-black text-[#bf616a] tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.destroyRecord')}</h3>
               <button onClick={() => setTaskToDelete(null)} className="hover:scale-110 hover:text-terracotta transition-all"><X size={28} strokeWidth={3}/></button>
             </div>
             <p className="font-bold text-ink/70 rotate-1">确定要抹除该记录吗？此操作属于物理删除！</p>
             <div className="flex gap-4 mt-2 rotate-1">
-              <button onClick={() => setTaskToDelete(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 hover:bg-sand transition-all">CANCEL</button>
-              <button onClick={confirmDeleteTask} style={sketchyShape1} className="flex-1 bg-[#bf616a] text-paper font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 hover:bg-red-600 transition-all">DELETE</button>
+              <button onClick={() => setTaskToDelete(null)} style={sketchyShape3} className="flex-1 bg-cream text-ink font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 hover:bg-sand transition-all">{t('task.cancel')}</button>
+              <button onClick={confirmDeleteTask} style={sketchyShape1} className="flex-1 bg-[#bf616a] text-paper font-black py-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-1 hover:bg-red-600 transition-all">{t('task.delete')}</button>
             </div>
           </div>
         </div>
@@ -818,7 +820,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4 pointer-events-auto">
           <div style={sketchyShape2} className="bg-paper border-4 border-ink shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] w-full max-w-lg p-8 relative -rotate-1">
             <button onClick={() => { setIsTriggerModalOpen(false); setIsTriggerDropdownOpen(false); }} className="absolute top-4 right-4 hover:rotate-90 transition-transform"><X size={32} strokeWidth={3} /></button>
-            <h3 className="text-3xl font-black mb-6 tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>NEW TRIGGER</h3>
+            <h3 className="text-3xl font-black mb-6 tracking-widest text-[#d08770]" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.newTrigger')}</h3>
 
             <div className="flex flex-col gap-3">
               <input
@@ -862,8 +864,8 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
             </div>
 
             <div className="flex gap-4 mt-4">
-              <button onClick={() => { setIsTriggerModalOpen(false); setIsTriggerDropdownOpen(false); }} style={sketchyShape1} className="flex-1 py-3 bg-cream border-4 border-ink text-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">CANCEL</button>
-              <button onClick={handleSaveTrigger} style={sketchyShape3} className="flex-1 py-3 bg-ink text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-terracotta hover:text-ink hover:-translate-y-0.5 transition-all">CREATE</button>
+              <button onClick={() => { setIsTriggerModalOpen(false); setIsTriggerDropdownOpen(false); }} style={sketchyShape1} className="flex-1 py-3 bg-cream border-4 border-ink text-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all">{t('task.cancel')}</button>
+              <button onClick={handleSaveTrigger} style={sketchyShape3} className="flex-1 py-3 bg-ink text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-terracotta hover:text-ink hover:-translate-y-0.5 transition-all">{t('task.create')}</button>
             </div>
           </div>
         </div>
@@ -887,19 +889,19 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
             className="flex-1 h-16 flex items-center justify-center gap-2 bg-[#EBCB8B] text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] rotate-2 hover:bg-[#d8b877] transition-all active:translate-y-0.5 active:shadow-none"
           >
             <Plus size={22} strokeWidth={2.5} />
-            <span className="tracking-widest text-lg font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Run</span>
+            <span className="tracking-widest text-lg font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.run')}</span>
           </button>
         </div>
 
         <div style={sketchyShape3} className="flex-1 bg-paper border-4 border-ink shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] p-5 flex flex-col gap-4 overflow-hidden -rotate-1 relative">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#EBCB8B]/40 border-2 border-ink rotate-2 z-10" style={sketchyShape1}></div>
           <div className="text-sm font-black text-ink uppercase tracking-widest mt-2 ml-1" style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-            <span className="bg-ink text-paper px-2 py-1 rotate-2 inline-block" style={sketchyShape2}>MONITOR</span>
+              <span className="bg-ink text-paper px-2 py-1 rotate-2 inline-block" style={sketchyShape2}>{t('task.monitor')}</span>
           </div>
           
           <div className="flex-1 overflow-y-auto flex flex-col gap-4 pr-1 mt-1">
             {tasks.length === 0 ? (
-               <div className="text-center font-bold text-ink/40 mt-10 italic">No tasks running.</div>
+               <div className="text-center font-bold text-ink/40 mt-10 italic">{t('task.noRunning')}</div>
             ) : (
               tasks.map((task, idx) => (
                 <div 
@@ -935,7 +937,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-4 bg-paper/80 backdrop-blur-md p-3 border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] pointer-events-auto -rotate-1" style={sketchyShape3}>
               <Terminal size={24} className="text-terracotta" strokeWidth={3} />
-              <h2 className="text-2xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>GRAPH VISUALIZER</h2>
+              <h2 className="text-2xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.visualizer')}</h2>
             </div>
 
             {selectedTaskId && currentSelectedTask?.state === 'running' && (
@@ -943,7 +945,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
                 onClick={handleKillTask} style={sketchyShape2}
                 className="pointer-events-auto flex items-center gap-2 bg-[#bf616a] text-paper border-4 border-ink px-5 py-2.5 font-black text-base shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500 hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all rotate-1"
               >
-                <Square size={16} strokeWidth={3} fill="currentColor" /><span style={{ fontFamily: '"Comic Sans MS", cursive' }}>STOP PROCESS</span>
+                <Square size={16} strokeWidth={3} fill="currentColor" /><span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.stopProcess')}</span>
               </button>
             )}
           </div>
@@ -956,7 +958,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
                 className="flex items-center gap-2 bg-[#EBCB8B] text-ink border-4 border-ink px-4 py-2 font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all rotate-1"
               >
                 <Activity size={18} strokeWidth={3} />
-                <span className="tracking-widest text-sm" style={{ fontFamily: '"Comic Sans MS", cursive' }}>DASHBOARD</span>
+                <span className="tracking-widest text-sm" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.dashboard')}</span>
               </button>
             )}
           </div>
@@ -974,7 +976,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-ink gap-6">
                <div style={sketchyShape1} className="p-8 border-4 border-ink bg-cream shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] -rotate-3"><Activity size={60} strokeWidth={2} className="text-[#EBCB8B]" /></div>
-               <p className="text-2xl font-black rotate-2 text-ink/60" style={{ fontFamily: '"Comic Sans MS", cursive' }}>Select a task to view its flow...</p>
+               <p className="text-2xl font-black rotate-2 text-ink/60" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('task.selectTask')}</p>
             </div>
           )}
         </div>
@@ -1004,7 +1006,7 @@ export default function TaskPage({ onBack }: { onBack: () => void }) {
               );
 
               if (agentNodes.length === 0) {
-                return <div className="text-center font-bold text-ink/40 py-4 text-sm">No Core Agent Nodes</div>;
+                return <div className="text-center font-bold text-ink/40 py-4 text-sm">{t('task.noAgentNodes')}</div>;
               }
 
               return agentNodes.map((n, idx) => {

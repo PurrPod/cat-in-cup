@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { sketchyShape1, sketchyShape2, sketchyShape3 } from './chat/ChatShared';
+import { useTranslation } from '../i18n';
 
 // 配置标签配置：key -> 中文名 + 说明（全局 settings 不再提供编辑页，数据根目录走侧栏迁移入口）
 const CONFIG_TABS: Array<{ key: string; label: string; tip: string }> = [
@@ -50,6 +51,7 @@ type ModelForm = {
 const MCP_NEW_SERVER_TEMPLATE = '{\n  "command": "npx",\n  "args": [],\n  "env": {}\n}';
 
 export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const purrcat = (window as any).purrcat;
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('model');
@@ -279,7 +281,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
       setMcpServers(servers);
       setMcpExpanded(null);
       setMcpEditStr('');
-      toast.success(`[${name}] 已修改，记得点 SAVE ALL 落盘！`);
+      toast.success(`[${name}] 已修改，请点击“${t('chat.saveAll')}”保存到磁盘。`);
     } catch {
       toast.error('JSON 格式不合法，无法保存此服务器');
     }
@@ -290,7 +292,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     delete servers[name];
     setMcpServers(servers);
     if (mcpExpanded === name) { setMcpExpanded(null); setMcpEditStr(''); }
-    toast.success(`[${name}] 已删除，记得点 SAVE ALL 落盘！`);
+    toast.success(`[${name}] 已删除，请点击“${t('chat.saveAll')}”保存到磁盘。`);
   };
 
   const addMcpServer = () => {
@@ -308,7 +310,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     setMcpServers({ ...servers, [name]: parsed });
     setNewServerName('');
     setNewServerJson(MCP_NEW_SERVER_TEMPLATE);
-    toast.success(`已添加 [${name}]，记得点 SAVE ALL 落盘！`);
+    toast.success(`已添加 [${name}]，请点击“${t('chat.saveAll')}”保存到磁盘。`);
   };
 
   // ══════════════ 通用 key-value 逻辑 ══════════════
@@ -330,7 +332,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
       setConfigData(newData);
       setRawJsonStr(JSON.stringify(getRawData(newData), null, 2));
       setExpandedKey(null);
-      toast.success(`[${key}] 已修改，记得点 SAVE ALL 落盘！`);
+      toast.success(`[${key}] 已修改，请点击“${t('chat.saveAll')}”保存到磁盘。`);
     } catch {
       toast.error("JSON 格式不合法，无法保存此项");
     }
@@ -342,7 +344,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     setConfigData(newData);
     setRawJsonStr(JSON.stringify(getRawData(newData), null, 2));
     if (expandedKey === key) { setExpandedKey(null); setKeyEditStr(''); }
-    toast.success(`[${key}] 已删除，记得点 SAVE ALL 落盘！`);
+    toast.success(`[${key}] 已删除，请点击“${t('chat.saveAll')}”保存到磁盘。`);
   };
 
   const handleAddKey = () => {
@@ -367,7 +369,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
     setConfigData(newData);
     setRawJsonStr(JSON.stringify(getRawData(newData), null, 2));
     resetNewKeyForm();
-    toast.success(`已添加 [${newKey}]，记得点 SAVE ALL 落盘！`);
+    toast.success(`已添加 [${newKey}]，请点击“${t('chat.saveAll')}”保存到磁盘。`);
   };
 
   // ── 整体保存（可视化模式和 raw 模式统一走这里） ──
@@ -430,7 +432,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
           <div className="w-64 shrink-0 border-r-4 border-ink/20 flex flex-col p-6 gap-6 overflow-y-auto">
             <div className="flex items-center gap-3">
               <Settings size={36} strokeWidth={2.5} className="text-terracotta" />
-              <h2 className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>CONFIG</h2>
+              <h2 className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('chat.config')}</h2>
             </div>
 
             {/* 路径信息条 */}
@@ -512,7 +514,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                   style={sketchyShape1}
                   className="px-6 py-2 bg-[#a3be8c] border-4 border-ink text-ink font-black flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#8eb072] active:translate-y-1 active:shadow-none transition-all rotate-1"
                 >
-                  <Save size={20} strokeWidth={3} /> SAVE ALL
+                  <Save size={20} strokeWidth={3} /> {t('chat.saveAll')}
                 </button>
               </div>
             </div>
@@ -546,13 +548,13 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                           <div className="flex items-center gap-3 min-w-0">
                             <CatIcon size={26} strokeWidth={2.5} className={isEditing ? 'text-terracotta' : 'text-[#EBCB8B]'} />
                             <div className="min-w-0">
-                              <div className="text-xl font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{cat.label}</div>
+                               <div className="text-xl font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{cat.key === 'main' ? t('chat.coreModel') : cat.key === 'task' ? t('chat.backgroundModel') : t('chat.visionAdvisor')}</div>
                               <div className={`text-xs font-bold opacity-60 mt-1 truncate ${isEditing ? 'text-paper/60' : 'text-ink/60'}`}>
                                 {cat.desc} · <span className="font-mono">{modelEntrySummary(cat.key)}</span>
                               </div>
                             </div>
                           </div>
-                          <span className="font-bold opacity-50 shrink-0">{isEditing ? 'CLOSE' : 'EDIT'}</span>
+                           <span className="font-bold opacity-50 shrink-0">{isEditing ? t('chat.closeEdit') : t('chat.edit')}</span>
                         </button>
                       </div>
 
@@ -631,7 +633,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
 
                 <div className="text-xs font-bold text-ink/40 flex items-start gap-1">
                   <Info size={14} className="shrink-0 mt-0.5" />
-                  填写内容实时暂存，折叠 / 切页不会丢失，只要不关掉配置中心就一直在；点右上角 SAVE ALL 统一落盘并热重载模型。视觉顾问仅需 SDK / 模型名 / Base URL / API Key。
+                   填写内容实时暂存，折叠 / 切页不会丢失，只要不关掉配置中心就一直在；点右上角 {t('chat.saveAll')} 统一落盘并热重载模型。视觉顾问仅需 SDK / 模型名 / Base URL / API Key。
                 </div>
               </div>
             )}
@@ -716,7 +718,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                     </div>
                     <div>
                       <div className="text-xl font-black text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>新增 MCP 服务器</div>
-                      <div className="text-sm font-bold text-ink/50">填完点击右侧 ADD 按钮，然后记得 SAVE ALL 落盘</div>
+                      <div className="text-sm font-bold text-ink/50">填写完成后点击右侧“添加”，再点击“{t('chat.saveAll')}”保存到磁盘</div>
                     </div>
                   </div>
 
@@ -825,7 +827,7 @@ export default function ConfigModal({ isOpen, onClose }: { isOpen: boolean; onCl
                     </div>
                     <div>
                       <div className="text-xl font-black text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>新增配置项</div>
-                      <div className="text-sm font-bold text-ink/50">填完后点击右侧 ADD 按钮，然后记得 SAVE ALL 落盘</div>
+                      <div className="text-sm font-bold text-ink/50">填写完成后点击右侧“添加”，再点击“{t('chat.saveAll')}”保存到磁盘</div>
                     </div>
                   </div>
 

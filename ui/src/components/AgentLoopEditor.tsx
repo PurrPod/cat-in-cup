@@ -1674,7 +1674,7 @@ const AgentLoopEditor = forwardRef<AgentLoopEditorHandle, AgentLoopEditorProps>(
                 style={sketchyShape2}
                 className="flex-1 py-3 bg-[#bf616a] text-paper border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-red-500 transition-all"
               >
-                SWITCH
+                切换
               </button>
             </div>
           </div>

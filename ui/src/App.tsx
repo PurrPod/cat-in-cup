@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { Minus, Square, X } from 'lucide-react';
+import { Languages, Minus, Square, X } from 'lucide-react';
+import { useTranslation } from './i18n';
 
 import HomePage from './components/HomePage';
 import ChatPage from './components/ChatPage';
@@ -18,20 +19,21 @@ const sketchyBtn = { borderRadius: '6px 10px 5px 8px/8px 5px 10px 6px' };
 
 function WindowControls() {
   const purrcat = (window as any).purrcat;
+  const { t } = useTranslation();
   if (!purrcat?.winMinimize) return null;
   return (
     <div className="no-drag fixed top-2.5 right-2 z-[2147483647] flex gap-2 items-center">
-      <button onClick={() => purrcat.winMinimize()} title="最小化"
+      <button onClick={() => purrcat.winMinimize()} title={t('common.minimize')}
         className="win-ctrl w-7 h-7 border-2 border-ink bg-transparent flex items-center justify-center text-ink hover:bg-ink/10 hover:-translate-y-0.5 transition-all"
         style={sketchyBtn}>
         <Minus size={14} strokeWidth={3.5} />
       </button>
-      <button onClick={() => purrcat.winToggleMaximize()} title="最大化"
+      <button onClick={() => purrcat.winToggleMaximize()} title={t('common.maximize')}
         className="win-ctrl w-7 h-7 border-2 border-ink bg-transparent flex items-center justify-center text-ink hover:bg-ink/10 hover:-translate-y-0.5 transition-all"
         style={sketchyBtn}>
         <Square size={11} strokeWidth={3.5} />
       </button>
-      <button onClick={() => purrcat.winClose()} title="关闭"
+      <button onClick={() => purrcat.winClose()} title={t('common.close')}
         className="win-ctrl w-7 h-7 border-2 border-ink bg-transparent flex items-center justify-center text-ink hover:bg-terracotta hover:text-white hover:border-terracotta hover:-translate-y-0.5 transition-all"
         style={sketchyBtn}>
         <X size={14} strokeWidth={3.5} />
@@ -40,10 +42,28 @@ function WindowControls() {
   );
 }
 
+function LanguageSwitcher() {
+  const { locale, toggleLocale, t } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={toggleLocale}
+      title={`${t('common.language')}: ${locale === 'zh-CN' ? t('common.chinese') : t('common.english')}`}
+      aria-label={t('common.language')}
+      className="no-drag fixed top-2.5 left-2 z-[2147483647] flex items-center gap-1.5 px-2.5 h-7 border-2 border-ink bg-paper text-ink font-black text-xs hover:bg-sand transition-all"
+      style={sketchyBtn}
+    >
+      <Languages size={14} strokeWidth={3} />
+      <span>{locale === 'zh-CN' ? '中' : 'EN'}</span>
+    </button>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <WindowControls />
+      <LanguageSwitcher />
       <DataSetupGate />
       <Routes>
         <Route path="/" element={<HomeRouteWrapper />} />
@@ -138,6 +158,7 @@ function IdeRouteWrapper() {
   // 从 hash 中解析 workspace 路径（#workspace=<encoded>）
   const wsMatch = window.location.hash.match(/workspace=([^&]*)/);
   const workspacePath = wsMatch && wsMatch[1] ? decodeURIComponent(wsMatch[1]) : '';
+  const { t } = useTranslation();
   // 与主窗口 ChatPage 一致的点阵手绘背景
   return (
     <div className="absolute inset-0 bg-[#fdfaf5] bg-[radial-gradient(#1a1a1a_1px,transparent_1px)] [background-size:24px_24px] p-6 md:p-8 overflow-hidden">
@@ -148,7 +169,7 @@ function IdeRouteWrapper() {
           if (purrcat?.ideReattach) purrcat.ideReattach();
         }} />
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-ink/40 font-black">No workspace specified.</div>
+        <div className="w-full h-full flex items-center justify-center text-ink/40 font-black">{t('common.noWorkspace')}</div>
       )}
     </div>
   );
