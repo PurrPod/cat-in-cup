@@ -1,6 +1,6 @@
 // src/components/MarketPage.tsx
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { ArrowLeft, Store, RefreshCw, User, AlertCircle, Zap, Server, Activity, GitMerge, X, Copy, Search, LayoutGrid, FolderGit2, Download, Check, ChevronLeft, Loader2, Link2, Repeat } from 'lucide-react';
+import { ArrowLeft, Store, RefreshCw, User, AlertCircle, Zap, Server, Activity, GitMerge, X, Copy, Search, LayoutGrid, FolderGit2, Download, Check, ChevronLeft, Loader2, Link2, Repeat, Languages } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from '../i18n';
 
@@ -15,6 +15,7 @@ type LayoutMode = 'repo' | 'skill';
 interface SkillEntry {
   name: string;
   desc: string;
+  'desc-zh'?: string;
   author: string;
   'icon-link'?: string;
   'skill-single-link': string;
@@ -25,6 +26,7 @@ interface SkillEntry {
 interface McpEntry {
   name: string;
   desc: string;
+  'desc-zh'?: string;
   'icon-link'?: string;
   repo: string;
   mcpServers: Record<string, any>;
@@ -34,6 +36,7 @@ interface McpEntry {
 interface SensorEntry {
   name: string;
   description?: string;
+  'description-zh'?: string;
   enabled?: boolean;
   env?: Record<string, string>;
   capabilities?: Record<string, any>;
@@ -50,6 +53,7 @@ interface InstalledSensor {
 interface GraphEntry {
   name: string;
   description?: string;
+  'description-zh'?: string;
   version?: string;
   global_schema?: any;
   [k: string]: any;
@@ -124,6 +128,29 @@ function shortDesc(desc: string, n = 30): string {
   return desc.length > n ? desc.slice(0, n) + '…' : desc;
 }
 
+// 按当前语言偏好取描述：开启中文且存在中文描述时优先中文，否则回退英文
+function pickDesc(en?: string, zh?: string, showZh = false): string {
+  return (showZh ? (zh || en) : en) || '';
+}
+
+// 详情弹窗描述语言切换按钮：英文 desc ↔ 中文 desc-zh（无中文描述时不显示）
+function DescLangButton({ hasZh, showZh, onToggle }: { hasZh: boolean; showZh: boolean; onToggle: () => void }) {
+  const { t } = useTranslation();
+  if (!hasZh) return null;
+  return (
+    <button
+      onClick={onToggle}
+      title={t('common.language')}
+      aria-label={t('common.language')}
+      style={sketchyShape2}
+      className="flex items-center gap-1 text-xs font-black bg-cream border-2 border-ink px-2 py-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all active:translate-y-[1px] active:shadow-none shrink-0"
+    >
+      <Languages size={12} strokeWidth={3} />
+      <span>{showZh ? 'EN' : '中'}</span>
+    </button>
+  );
+}
+
 export default function MarketPage({ onBack, initialTab }: { onBack: () => void; initialTab?: MarketTab }) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<MarketTab>(initialTab ?? 'skill');
@@ -168,6 +195,8 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('repo');
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<SkillEntry | null>(null);
+  // 详情弹窗描述语言：默认英文 desc，开启后显示中文 desc-zh / description-zh
+  const [showZhDesc, setShowZhDesc] = useState(false);
   const [installedNames, setInstalledNames] = useState<Set<string>>(new Set());
   const [installingSet, setInstallingSet] = useState<Set<string>>(new Set());
   const [isInstallingAll, setIsInstallingAll] = useState(false);
@@ -620,8 +649,11 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
 
               {/* 弹窗 Body：完整描述 */}
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh]">
-                <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
-                <p className="text-[15px] font-bold leading-relaxed text-ink/80 mt-3 whitespace-pre-wrap break-words">{selectedSkill.desc || t('market.noDesc')}</p>
+                <div className="flex justify-between items-end gap-3">
+                  <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
+                  <DescLangButton hasZh={!!selectedSkill['desc-zh']} showZh={showZhDesc} onToggle={() => setShowZhDesc(v => !v)} />
+                </div>
+                <p className="text-[15px] font-bold leading-relaxed text-ink/80 mt-3 whitespace-pre-wrap break-words">{pickDesc(selectedSkill.desc, selectedSkill['desc-zh'], showZhDesc) || t('market.noDesc')}</p>
                 <p className="text-xs font-bold text-ink/40 mt-4 break-all">{t('market.sourceRepoPrefix')}{selectedSkill.repo}</p>
               </div>
 
@@ -685,8 +717,11 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               {/* 弹窗 Body：描述 + mcpServers schema */}
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh] flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
-                  <span className="font-black text-ink tracking-widest text-sm">DESCRIPTION:</span>
-                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedMcpInfo.desc || t('market.noDesc')}</p>
+                  <div className="flex justify-between items-end gap-3">
+                    <span className="font-black text-ink tracking-widest text-sm">DESCRIPTION:</span>
+                    <DescLangButton hasZh={!!selectedMcpInfo['desc-zh']} showZh={showZhDesc} onToggle={() => setShowZhDesc(v => !v)} />
+                  </div>
+                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{pickDesc(selectedMcpInfo.desc, selectedMcpInfo['desc-zh'], showZhDesc) || t('market.noDesc')}</p>
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -827,8 +862,11 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
 
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh] flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
-                  <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
-                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedSensor.description || t('market.noDesc')}</p>
+                  <div className="flex justify-between items-end gap-3">
+                    <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
+                    <DescLangButton hasZh={!!selectedSensor['description-zh']} showZh={showZhDesc} onToggle={() => setShowZhDesc(v => !v)} />
+                  </div>
+                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{pickDesc(selectedSensor.description, selectedSensor['description-zh'], showZhDesc) || t('market.noDesc')}</p>
                 </div>
 
                 {envKeys.length > 0 && (
@@ -924,8 +962,11 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
 
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh] flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
-                <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
-                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedGraph.description || t('market.noDesc')}</p>
+                  <div className="flex justify-between items-end gap-3">
+                    <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
+                    <DescLangButton hasZh={!!selectedGraph['description-zh']} showZh={showZhDesc} onToggle={() => setShowZhDesc(v => !v)} />
+                  </div>
+                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{pickDesc(selectedGraph.description, selectedGraph['description-zh'], showZhDesc) || t('market.noDesc')}</p>
                 </div>
 
                 {selectedGraph.global_schema && Object.keys(selectedGraph.global_schema).length > 0 && (
