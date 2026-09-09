@@ -199,10 +199,10 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
       if (res.ok) {
         const data = await res.json();
         setSkillData(data.skills || {});
-        if (isManual) toast.success("Skills 列表已刷新！");
+        if (isManual) toast.success(t('market.skillsRefreshed'));
       }
     } catch {
-      toast.error("Skills 仓库请求失败");
+      toast.error(t('market.skillsFetchFailed'));
     } finally {
       setIsFetchingSkill(false);
     }
@@ -231,10 +231,10 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
       if (res.ok) {
         const data = await res.json();
         setMcpData(Array.isArray(data.mcps) ? data.mcps : Object.values(data.mcps || {}));
-        if (isManual) toast.success("MCP Servers 列表已刷新！");
+        if (isManual) toast.success(t('market.mcpRefreshed'));
       }
     } catch {
-      toast.error("MCP 仓库请求失败");
+      toast.error(t('market.mcpFetchFailed'));
     } finally {
       setIsFetchingMcp(false);
     }
@@ -248,13 +248,13 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
       if (res.ok) {
         const data = await res.json();
         setSensorData(Array.isArray(data?.sensors) ? data.sensors : []);
-        if (isManual) toast.success("Sensors 列表已刷新！");
+        if (isManual) toast.success(t('market.sensorsRefreshed'));
       } else {
         const err = await res.json().catch(() => null);
-        toast.error(err?.detail || "Sensors 仓库请求失败");
+        toast.error(err?.detail || t('market.sensorsFetchFailed'));
       }
     } catch {
-      toast.error("Sensors 仓库请求失败");
+      toast.error(t('market.sensorsFetchFailed'));
     } finally {
       setIsFetchingSensor(false);
     }
@@ -281,13 +281,13 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
       if (res.ok) {
         const data = await res.json();
         setGraphData(Array.isArray(data?.graphs) ? data.graphs : []);
-        if (isManual) toast.success("Graphs 列表已刷新！");
+        if (isManual) toast.success(t('market.graphsRefreshed'));
       } else {
         const err = await res.json().catch(() => null);
-        toast.error(err?.detail || "Graphs 仓库请求失败");
+        toast.error(err?.detail || t('market.graphsFetchFailed'));
       }
     } catch {
-      toast.error("Graphs 仓库请求失败");
+      toast.error(t('market.graphsFetchFailed'));
     } finally {
       setIsFetchingGraph(false);
     }
@@ -330,15 +330,15 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
       });
       if (res.ok) {
         const data = await res.json().catch(() => null);
-        toast.success(data?.message || `MCP '${mcp.name}' 安装成功！`);
+        toast.success(data?.message || `${t('market.mcpInstalledPrefix')}${mcp.name}${t('market.mcpInstalledSuffix')}`);
         setMcpInstallConfirm(null);
         await fetchLocalMcps();
       } else {
         const err = await res.json().catch(() => null);
-        toast.error(err?.detail || 'MCP 安装失败');
+        toast.error(err?.detail || t('market.mcpInstallFailed'));
       }
     } catch {
-      toast.error('MCP 安装失败，请检查网络');
+      toast.error(t('market.mcpInstallFailedNetwork'));
     } finally {
       setInstallingMcpName(null);
     }
@@ -359,18 +359,18 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
   const handleBuildMcpFromScratch = async () => {
     const name = factoryMcpName.trim();
     const goal = factoryGoal.trim();
-    if (!name) return toast.error('请为你的 MCP 起个名字！');
-    if (!goal) return toast.error('请描述目标功能！');
+    if (!name) return toast.error(t('market.mcpNameRequired'));
+    if (!goal) return toast.error(t('market.goalRequired'));
 
     setIsBuildingMcp(true);
-    const tid = toast.loading('正在为你分配 MCP 进化工厂...');
+    const tid = toast.loading(t('market.allocatingMcpFactory'));
     try {
       const res = await fetch('/api/evolve/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'mcp', name, is_upgrade: false, goal })
       });
-      if (!res.ok) throw new Error('分配沙盒失败');
+      if (!res.ok) throw new Error(t('market.sandboxAllocFailed'));
       const data = await res.json();
       const factoryPath = `/agent_vm/mcp_workplace/${data.workplace_id}/${name}`;
 
@@ -381,12 +381,12 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
         body: JSON.stringify({ session_id: '', events: [{ type: 'evolve_factory', content }] })
       });
 
-      toast.success('已将 MCP 构建任务派发给 Agent！', { id: tid });
+      toast.success(t('market.mcpTaskDispatched'), { id: tid });
       setShowMcpFactoryModal(false);
       setFactoryMcpName('');
       setFactoryGoal('');
     } catch {
-      toast.error('工厂分配失败，请检查 Agent 状态', { id: tid });
+      toast.error(t('market.factoryAllocFailed'), { id: tid });
     } finally {
       setIsBuildingMcp(false);
     }
@@ -421,7 +421,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('已复制到剪贴板！');
+    toast.success(t('market.copied'));
   };
 
   const isInstalled = (skill: SkillEntry) =>
@@ -439,14 +439,14 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
         body: JSON.stringify({ url: skill['skill-single-link'] }),
       });
       if (res.ok) {
-        toast.success(`Skill '${skill.name}' 安装成功！`);
+        toast.success(`${t('market.skillInstalledPrefix')}${skill.name}${t('market.skillInstalledSuffix')}`);
         await fetchLocalSkills();
       } else {
         const err = await res.json().catch(() => null);
-        toast.error(err?.detail || 'Skill 安装失败');
+        toast.error(err?.detail || t('market.skillInstallFailed'));
       }
     } catch {
-      toast.error('Skill 安装失败，请检查网络');
+      toast.error(t('market.skillInstallFailedNetwork'));
     } finally {
       setInstallingSet(prev => { const n = new Set(prev); n.delete(key); return n; });
     }
@@ -456,9 +456,9 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
   const handleInstallAllInRepo = async (skills: SkillEntry[]) => {
     if (isInstallingAll) return;
     const pending = skills.filter(s => !isInstalled(s));
-    if (pending.length === 0) return toast.success('该仓库的技能已全部安装！');
+    if (pending.length === 0) return toast.success(t('market.repoAllInstalled'));
     setIsInstallingAll(true);
-    const tid = toast.loading(`正在批量安装 ${pending.length} 个技能...`);
+    const tid = toast.loading(`${t('market.batchInstallingPrefix')}${pending.length}${t('market.batchInstallingSuffix')}`);
     try {
       const res = await fetch('/api/tools/skills/install-batch', {
         method: 'POST',
@@ -470,14 +470,14 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
         if (data?.failed?.length) {
           toast.error(`${data.message}：${data.failed.map((f: any) => f.path).join('、')}`, { id: tid });
         } else {
-          toast.success(data?.message || '批量安装完成！', { id: tid });
+          toast.success(data?.message || t('market.batchInstallDone'), { id: tid });
         }
         await fetchLocalSkills();
       } else {
-        toast.error(data?.detail || '批量安装失败', { id: tid });
+        toast.error(data?.detail || t('market.batchInstallFailed'), { id: tid });
       }
     } catch {
-      toast.error('批量安装失败，请检查网络', { id: tid });
+      toast.error(t('market.batchInstallFailedNetwork'), { id: tid });
     } finally {
       setIsInstallingAll(false);
     }
@@ -505,16 +505,16 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
       const data = await res.json().catch(() => null);
       if (res.ok) {
         if (data?.status === 'partial') {
-          toast(data?.message || 'Sensor 配置已安装，代码下载稍后重试', { icon: '⚠️' });
+          toast(data?.message || t('market.sensorPartialInstalled'), { icon: '⚠️' });
         } else {
-          toast.success(data?.message || `Sensor '${key}' 安装成功！`);
+          toast.success(data?.message || `${t('market.sensorInstalledPrefix')}${key}${t('market.sensorInstalledSuffix')}`);
         }
         await fetchLocalSensors();
       } else {
-        toast.error(data?.detail || 'Sensor 安装失败');
+        toast.error(data?.detail || t('market.sensorInstallFailed'));
       }
     } catch {
-      toast.error('Sensor 安装失败，请检查网络');
+      toast.error(t('market.sensorInstallFailedNetwork'));
     } finally {
       setInstallingSensorSet(prev => { const n = new Set(prev); n.delete(key); return n; });
     }
@@ -545,13 +545,13 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
       });
       const data = await res.json().catch(() => null);
       if (res.ok) {
-        toast.success(data?.message || `Graph '${key}' 安装成功！`);
+        toast.success(data?.message || `${t('market.graphInstalledPrefix')}${key}${t('market.graphInstalledSuffix')}`);
         await fetchLocalGraphs();
       } else {
-        toast.error(data?.detail || 'Graph 安装失败');
+        toast.error(data?.detail || t('market.graphInstallFailed'));
       }
     } catch {
-      toast.error('Graph 安装失败，请检查网络');
+      toast.error(t('market.graphInstallFailedNetwork'));
     } finally {
       setInstallingGraphSet(prev => { const n = new Set(prev); n.delete(key); return n; });
     }
@@ -621,8 +621,8 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               {/* 弹窗 Body：完整描述 */}
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh]">
                 <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
-                <p className="text-[15px] font-bold leading-relaxed text-ink/80 mt-3 whitespace-pre-wrap break-words">{selectedSkill.desc || '（暂无描述）'}</p>
-                <p className="text-xs font-bold text-ink/40 mt-4 break-all">来源仓库: {selectedSkill.repo}</p>
+                <p className="text-[15px] font-bold leading-relaxed text-ink/80 mt-3 whitespace-pre-wrap break-words">{selectedSkill.desc || t('market.noDesc')}</p>
+                <p className="text-xs font-bold text-ink/40 mt-4 break-all">{t('market.sourceRepoPrefix')}{selectedSkill.repo}</p>
               </div>
 
               {/* 弹窗 Footer：link 跳转 + 下载安装 */}
@@ -631,7 +631,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                   href={selectedSkill['skill-single-link'] || selectedSkill.repo}
                   target="_blank"
                   rel="noreferrer"
-                  title="跳转仓库"
+                  title={t('market.gotoRepo')}
                   style={sketchyShape1}
                   className="w-14 h-14 flex items-center justify-center bg-cream text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#88c0d0] hover:text-paper transition-all active:translate-y-1 active:shadow-none"
                 >
@@ -640,7 +640,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 <button
                   onClick={() => handleInstallSkill(selectedSkill)}
                   disabled={installed || installing}
-                  title={installed ? '已安装' : '下载安装'}
+                  title={installed ? t('market.installed') : t('market.downloadInstall')}
                   style={sketchyShape2}
                   className={`h-14 px-6 flex items-center gap-2 border-4 border-ink font-black text-lg shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-1 active:shadow-none ${
                     installed
@@ -651,7 +651,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                   }`}
                 >
                   {installing ? <Loader2 size={22} strokeWidth={3} className="animate-spin" /> : installed ? <Check size={22} strokeWidth={3} /> : <Download size={22} strokeWidth={3} />}
-                  <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{installing ? '安装中...' : installed ? '已安装' : '下载'}</span>
+                  <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{installing ? t('market.installing') : installed ? t('market.installed') : t('market.download')}</span>
                 </button>
               </div>
             </div>
@@ -686,7 +686,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh] flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
                   <span className="font-black text-ink tracking-widest text-sm">DESCRIPTION:</span>
-                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedMcpInfo.desc || '（暂无描述）'}</p>
+                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedMcpInfo.desc || t('market.noDesc')}</p>
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -709,7 +709,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                   href={selectedMcpInfo.repo}
                   target="_blank"
                   rel="noreferrer"
-                  title="跳转仓库"
+                  title={t('market.gotoRepo')}
                   style={sketchyShape1}
                   className="w-14 h-14 flex items-center justify-center bg-cream text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#88c0d0] hover:text-paper transition-all active:translate-y-1 active:shadow-none"
                 >
@@ -718,7 +718,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 <button
                   onClick={() => setMcpInstallConfirm(selectedMcpInfo)}
                   disabled={installed || installing}
-                  title={installed ? '已安装' : '安装'}
+                  title={installed ? t('market.installed') : t('market.install')}
                   style={sketchyShape2}
                   className={`h-14 px-6 flex items-center gap-2 border-4 border-ink font-black text-lg shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-1 active:shadow-none ${
                     installed
@@ -729,7 +729,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                   }`}
                 >
                   {installing ? <Loader2 size={22} strokeWidth={3} className="animate-spin" /> : installed ? <Check size={22} strokeWidth={3} /> : <Download size={22} strokeWidth={3} />}
-                  <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{installing ? '安装中...' : installed ? '已安装' : '安装'}</span>
+                  <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{installing ? t('market.installing') : installed ? t('market.installed') : t('market.install')}</span>
                 </button>
               </div>
             </div>
@@ -744,7 +744,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
             <div className="absolute -top-4 left-1/4 w-32 h-10 bg-[#bf616a]/50 border-2 border-ink rotate-2 z-50 pointer-events-none" style={sketchyShape1}></div>
 
             <div className="flex justify-between items-center p-5 border-b-4 border-ink/20 shrink-0">
-              <h3 className="text-xl font-black text-ink tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>安装确认</h3>
+              <h3 className="text-xl font-black text-ink tracking-wide" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.installConfirmTitle')}</h3>
               <button onClick={() => setMcpInstallConfirm(null)} className="p-1.5 border-2 border-ink bg-cream text-ink hover:bg-[#bf616a] hover:text-paper transition-all" style={sketchyShape3}>
                 <X size={20} strokeWidth={3} />
               </button>
@@ -752,14 +752,14 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
 
             <div className="p-6 flex flex-col gap-4">
               <p className="font-bold text-ink">
-                即将安装 <span className="font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{mcpInstallConfirm.name}</span>，其配置将合并到 MCP 配置文件中。
+                {t('market.installConfirmPrefix')}<span className="font-black" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{mcpInstallConfirm.name}</span>{t('market.installConfirmSuffix')}
               </p>
               <div className="flex items-start gap-3 bg-[#FDF8F0] border-4 border-ink p-4 shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]" style={sketchyShape3}>
                 <AlertCircle size={22} strokeWidth={2.5} className="text-[#bf616a] shrink-0 mt-0.5" />
                 <p className="text-sm font-bold text-ink/80 leading-relaxed">
-                  注意：部分 MCP Server 需要手动填写认证字段（如将配置中的
+                  {t('market.installConfirmNotePrefix')}
                   <span className="font-mono text-[#bf616a] px-1">{'<your-api-key>'}</span>
-                  替换为你的真实 API Key），否则该 MCP 将无法生效。安装完成后，可在设置中编辑 MCP 配置进行填写。
+                  {t('market.installConfirmNoteSuffix')}
                 </p>
               </div>
             </div>
@@ -770,7 +770,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 style={sketchyShape1}
                 className="px-5 h-12 flex items-center bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all active:translate-y-1 active:shadow-none"
               >
-                取消
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => confirmInstallMcp(mcpInstallConfirm)}
@@ -779,7 +779,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 className={`px-5 h-12 flex items-center gap-2 border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-1 active:shadow-none ${installingMcpName === mcpInstallConfirm.name ? 'bg-[#EBCB8B] text-ink cursor-wait' : 'bg-terracotta text-paper hover:-translate-y-0.5'}`}
               >
                 {installingMcpName === mcpInstallConfirm.name && <Loader2 size={18} strokeWidth={3} className="animate-spin" />}
-                <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{installingMcpName === mcpInstallConfirm.name ? '安装中...' : '确认安装'}</span>
+                <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{installingMcpName === mcpInstallConfirm.name ? t('market.installing') : t('market.confirmInstall')}</span>
               </button>
             </div>
           </div>
@@ -814,7 +814,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                       {installed && (
                         <span className="text-[10px] font-black px-2 py-0.5 bg-[#a3be8c] border-2 border-ink text-ink flex items-center gap-1" style={sketchyShape3}>
                           <Check size={10} strokeWidth={4} />
-                          {installedInfo?.enabled ? '已启用' : '已安装'}
+                          {installedInfo?.enabled ? t('market.enabled') : t('market.installed')}
                         </span>
                       )}
                     </div>
@@ -828,14 +828,14 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh] flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
                   <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
-                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedSensor.description || '（暂无描述）'}</p>
+                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedSensor.description || t('market.noDesc')}</p>
                 </div>
 
                 {envKeys.length > 0 && (
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between items-end">
                       <span className="font-black text-ink tracking-widest text-sm">{t('market.requiredEnv')}</span>
-                      <span className="text-[11px] font-bold text-ink/40">安装后请到配置里填写真实值</span>
+                      <span className="text-[11px] font-bold text-ink/40">{t('market.envFillHint')}</span>
                     </div>
                     <div style={sketchyShape1} className="bg-[#FDF8F0] border-4 border-ink p-4 overflow-x-auto shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)]">
                       <div className="flex flex-col gap-2">
@@ -843,7 +843,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                           <div key={k} className="flex items-start gap-2 min-w-0">
                             <span className="font-mono font-black text-[13px] text-[#bf616a] shrink-0 w-56 truncate" title={k}>{k}</span>
                             <span className="font-mono text-[12px] text-ink/70 min-w-0 break-all">
-                              {(selectedSensor.env?.[k] || '') === '' ? '<必填>' : selectedSensor.env?.[k]}
+                              {(selectedSensor.env?.[k] || '') === '' ? t('market.requiredField') : selectedSensor.env?.[k]}
                             </span>
                           </div>
                         ))}
@@ -858,7 +858,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                   href="https://github.com/PurrPod/sensors"
                   target="_blank"
                   rel="noreferrer"
-                  title="跳转官方仓库"
+                  title={t('market.gotoOfficialRepo')}
                   style={sketchyShape1}
                   className="w-14 h-14 flex items-center justify-center bg-cream text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#a3be8c] hover:text-paper transition-all active:translate-y-1 active:shadow-none"
                 >
@@ -867,7 +867,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 <button
                   onClick={() => handleInstallSensor(selectedSensor)}
                   disabled={installing || installed}
-                  title={installed ? '已安装（配置与代码文件均在本地）' : '下载安装'}
+                  title={installed ? t('market.installedFull') : t('market.downloadInstall')}
                   style={sketchyShape2}
                   className={`h-14 px-6 flex items-center gap-2 border-4 border-ink font-black text-lg shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-1 active:shadow-none ${
                     installed
@@ -879,7 +879,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 >
                   {installing ? <Loader2 size={22} strokeWidth={3} className="animate-spin" /> : installed ? <Check size={22} strokeWidth={3} /> : <Download size={22} strokeWidth={3} />}
                   <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                    {installing ? '安装中...' : installed ? '已安装' : '下载'}
+                    {installing ? t('market.installing') : installed ? t('market.installed') : t('market.download')}
                   </span>
                 </button>
               </div>
@@ -911,7 +911,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                       <span className="text-[10px] font-black px-2 py-0.5 uppercase bg-ink text-paper border-2 border-ink shrink-0" style={sketchyShape3}>Graph</span>
                       {installed && (
                         <span className="text-[10px] font-black px-2 py-0.5 bg-[#a3be8c] border-2 border-ink text-ink flex items-center gap-1" style={sketchyShape1}>
-                          <Check size={10} strokeWidth={4} /> 已安装
+                          <Check size={10} strokeWidth={4} /> {t('market.installed')}
                         </span>
                       )}
                     </div>
@@ -925,12 +925,12 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               <div className="p-6 flex-1 overflow-y-auto max-h-[45vh] flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
                 <span className="font-black text-ink tracking-widest text-sm">{t('market.description')}</span>
-                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedGraph.description || '（暂无描述）'}</p>
+                  <p className="text-[15px] font-bold leading-relaxed text-ink/80 whitespace-pre-wrap break-words">{selectedGraph.description || t('market.noDesc')}</p>
                 </div>
 
                 {selectedGraph.global_schema && Object.keys(selectedGraph.global_schema).length > 0 && (
                   <div className="flex flex-col gap-2">
-                    <span className="font-black text-ink tracking-widest text-sm">INPUT SCHEMA（启动参数）：</span>
+                    <span className="font-black text-ink tracking-widest text-sm">{t('market.inputSchema')}</span>
                     <pre style={sketchyShape3} className="bg-[#FDF8F0] border-4 border-ink p-4 overflow-x-auto text-xs font-mono font-bold shadow-[inset_4px_4px_0px_0px_rgba(26,26,26,0.05)] text-ink">
                       {JSON.stringify(selectedGraph.global_schema, null, 2)}
                     </pre>
@@ -943,7 +943,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                   href="https://github.com/PurrPod/graphs"
                   target="_blank"
                   rel="noreferrer"
-                  title="跳转官方仓库"
+                  title={t('market.gotoOfficialRepo')}
                   style={sketchyShape1}
                   className="w-14 h-14 flex items-center justify-center bg-cream text-ink border-4 border-ink shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-[#b48ead] hover:text-paper transition-all active:translate-y-1 active:shadow-none"
                 >
@@ -952,7 +952,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 <button
                   onClick={() => handleInstallGraph(selectedGraph)}
                   disabled={installing || installed}
-                  title={installed ? '已安装' : '下载安装'}
+                  title={installed ? t('market.installed') : t('market.downloadInstall')}
                   style={sketchyShape2}
                   className={`h-14 px-6 flex items-center gap-2 border-4 border-ink font-black text-lg shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-1 active:shadow-none ${
                     installed
@@ -964,7 +964,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 >
                   {installing ? <Loader2 size={22} strokeWidth={3} className="animate-spin" /> : installed ? <Check size={22} strokeWidth={3} /> : <Download size={22} strokeWidth={3} />}
                   <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>
-                    {installing ? '安装中...' : installed ? '已安装' : '下载'}
+                    {installing ? t('market.installing') : installed ? t('market.installed') : t('market.download')}
                   </span>
                 </button>
               </div>
@@ -992,7 +992,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 <input
                   value={factoryMcpName}
                   onChange={e => setFactoryMcpName(e.target.value)}
-                  placeholder="例如: paper-search-mcp（英文短横线命名）"
+                  placeholder={t('market.mcpNamePh')}
                   className="bg-[#FDF8F0] border-4 border-ink px-4 py-2.5 font-bold text-ink placeholder:text-ink/40 outline-none focus:bg-paper transition-colors"
                   style={sketchyShape3}
                 />
@@ -1002,13 +1002,13 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 <textarea
                   value={factoryGoal}
                   onChange={e => setFactoryGoal(e.target.value)}
-                  placeholder="描述你想要的 MCP 功能：它应该提供哪些工具？解决什么问题？例如：提供一个论文检索 MCP，支持按关键词搜索 arXiv 论文并返回摘要..."
+                  placeholder={t('market.mcpGoalPh')}
                   rows={5}
                   className="bg-[#FDF8F0] border-4 border-ink px-4 py-2.5 font-bold text-ink placeholder:text-ink/40 outline-none focus:bg-paper transition-colors resize-none"
                   style={sketchyShape3}
                 />
               </div>
-              <p className="text-xs font-bold text-ink/40">确认后将为 Agent 分配一个 MCP 进化工厂沙盒，并带着该目标从零构建。</p>
+              <p className="text-xs font-bold text-ink/40">{t('market.factoryHint')}</p>
             </div>
 
             <div className="p-5 pt-2 border-t-4 border-ink/10 flex justify-end gap-4 shrink-0">
@@ -1017,7 +1017,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 style={sketchyShape1}
                 className="px-5 h-12 flex items-center bg-cream text-ink border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all active:translate-y-1 active:shadow-none"
               >
-                取消
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleBuildMcpFromScratch}
@@ -1026,7 +1026,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                 className={`px-5 h-12 flex items-center gap-2 border-4 border-ink font-black shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-1 active:shadow-none ${isBuildingMcp ? 'bg-[#EBCB8B] text-ink cursor-wait' : 'bg-terracotta text-paper hover:-translate-y-0.5'}`}
               >
                 {isBuildingMcp && <Loader2 size={18} strokeWidth={3} className="animate-spin" />}
-                <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{isBuildingMcp ? '分配中...' : '开工！'}</span>
+                <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{isBuildingMcp ? t('market.allocating') : t('market.startBuild')}</span>
               </button>
             </div>
           </div>
@@ -1101,7 +1101,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
           <div className="flex items-center gap-3 min-w-0">
             {/* 侧栏隐藏后，在标题栏提供返回按钮 */}
             {!showSidebar && (
-              <button onClick={onBack} title="返回" style={sketchyShape2} className="p-2 bg-cream border-2 border-ink text-ink hover:bg-sand transition-all shrink-0">
+              <button onClick={onBack} title={t('market.back')} style={sketchyShape2} className="p-2 bg-cream border-2 border-ink text-ink hover:bg-sand transition-all shrink-0">
                 <ArrowLeft size={20} strokeWidth={3} />
               </button>
             )}
@@ -1155,13 +1155,13 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                     onClick={() => { setLayoutMode('repo'); setSelectedRepo(null); }}
                     className={`flex items-center gap-2 px-4 py-2.5 font-black text-sm transition-all ${layoutMode === 'repo' ? 'bg-terracotta text-paper' : 'text-ink hover:bg-sand'}`}
                   >
-                    <FolderGit2 size={16} strokeWidth={3} className="shrink-0" /> 按仓库
+                    <FolderGit2 size={16} strokeWidth={3} className="shrink-0" /> {t('market.byRepo')}
                   </button>
                   <button
                     onClick={() => { setLayoutMode('skill'); setSelectedRepo(null); }}
                     className={`flex items-center gap-2 px-4 py-2.5 font-black text-sm border-l-4 border-ink transition-all ${layoutMode === 'skill' ? 'bg-terracotta text-paper' : 'text-ink hover:bg-sand'}`}
                   >
-                    <LayoutGrid size={16} strokeWidth={3} className="shrink-0" /> 按技能
+                    <LayoutGrid size={16} strokeWidth={3} className="shrink-0" /> {t('market.bySkill')}
                   </button>
                 </div>
               </div>
@@ -1169,7 +1169,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               {isFetchingSkill && Object.keys(skillData).length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-terracotta" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.fetching')}</p></div>
               ) : filteredSkills.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{searchQuery ? 'No Match.' : 'Registry is empty.'}</p></div>
+                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{searchQuery ? t('market.noMatch') : t('market.registryEmpty')}</p></div>
               ) : layoutMode === 'repo' && !selectedRepo ? (
                 /* ---------- 排版一：按仓库展示 ---------- */
                 <div className={`grid ${cardCols} ${isNarrow ? 'gap-4' : 'gap-6'} pb-8`}>
@@ -1187,7 +1187,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                           <h3 className="text-xl font-black truncate text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }} title={repoDisplayName(repo)}>{repoDisplayName(repo)}</h3>
                           <p className="text-sm font-bold text-ink/60 mt-2 flex items-center gap-1.5">
                             <Zap size={14} strokeWidth={3} className="text-terracotta shrink-0" />
-                            {skills.length} 个技能
+                            {skills.length}{t('market.skillCountSuffix')}
                           </p>
                           <p className="text-xs font-bold text-ink/40 truncate mt-1">by {skills[0].author || 'Unknown'}</p>
                         </div>
@@ -1203,7 +1203,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                     style={sketchyShape1}
                     className="w-fit flex items-center gap-2 px-4 py-2 bg-cream border-4 border-ink text-ink font-black text-sm shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-sand transition-all active:translate-y-1 active:shadow-none -rotate-1"
                   >
-                    <ChevronLeft size={18} strokeWidth={3} /> 返回仓库列表
+                    <ChevronLeft size={18} strokeWidth={3} /> {t('market.backToRepoList')}
                   </button>
                   {(() => {
                     const repoSkills = repoGroups.find(([r]) => r === selectedRepo)?.[1] ?? [];
@@ -1216,7 +1216,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                         <button
                           onClick={() => handleInstallAllInRepo(repoSkills)}
                           disabled={isInstallingAll || allInstalled}
-                          title={allInstalled ? '已全部安装' : '一键安装本仓库全部技能'}
+                          title={allInstalled ? t('market.allInstalled') : t('market.installAllTitle')}
                           style={sketchyShape2}
                           className={`ml-auto h-11 px-5 flex items-center gap-2 border-4 border-ink font-black text-sm shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] transition-all active:translate-y-1 active:shadow-none shrink-0 ${
                             allInstalled
@@ -1227,7 +1227,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                           }`}
                         >
                           {isInstallingAll ? <Loader2 size={18} strokeWidth={3} className="animate-spin" /> : allInstalled ? <Check size={18} strokeWidth={3} /> : <Download size={18} strokeWidth={3} />}
-                          {!isNarrow && <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{isInstallingAll ? '安装中...' : allInstalled ? '已全部安装' : 'INSTALL ALL'}</span>}
+                          {!isNarrow && <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>{isInstallingAll ? t('market.installing') : allInstalled ? t('market.allInstalled') : t('market.installAllBtn')}</span>}
                         </button>
                       </div>
                     );
@@ -1244,7 +1244,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                           <SkillIcon skill={s} size={36} />
                           <h3 className="text-lg font-black truncate text-ink flex-1 min-w-0 text-left" style={{ fontFamily: '"Comic Sans MS", cursive' }} title={s.name}>{s.name}</h3>
                         </div>
-                        <p className="text-sm font-bold text-ink/70 leading-relaxed line-clamp-2">{s.desc || '（暂无描述）'}</p>
+                        <p className="text-sm font-bold text-ink/70 leading-relaxed line-clamp-2">{s.desc || t('market.noDesc')}</p>
                       </button>
                     ))}
                   </div>
@@ -1293,7 +1293,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               {isFetchingMcp && mcpData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-[#EBCB8B]" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.fetching')}</p></div>
               ) : filteredMcps.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{mcpSearchQuery ? 'No Match.' : 'Registry is empty.'}</p></div>
+                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{mcpSearchQuery ? t('market.noMatch') : t('market.registryEmpty')}</p></div>
               ) : (
                 <div className={`grid ${cardCols} ${isNarrow ? 'gap-4' : 'gap-8'}`}>
                   {filteredMcps.map((mcp, idx) => {
@@ -1310,12 +1310,12 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                           <h3 className="text-xl font-black truncate text-ink flex-1 min-w-0" style={{ fontFamily: '"Comic Sans MS", cursive' }} title={mcp.name}>{mcp.name}</h3>
                           {installed && (
                             <span className="flex items-center gap-1 text-[10px] font-black px-2 py-1 bg-[#a3be8c] text-ink border-2 border-ink shrink-0" style={sketchyShape3}>
-                              <Check size={10} strokeWidth={4} /> 已安装
+                              <Check size={10} strokeWidth={4} /> {t('market.installed')}
                             </span>
                           )}
                         </div>
 
-                        <p className="text-sm font-bold text-ink/70 leading-relaxed line-clamp-3 flex-1">{mcp.desc || '（暂无描述）'}</p>
+                        <p className="text-sm font-bold text-ink/70 leading-relaxed line-clamp-3 flex-1">{mcp.desc || t('market.noDesc')}</p>
 
                         <div className="flex items-center justify-between mt-1 pt-3 border-t-2 border-ink/10 border-dashed gap-2">
                           <p className="text-xs font-bold text-ink/40 truncate">{Object.keys(mcp.mcpServers || {}).join(', ')}</p>
@@ -1362,7 +1362,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               {isFetchingSensor && sensorData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-[#a3be8c]" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.fetching')}</p></div>
               ) : filteredSensors.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{sensorSearchQuery ? 'No Match.' : 'Registry is empty.'}</p></div>
+                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{sensorSearchQuery ? t('market.noMatch') : t('market.registryEmpty')}</p></div>
               ) : (
                 <div className={`grid ${cardCols} ${isNarrow ? 'gap-4' : 'gap-8'} pb-8`}>
                   {filteredSensors.map((s, idx) => {
@@ -1385,7 +1385,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                           {installed && (
                             <span className="flex items-center gap-1 text-[10px] font-black px-2 py-1 bg-[#a3be8c] text-ink border-2 border-ink shrink-0" style={sketchyShape3}>
                               <Check size={10} strokeWidth={4} />
-                              {installedInfo?.enabled ? '已启用' : '已安装'}
+                              {installedInfo?.enabled ? t('market.enabled') : t('market.installed')}
                             </span>
                           )}
                           {installing && (
@@ -1393,7 +1393,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                           )}
                         </div>
 
-                        <p className="text-sm font-bold text-ink/70 leading-relaxed line-clamp-3 flex-1">{s.description || '（暂无描述）'}</p>
+                        <p className="text-sm font-bold text-ink/70 leading-relaxed line-clamp-3 flex-1">{s.description || t('market.noDesc')}</p>
 
                         <div className="flex items-center justify-between mt-1 pt-3 border-t-2 border-ink/10 border-dashed gap-2">
                           <div className="flex items-center gap-1 flex-wrap min-w-0">
@@ -1439,7 +1439,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
               {isFetchingGraph && graphData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50"><RefreshCw className="animate-spin text-[#b48ead]" size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.fetching')}</p></div>
               ) : filteredGraphs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{graphSearchQuery ? 'No Match.' : 'Registry is empty.'}</p></div>
+                <div className="flex flex-col items-center justify-center h-[40vh] gap-4 opacity-50 text-ink"><AlertCircle size={64} strokeWidth={2} /><p className="text-2xl font-black tracking-widest" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{graphSearchQuery ? t('market.noMatch') : t('market.registryEmpty')}</p></div>
               ) : (
                 <div className={`grid ${cardCols} ${isNarrow ? 'gap-4' : 'gap-8'} pb-8`}>
                   {filteredGraphs.map((g, idx) => {
@@ -1460,7 +1460,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                           <h3 className="text-xl font-black truncate text-ink flex-1 min-w-0" style={{ fontFamily: '"Comic Sans MS", cursive' }} title={g.name}>{g.name}</h3>
                           {installed && (
                             <span className="flex items-center gap-1 text-[10px] font-black px-2 py-1 bg-[#a3be8c] text-ink border-2 border-ink shrink-0" style={sketchyShape3}>
-                              <Check size={10} strokeWidth={4} /> 已安装
+                              <Check size={10} strokeWidth={4} /> {t('market.installed')}
                             </span>
                           )}
                           {installing && (
@@ -1468,7 +1468,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                           )}
                         </div>
 
-                        <p className="text-sm font-bold text-ink/70 leading-relaxed line-clamp-3 flex-1">{g.description || '（暂无描述）'}</p>
+                        <p className="text-sm font-bold text-ink/70 leading-relaxed line-clamp-3 flex-1">{g.description || t('market.noDesc')}</p>
 
                         <div className="flex items-center justify-between mt-1 pt-3 border-t-2 border-ink/10 border-dashed gap-2">
                           <p className="text-xs font-bold text-ink/40 truncate">
@@ -1492,7 +1492,7 @@ export default function MarketPage({ onBack, initialTab }: { onBack: () => void;
                   <Repeat size={52} strokeWidth={2.5} className="text-paper" />
                 </div>
                 <h3 className="text-4xl font-black tracking-widest text-ink" style={{ fontFamily: '"Comic Sans MS", cursive' }}>{t('market.comingSoon')}</h3>
-                <p className="text-sm font-bold text-ink/60 leading-relaxed">Agent Loop 市场即将上线，敬请期待。</p>
+                <p className="text-sm font-bold text-ink/60 leading-relaxed">{t('market.loopSoon')}</p>
               </div>
             </div>
           )}
