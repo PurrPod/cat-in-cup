@@ -124,7 +124,9 @@ def _check_frontend(file_path: str) -> str:
     try:
         result = _run_tool(["biome", "check", file_path])
         if result.returncode != 0:
-            error_output = _strip_ansi(result.stderr).strip() or _strip_ansi(result.stdout).strip()
+            error_output = (
+                _strip_ansi(result.stderr).strip() or _strip_ansi(result.stdout).strip()
+            )
             return f"⚠️ Biome (前端) 发现问题:\n{error_output}"
         return ""  # 成功时返回空
     except FileNotFoundError:
